@@ -42,7 +42,13 @@ export default function LoginPage() {
         setIsCadastro(false);
       } else {
         localStorage.setItem("user", email);
-        router.push("/");
+
+        // AQUI DEFINE PARA ONDE VAI
+        if (email.includes("@toyota.com")) {
+          router.push("/Vendedor/Dashbord");
+        } else {
+          router.push("/");
+        }
       }
     } catch (err) {
       setErro("Erro ao conectar com o servidor");
@@ -53,9 +59,11 @@ export default function LoginPage() {
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
+
       <div className="bg-white p-8 rounded-2xl shadow-md w-96">
 
         <div className="flex flex-col items-center mb-6">
+
           <div className="bg-red-600 p-4 rounded-xl mb-4">
             <Car className="text-white w-8 h-8" />
           </div>
@@ -63,11 +71,13 @@ export default function LoginPage() {
           <h1 className="text-2xl font-bold text-gray-900">
             Toyota Experience
           </h1>
+
           <p className="text-gray-600 text-sm">
             {isCadastro
               ? "Crie sua conta"
               : "Acompanhe seu veículo em tempo real"}
           </p>
+
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -77,7 +87,7 @@ export default function LoginPage() {
             <input
               type="email"
               placeholder="seu@email.com"
-              className="w-full mt-1 p-3 rounded-lg border bg-gray-50 text-gray-900 placeholder:text-gray-600 focus:outline-none focus:ring-2 focus:ring-red-500"
+              className="w-full mt-1 p-3 rounded-lg border bg-gray-50 text-gray-900 focus:ring-2 focus:ring-red-500"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -89,7 +99,7 @@ export default function LoginPage() {
             <input
               type="password"
               placeholder="••••••••"
-              className="w-full mt-1 p-3 rounded-lg border bg-gray-50 text-gray-900 placeholder:text-gray-600 focus:outline-none focus:ring-2 focus:ring-red-500"
+              className="w-full mt-1 p-3 rounded-lg border bg-gray-50 text-gray-900 focus:ring-2 focus:ring-red-500"
               value={senha}
               onChange={(e) => setSenha(e.target.value)}
               required
@@ -111,6 +121,7 @@ export default function LoginPage() {
               ? "Criar Conta"
               : "Entrar"}
           </button>
+
         </form>
 
         <p
@@ -126,6 +137,7 @@ export default function LoginPage() {
         </p>
 
       </div>
+
     </div>
   );
 }
