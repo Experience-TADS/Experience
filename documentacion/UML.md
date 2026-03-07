@@ -16,13 +16,13 @@ Responsável por gerenciar os usuários, autenticação e informações de conta
     classDiagram
     namespace Identidade {
         class Usuario {
-             +int id
-             +string nome
-             +string email
-             +string senhaHash
-             +string salt
-             +DateTime dataNascimento
-             }   
+            +int id
+            +string nome
+            +string email
+            +string senhaHash
+            +string salt
+            +DateTime dataNascimento
+            }   
 
         class PessoaFisica {
             +string cpf
