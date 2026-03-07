@@ -2,6 +2,7 @@ package com.senai.experience.controllers;
 
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.senai.experience.entities.Endereco;
 import com.senai.experience.services.EnderecoService;
@@ -14,28 +15,36 @@ public class EnderecoController {
     private EnderecoService enderecoService;
 
     @GetMapping
-    public List<Endereco> getAllEnderecos() {
-        return enderecoService.findAll();
+    public ResponseEntity<List<Endereco>> getAllEnderecos() {
+        return ResponseEntity.ok(enderecoService.findAll());
     }
 
     @GetMapping("/{id}")
-    public Endereco getEnderecoById(@PathVariable Long id) {
-        return enderecoService.findById(id);
+    public ResponseEntity<Endereco> getEnderecoById(@PathVariable Long id) {
+        Endereco endereco = enderecoService.findById(id);
+        if (endereco != null) {
+            return ResponseEntity.ok(endereco);
+        }
+        return ResponseEntity.notFound().build();
     }
 
     @PostMapping
-    public Endereco createEndereco(@RequestBody Endereco endereco) {
-        return enderecoService.save(endereco);
+    public ResponseEntity<Endereco> createEndereco(@RequestBody Endereco endereco) {
+        return ResponseEntity.ok(enderecoService.save(endereco));
     }
 
     @PutMapping("/{id}")
-    public Endereco updateEndereco(@PathVariable Long id, @RequestBody Endereco endereco) {
-        endereco.setId(id);
-        return enderecoService.save(endereco);
+    public ResponseEntity<Endereco> updateEndereco(@PathVariable Long id, @RequestBody Endereco endereco) {
+        Endereco atualizado = enderecoService.update(id, endereco);
+        if (atualizado != null) {
+            return ResponseEntity.ok(atualizado);
+        }
+        return ResponseEntity.notFound().build();
     }
 
     @DeleteMapping("/{id}")
-    public void deleteEndereco(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteEndereco(@PathVariable Long id) {
         enderecoService.delete(id);
+        return ResponseEntity.noContent().build();
     }
 }

@@ -24,6 +24,15 @@ public class TelefoneService {
         return telefoneRepository.save(telefone);
     }
 
+    public Telefone update(Long id, Telefone telefone) {
+        Telefone existing = findById(id);
+        if (existing != null) {
+            existing.setNumero(telefone.getNumero());
+            return telefoneRepository.save(existing);
+        }
+        return null;
+    }
+
     public void delete(Long id) {
         telefoneRepository.deleteById(id);
     }

@@ -2,6 +2,7 @@ package com.senai.experience.controllers;
 
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.senai.experience.entities.Telefone;
 import com.senai.experience.services.TelefoneService;
@@ -14,23 +15,38 @@ public class TelefoneController {
     private TelefoneService telefoneService;
 
     @GetMapping
-    public List<Telefone> getAllTelefones() {
-        return telefoneService.findAll();
+    public ResponseEntity<List<Telefone>> getAllTelefones() {
+        return ResponseEntity.ok(telefoneService.findAll());
     }
 
     @GetMapping("/{id}")
-    public Telefone getTelefoneById(@PathVariable Long id) {
-        return telefoneService.findById(id);
+    public ResponseEntity<Telefone> getTelefoneById(@PathVariable Long id) {
+        Telefone telefone = telefoneService.findById(id);
+        if (telefone != null) {
+            return ResponseEntity.ok(telefone);
+        }
+        return ResponseEntity.notFound().build();
     }
 
     @PostMapping
-    public Telefone createTelefone(@RequestBody Telefone telefone) {
-        return telefoneService.save(telefone);
+    public ResponseEntity<Telefone> createTelefone(@RequestBody Telefone telefone) {
+        Telefone novoTelefone = telefoneService.save(telefone);
+        return ResponseEntity.ok(novoTelefone);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Telefone> updateTelefone(@PathVariable Long id, @RequestBody Telefone telefone) {
+        Telefone atualizado = telefoneService.update(id, telefone);
+        if (atualizado != null) {
+            return ResponseEntity.ok(atualizado);
+        }
+        return ResponseEntity.notFound().build();
     }
 
     @DeleteMapping("/{id}")
-    public void deleteTelefone(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteTelefone(@PathVariable Long id) {
         telefoneService.delete(id);
+        return ResponseEntity.noContent().build();
     }
 }
 

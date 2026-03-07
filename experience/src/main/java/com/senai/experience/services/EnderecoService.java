@@ -12,7 +12,7 @@ public class EnderecoService {
     @Autowired
     private EnderecoRepository enderecoRepository;
 
-    public List<Endereco> findAll() {
+    public List<Endereco> findAll() { 
         return enderecoRepository.findAll();
     }
 
@@ -22,6 +22,20 @@ public class EnderecoService {
 
     public Endereco save(Endereco endereco) {
         return enderecoRepository.save(endereco);
+    }
+
+    public Endereco update(Long id, Endereco endereco) {
+        Endereco existing = findById(id);
+        if (existing != null) {
+            existing.setCep(endereco.getCep());
+            existing.setLogradouro(endereco.getLogradouro());
+            existing.setNumero(endereco.getNumero());
+            existing.setBairro(endereco.getBairro());
+            existing.setCidade(endereco.getCidade());
+            existing.setEstado(endereco.getEstado());
+            return enderecoRepository.save(existing);
+        }
+        return null;
     }
 
     public void delete(Long id) {
