@@ -3,19 +3,25 @@ package com.senai.experience.entities;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import jakarta.persistence.Column;
-import lombok.Data;
+import jakarta.validation.constraints.NotBlank;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.EqualsAndHashCode;
+import org.hibernate.validator.constraints.br.CPF;
 
 import java.time.LocalDate;
 
 @Entity
 @Table(name = "pessoa_fisica")
-@Data
+@Getter
+@Setter
 @EqualsAndHashCode(callSuper = true)
 public class PessoaFisica extends Usuario{
 
 
-    @Column(nullable = false, unique = true)
+    @CPF(message = "O formato do CPF é inválido.")
+    @NotBlank(message = "O CPF não pode estar em branco.")
+    @Column(nullable = false, unique = true, length = 11)
     private String cpf;
 
     public PessoaFisica() {
