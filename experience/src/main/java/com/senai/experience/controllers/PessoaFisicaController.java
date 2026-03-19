@@ -1,7 +1,7 @@
 package com.senai.experience.controllers;
 import com.senai.experience.entities.PessoaFisica;
 import com.senai.experience.services.PessoaFisicaService;
-import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
