@@ -24,11 +24,11 @@ Responsável por gerenciar os usuários, autenticação e informações de conta
             +DateTime dataNascimento
             }   
 
-        class PessoaFisica {
-            +string cpf
-            +date dataNasc
-            +validarCPF()
-        }
+            class PessoaFisica {
+                +string cpf
+                +date dataNasc
+                +validarCPF()
+            }
 
         class PessoaJuridica {
             +string cnpj
@@ -105,6 +105,12 @@ class MetodoPagamento {
     Transferencia
 }
 
+class AuthUser{
+     <<enumeration>>
+     tipoNatureza
+     tipoUser
+}
+
 }
 
 MetodoPagamento "1" -- "1" Pedido
@@ -116,6 +122,8 @@ Usuario <|-- PessoaFisica
 Usuario <|-- PessoaJuridica
 Usuario "1" -- "n" Endereco
 Usuario "1" -- "n" Contato
+Usuario "1" -- "1" AuthUser
+Usuario <|-- AuthUser
 
 ```
 
