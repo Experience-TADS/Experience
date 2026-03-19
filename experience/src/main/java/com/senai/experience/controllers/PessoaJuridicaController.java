@@ -7,11 +7,11 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/pessoajuridica")
-public class PessoaJuridicaControler{
+@RequestMapping("/api/pessoaJuridica")
+public class PessoaJuridicaController{
     private final PessoaJuridicaService service;
 
-    public PessoaJuridicaControler(PessoaJuridicaService service) {
+    public PessoaJuridicaController(PessoaJuridicaService service) {
         this.service = service;
     }
 

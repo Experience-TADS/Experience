@@ -33,8 +33,8 @@ public class PessoaJuridica extends Usuario {
     }
 
     // Construtor ajustado para corresponder à superclasse Usuario
-    public PessoaJuridica(String nome, String email, LocalDate dataNascimento, String cnpj, String razaoSocial) {
-        super(nome, email, dataNascimento);
+    public PessoaJuridica(String nome, String email, String senhaHash, LocalDate dataNascimento, String cnpj, String razaoSocial) {
+        super(nome, email, senhaHash, dataNascimento);
         this.cnpj = cnpj;
         this.razaoSocial = razaoSocial;
     }

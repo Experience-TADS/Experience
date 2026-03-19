@@ -22,6 +22,12 @@ public class Telefone{
     @Column(length = 11, nullable = false) // Ex: 11987654321
     private String numero;
 
+    // Getters e Setters explícitos para garantir funcionamento sem depender apenas do Lombok
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    public String getNumero() { return numero; }
+    public void setNumero(String numero) { this.numero = numero; }
+
     /**
      * Formata o número de telefone para exibição.
      * Ex: (11) 98765-4321 ou (11) 8765-4321

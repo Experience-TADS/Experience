@@ -28,8 +28,8 @@ public class PessoaFisica extends Usuario{
         super();
     }
 
-    public PessoaFisica(String nome, String email, String cpf, LocalDate dataNascimento) {
-        super(nome, email, dataNascimento);
+    public PessoaFisica(String nome, String email, String senhaHash, String cpf, LocalDate dataNascimento) {
+        super(nome, email, senhaHash, dataNascimento);
         this.cpf = cpf;
     }
 }
