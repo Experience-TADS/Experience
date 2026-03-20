@@ -30,12 +30,12 @@ const data = [
   { name: "Mai", vendas: 1200 },
 ];
 
-export default function DashboardVendedor() {
+export default function Dashbord() {
   return (
     <div className="flex bg-gray-100 min-h-screen">
 
       {/* SIDEBAR */}
-      <div className="w-64 bg-white border-r flex flex-col justify-between">
+      <div className="hidden md:flex w-64 bg-white border-r flex-col justify-between">
 
         <div>
 
@@ -53,7 +53,7 @@ export default function DashboardVendedor() {
           <nav className="flex flex-col gap-2 px-4">
 
             <Link
-              href="/Vendedor/Dashboard"
+              href="/Vendedor/Dashbord"
               className="flex items-center gap-3 bg-red-600 text-white p-3 rounded-xl"
             >
               <LayoutDashboard size={18} />
@@ -102,15 +102,15 @@ export default function DashboardVendedor() {
 
 
       {/* CONTEÚDO */}
-      <div className="flex-1 p-8">
+      <div className="flex-1 p-5 md:p-8">
 
-        <h1 className="text-2xl font-bold text-gray-900 mb-6">
+        <h1 className="text-xl md:text-2xl font-bold text-gray-900 mb-6">
           Dashboard do Vendedor
         </h1>
 
 
         {/* CARDS */}
-        <div className="grid grid-cols-4 gap-6 mb-10">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
 
           <div className="bg-white p-5 rounded-xl shadow-sm hover:shadow-md hover:-translate-y-1 transition">
 
@@ -175,13 +175,13 @@ export default function DashboardVendedor() {
 
 
         {/* GRÁFICO */}
-        <div className="bg-white p-6 rounded-xl shadow-sm">
+        <div className="bg-white p-4 md:p-6 rounded-xl shadow-sm">
 
           <h2 className="text-lg font-semibold text-gray-900 mb-4">
             Vendas Mensais
           </h2>
 
-          <ResponsiveContainer width="100%" height={320}>
+          <ResponsiveContainer width="100%" height={300}>
 
             <LineChart data={data}>
 

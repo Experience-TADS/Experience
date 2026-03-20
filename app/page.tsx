@@ -27,8 +27,7 @@ export default function Home() {
     },
     {
       image: ["/tech1.jpeg"],
-      title:
-        "TechMob 4.0 completa um ano formando jovens para a Indústria 4.0",
+      title: "TechMob 4.0 completa um ano formando jovens para a Indústria 4.0",
       summary:
         "Programa completa 12 meses unindo formação técnica e prática industrial.",
       content:
@@ -37,41 +36,49 @@ export default function Home() {
     {
       image: ["/10anos.jpeg"],
       title: "Toyota amplia confiança no cliente com Garantia de até 10 anos",
-      summary: "A Toyota reforça seu compromisso com qualidade e durabilidade ao oferecer garantia de até 10 anos para seus veículos no Brasil.",
+      summary:
+        "A Toyota reforça seu compromisso com qualidade e durabilidade ao oferecer garantia de até 10 anos para seus veículos no Brasil.",
       content:
-        "Todo veículo zero km da marca já sai de fábrica com 5 anos de garantia. Após esse período, o cliente pode estender a cobertura por mais 5 anos adicionais, totalizando até 10 anos de proteção, desde que realize as revisões periódicas em uma concessionária autorizada Toyota.",
+        "Todo veículo zero km da marca já sai de fábrica com 5 anos de garantia. Após esse período, o cliente pode estender a cobertura por mais 5 anos adicionais, totalizando até 10 anos de proteção.",
     },
     {
       image: ["/novaFa.jpeg"],
       title: "Toyota anuncia nova fábrica no Brasil em Sorocaba",
-      summary: "Expansão em Sorocaba marca nova fase de crescimento industrial da montadora.",
+      summary:
+        "Expansão em Sorocaba marca nova fase de crescimento industrial da montadora.",
       content:
-        "A Toyota confirmou a construção de uma nova fábrica no Brasil, como parte de um amplo plano de investimentos de cerca de R$ 11 bilhões até 2030 destinado a expandir sua capacidade de produção e fortalecer sua presença no país — especialmente na linha de veículos híbridos flex e tecnologias mais sustentáveis.",
+        "A Toyota confirmou a construção de uma nova fábrica no Brasil, como parte de um plano de investimentos de R$ 11 bilhões até 2030 para expandir a produção e fortalecer a presença no país.",
     },
     {
       image: ["/Carro-dos-Sonhos.jpg"],
-      title: "Toyota do Brasil abre inscrições para o concurso artístico Carro dos Sonhos 2026",
-      summary: "Iniciativa estimula a criatividade e a imaginação de crianças e adolescentes por meio de desenhos feitos à mão.",
+      title: "Toyota abre inscrições para o concurso Carro dos Sonhos 2026",
+      summary:
+        "Iniciativa estimula a criatividade de crianças e adolescentes por meio de desenhos.",
       content:
-        "A Toyota do Brasil lançou a 19ª edição do concurso artístico Carro dos Sonhos, que convida crianças e adolescentes de 6 a 16 anos a desenharem o carro dos seus sonhos. O concurso é uma oportunidade para os jovens expressarem sua criatividade e imaginação, incentivando o interesse pela indústria automotiva e pela inovação desde cedo.",
+        "O concurso convida jovens de 6 a 16 anos a desenharem o carro dos seus sonhos, incentivando criatividade e interesse pela indústria automotiva.",
     },
     {
       image: ["/ararinha.jpeg"],
-      title: "Fundação Toyota do Brasil destaca o Projeto Arara Azul",
-      summary: "Iniciativa de conservação ambiental protege a arara-azul e fortalece o equilíbrio do Pantanal brasileiro.",
+      title: "Fundação Toyota destaca o Projeto Arara Azul",
+      summary:
+        "Projeto protege a arara-azul e fortalece o equilíbrio do Pantanal.",
       content:
-        "O Projeto Arara Azul, idealizado pela bióloga Neiva Guedes em 1989, busca promover a conservação das araras-azuis e da biodiversidade do Pantanal. Desde o começo, a iniciativa já contava com o apoio da Toyota e, a partir de 2009, passou a ser patrocinada pela Fundação Toyota do Brasil.",
-    }
+        "Idealizado pela bióloga Neiva Guedes em 1989, o projeto promove a conservação da arara-azul e da biodiversidade do Pantanal com apoio da Toyota.",
+    },
   ];
 
   return (
     <div className="flex bg-gray-100 min-h-screen">
+
       <Sidebar />
 
-      <div className="flex-1 p-10">
+      <div className="flex-1 p-5 md:p-10">
+
         <Header />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* GRID DE NOTÍCIAS */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+
           {newsList.map((news, index) => (
             <CardCar
               key={index}
@@ -81,15 +88,19 @@ export default function Home() {
               onClick={() => setSelectedNews(news)}
             />
           ))}
+
         </div>
+
       </div>
 
+      {/* MODAL */}
       {selectedNews && (
         <NewsModal
           news={selectedNews}
           onClose={() => setSelectedNews(null)}
         />
       )}
+
     </div>
   );
 }

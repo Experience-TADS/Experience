@@ -100,10 +100,10 @@ export default function Clientes() {
 
   return (
 
-    <div className="flex min-h-screen bg-gray-100">
+<div className="flex min-h-screen bg-gray-100">
 
 {/* SIDEBAR */}
-<div className="w-64 bg-white border-r flex flex-col justify-between">
+<div className="hidden md:flex w-64 bg-white border-r flex-col justify-between">
 
   <div>
 
@@ -121,7 +121,7 @@ export default function Clientes() {
     <nav className="flex flex-col gap-2 px-4">
 
       <Link
-        href="/Vendedor/Dashboard"
+        href="/Vendedor/Dashbord"
         className="flex items-center gap-3 text-gray-600 p-3 rounded-xl hover:bg-gray-100"
       >
         <LayoutDashboard size={18} />
@@ -171,9 +171,9 @@ export default function Clientes() {
 
 {/* CONTEÚDO */}
 
-<div className="flex-1 p-10">
+<div className="flex-1 p-5 md:p-10">
 
-<h1 className="text-3xl font-bold text-gray-900">
+<h1 className="text-2xl md:text-3xl font-bold text-gray-900">
 Clientes
 </h1>
 
@@ -192,7 +192,9 @@ Cadastrar Cliente
 
 
 
-<div className="mt-8 bg-white rounded-2xl shadow border overflow-hidden">
+<div className="mt-8 bg-white rounded-2xl shadow border overflow-x-auto">
+
+<div className="min-w-[700px]">
 
 <div className="grid grid-cols-5 px-8 py-4 text-gray-600 text-sm border-b font-semibold">
 <span>Nome</span>
@@ -240,6 +242,8 @@ Editar
 
 </div>
 
+</div>
+
 
 
 {/* MODAL CADASTRAR */}
@@ -248,7 +252,7 @@ Editar
 
 <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
 
-<div className="bg-white w-[420px] rounded-2xl p-6 shadow-xl">
+<div className="bg-white w-full max-w-md mx-4 rounded-2xl p-6 shadow-xl">
 
 <h2 className="text-xl font-bold text-gray-900 mb-4">
 Cadastrar Cliente
@@ -317,7 +321,7 @@ Cadastrar
 
 <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
 
-<div className="bg-white w-[450px] rounded-2xl shadow-2xl p-8">
+<div className="bg-white w-full max-w-lg mx-4 rounded-2xl shadow-2xl p-8">
 
 <h2 className="text-xl font-bold text-gray-900 mb-6">
 Editar Cliente
@@ -375,5 +379,6 @@ Salvar
 )}
 
 </div>
+
   );
 }

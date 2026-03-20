@@ -43,7 +43,6 @@ export default function LoginPage() {
       } else {
         localStorage.setItem("user", email);
 
-        // AQUI DEFINE PARA ONDE VAI
         if (email.includes("@toyota.com")) {
           router.push("/Vendedor/Dashbord");
         } else {
@@ -58,21 +57,21 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
+    <div className="flex items-center justify-center min-h-screen bg-gray-100 px-4">
 
-      <div className="bg-white p-8 rounded-2xl shadow-md w-96">
+      <div className="bg-white p-6 sm:p-8 rounded-2xl shadow-md w-full max-w-md">
 
         <div className="flex flex-col items-center mb-6">
 
-          <div className="bg-red-600 p-4 rounded-xl mb-4">
-            <Car className="text-white w-8 h-8" />
+          <div className="bg-red-600 p-3 sm:p-4 rounded-xl mb-4">
+            <Car className="text-white w-7 h-7 sm:w-8 sm:h-8" />
           </div>
 
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
             Toyota Experience
           </h1>
 
-          <p className="text-gray-600 text-sm">
+          <p className="text-gray-600 text-xs sm:text-sm text-center">
             {isCadastro
               ? "Crie sua conta"
               : "Acompanhe seu veículo em tempo real"}

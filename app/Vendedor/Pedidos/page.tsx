@@ -47,30 +47,6 @@ const pedidosData = [
     status: "Em transporte",
     data: "03/03/2026",
   },
-  {
-    id: "#4817",
-    cliente: "Paola Oliveira",
-    email: "paola2@gmail.com",
-    veiculo: "Yaris Cross",
-    status: "Em transporte",
-    data: "03/03/2026",
-  },
-  {
-    id: "#4816",
-    cliente: "Vitor Fogaça",
-    email: "vitor@gmail.com",
-    veiculo: "Yaris Sedan",
-    status: "Finalizado",
-    data: "03/03/2026",
-  },
-  {
-    id: "#4815",
-    cliente: "Sara Rosa",
-    email: "sara@gmail.com",
-    veiculo: "Yaris Cross",
-    status: "Finalizado",
-    data: "03/03/2026",
-  },
 ];
 
 export default function Pedidos() {
@@ -106,7 +82,7 @@ export default function Pedidos() {
     <div className="flex min-h-screen bg-gray-100">
 
       {/* SIDEBAR */}
-      <div className="w-64 bg-white border-r flex flex-col justify-between">
+      <div className="hidden md:flex w-64 bg-white border-r flex-col justify-between">
 
         <div>
 
@@ -124,7 +100,7 @@ export default function Pedidos() {
           <nav className="flex flex-col gap-2 px-4">
 
             <Link
-              href="/Vendedor/Dashbord"
+              href="/Vendedor/Dashboard"
               className="flex items-center gap-3 text-gray-600 p-3 rounded-xl hover:bg-gray-100"
             >
               <LayoutDashboard size={18} />
@@ -172,9 +148,12 @@ export default function Pedidos() {
       </div>
 
       {/* CONTEÚDO */}
-      <div className="flex-1 p-10">
+      <div className="flex-1 p-5 md:p-10">
 
-        <h1 className="text-3xl font-bold text-gray-900">Pedidos</h1>
+        <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
+          Pedidos
+        </h1>
+
         <p className="text-gray-500 mt-1">
           Gerencie os pedidos dos seus clientes
         </p>
@@ -194,55 +173,59 @@ export default function Pedidos() {
         </div>
 
         {/* TABELA */}
-        <div className="mt-8 bg-white rounded-2xl shadow border overflow-hidden">
+        <div className="mt-8 bg-white rounded-2xl shadow border overflow-x-auto">
 
-          <div className="grid grid-cols-6 px-8 py-4 text-gray-500 text-sm border-b">
-            <span>Pedido</span>
-            <span>Cliente</span>
-            <span>Veículo</span>
-            <span>Status</span>
-            <span>Data</span>
-            <span></span>
-          </div>
+          <div className="min-w-[700px]">
 
-          {pedidosFiltrados.map((pedido) => (
-            <div
-              key={pedido.id}
-              className="grid grid-cols-6 px-8 py-6 items-center border-b hover:bg-gray-50"
-            >
-              
-              <span className="font-semibold text-gray-900">
-                {pedido.id}
-              </span>
-
-              <span className="font-medium text-gray-800">
-                {pedido.cliente}
-              </span>
-
-              <span className="text-gray-600">
-                {pedido.veiculo}
-              </span>
-
-              <span
-                className={`px-3 py-1 text-sm rounded-full w-fit ${getStatusColor(
-                  pedido.status
-                )}`}
-              >
-                {pedido.status}
-              </span>
-
-              <span className="text-gray-600">
-                {pedido.data}
-              </span>
-
-              <Eye
-                onClick={() => abrirModal(pedido)}
-                className="text-gray-400 cursor-pointer hover:text-red-600"
-                size={20}
-              />
-
+            <div className="grid grid-cols-6 px-8 py-4 text-gray-500 text-sm border-b">
+              <span>Pedido</span>
+              <span>Cliente</span>
+              <span>Veículo</span>
+              <span>Status</span>
+              <span>Data</span>
+              <span></span>
             </div>
-          ))}
+
+            {pedidosFiltrados.map((pedido) => (
+              <div
+                key={pedido.id}
+                className="grid grid-cols-6 px-8 py-6 items-center border-b hover:bg-gray-50"
+              >
+                
+                <span className="font-semibold text-gray-900">
+                  {pedido.id}
+                </span>
+
+                <span className="font-medium text-gray-800">
+                  {pedido.cliente}
+                </span>
+
+                <span className="text-gray-600">
+                  {pedido.veiculo}
+                </span>
+
+                <span
+                  className={`px-3 py-1 text-sm rounded-full w-fit ${getStatusColor(
+                    pedido.status
+                  )}`}
+                >
+                  {pedido.status}
+                </span>
+
+                <span className="text-gray-600">
+                  {pedido.data}
+                </span>
+
+                <Eye
+                  onClick={() => abrirModal(pedido)}
+                  className="text-gray-400 cursor-pointer hover:text-red-600"
+                  size={20}
+                />
+
+              </div>
+            ))}
+
+          </div>
 
           {pedidosFiltrados.length === 0 && (
             <p className="p-6 text-gray-500 text-center">

@@ -31,23 +31,23 @@ export default function ModalPedido({
   if (!pedido) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
 
-      <div className="bg-white w-[500px] rounded-2xl p-8 relative shadow-2xl">
+      <div className="bg-white w-full max-w-lg rounded-2xl p-5 sm:p-8 relative shadow-2xl max-h-[90vh] overflow-y-auto">
 
         {/* BOTÃO FECHAR */}
         <X
           onClick={fecharModal}
-          className="absolute right-5 top-5 cursor-pointer text-gray-700 hover:text-red-600 transition"
+          className="absolute right-4 top-4 sm:right-5 sm:top-5 cursor-pointer text-gray-700 hover:text-red-600 transition"
         />
 
         {/* TÍTULO */}
-        <h2 className="text-2xl font-bold text-gray-900 mb-6">
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-6">
           Pedido {pedido.id}
         </h2>
 
         {/* INFORMAÇÕES */}
-        <div className="grid grid-cols-2 gap-6 text-sm mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 text-sm mb-6">
 
           <div>
             <p className="text-gray-600 font-medium">Cliente</p>
@@ -56,7 +56,9 @@ export default function ModalPedido({
 
           <div>
             <p className="text-gray-600 font-medium">Email</p>
-            <p className="text-gray-900 font-semibold">{pedido.email}</p>
+            <p className="text-gray-900 font-semibold break-words">
+              {pedido.email}
+            </p>
           </div>
 
           <div>
