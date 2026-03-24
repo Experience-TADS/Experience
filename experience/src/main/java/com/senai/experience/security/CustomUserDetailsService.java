@@ -24,7 +24,7 @@ public class CustomUserDetailsService implements UserDetailsService {
         // Buscar o usuário no banco de dados pelo username
         Usuario usuario = usuarioRepository.findByEmail(emailUsuario);
         if (usuario == null) {
-            throw new UsernameNotFoundException("Usuário não encontrado: " + usuario);
+            throw new UsernameNotFoundException("Usuário não encontrado: " + emailUsuario);
         }
 
         // Retornar um objeto UserDetails com as informações do usuário
