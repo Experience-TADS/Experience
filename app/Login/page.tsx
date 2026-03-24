@@ -18,29 +18,16 @@ export default function LoginPage() {
     setErro("");
     setLoading(true);
 
-    const endpoint = isCadastro ? "/api/register" : "/api/login";
-
     try {
-      const res = await fetch(endpoint, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, senha }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        setErro(data.error || "Erro inesperado");
-        setLoading(false);
-        return;
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      if (!email || !senha) {
+        throw new Error("Preencha todos os campos");
       }
-
       if (isCadastro) {
-        alert("Conta criada com sucesso!");
+        alert("Conta criada (simulação)");
         setIsCadastro(false);
       } else {
+
         localStorage.setItem("user", email);
 
         if (email.includes("@toyota.com")) {
@@ -49,8 +36,9 @@ export default function LoginPage() {
           router.push("/");
         }
       }
-    } catch (err) {
-      setErro("Erro ao conectar com o servidor");
+
+    } catch (err: any) {
+      setErro(err.message || "Erro inesperado");
     }
 
     setLoading(false);
@@ -58,7 +46,7 @@ export default function LoginPage() {
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100 px-4">
-
+      
       <div className="bg-white p-6 sm:p-8 rounded-2xl shadow-md w-full max-w-md">
 
         <div className="flex flex-col items-center mb-6">

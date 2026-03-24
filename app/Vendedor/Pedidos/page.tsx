@@ -12,7 +12,7 @@ import {
   Eye,
 } from "lucide-react";
 
-import ModalPedido from "@/app/componentes/ModalPedidos";
+import ModalPedido from "@/app/componentes/NewsModal";
 
 const pedidosData = [
   {
@@ -100,7 +100,7 @@ export default function Pedidos() {
           <nav className="flex flex-col gap-2 px-4">
 
             <Link
-              href="/Vendedor/Dashboard"
+              href="/Vendedor/Dashbord"
               className="flex items-center gap-3 text-gray-600 p-3 rounded-xl hover:bg-gray-100"
             >
               <LayoutDashboard size={18} />
