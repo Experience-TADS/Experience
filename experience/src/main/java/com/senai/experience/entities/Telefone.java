@@ -1,5 +1,8 @@
 package com.senai.experience.entities; //
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -17,17 +20,14 @@ public class Telefone{
     //ATRIBUTOS
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // use Long for JPA primary key
+    private Long id;
     
     @Column(length = 11, nullable = false) // Ex: 11987654321
     private String numero;
 
-    // Getters e Setters explícitos para garantir funcionamento sem depender apenas do Lombok
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-    public String getNumero() { return numero; }
-    public void setNumero(String numero) { this.numero = numero; }
-
+    @ManyToOne
+    @JoinColumn(name = "id_usuario")
+    private Usuario usuario;
     /**
      * Formata o número de telefone para exibição.
      * Ex: (11) 98765-4321 ou (11) 8765-4321
@@ -42,6 +42,12 @@ public class Telefone{
             return numero.replaceAll("(\\d{2})(\\d{4})(\\d{4})", "($1) $2-$3");
         }
         return numero; // Retorna o número como está se não se encaixar nos padrões
+    }
+
+    @JsonCreator
+    public Telefone(@JsonProperty("id_usuario") Long id_usuario) {
+        this.usuario = new Usuario();
+        this.usuario.setId(id_usuario);
     }
 
     //TO STRING
