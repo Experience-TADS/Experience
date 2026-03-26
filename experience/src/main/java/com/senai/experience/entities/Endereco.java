@@ -1,5 +1,8 @@
 package com.senai.experience.entities; //
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -26,6 +29,10 @@ public class Endereco
     private String cidade;
     private String estado;
 
+    @ManyToOne
+    @JoinColumn(name="id_usuario")
+    private Usuario usuario;
+
     // TO STRING
     @Override
     public String toString() {
@@ -38,5 +45,11 @@ public class Endereco
                 ", cidade='" + cidade + '\'' +
                 ", estado='" + estado + '\'' +
                 '}';
+    }
+
+    @JsonCreator
+    public Endereco(@JsonProperty("id_usuario") Long id_usuario) {
+        this.usuario = new Usuario();
+        this.usuario.setId(id_usuario);
     }
 }
