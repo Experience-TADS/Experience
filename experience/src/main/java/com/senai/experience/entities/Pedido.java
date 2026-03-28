@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import java.time.LocalDateTime;
 import java.math.BigDecimal;
+
 @Getter //getter para todos os atributos
 @Setter //setter para todos os atributos
 @AllArgsConstructor //construtor com todos os argumentos  
