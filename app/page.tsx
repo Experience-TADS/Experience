@@ -70,10 +70,13 @@ export default function Home() {
   return (
     <div className="flex bg-gray-100 min-h-screen">
 
+      {/* SIDEBAR */}
       <Sidebar />
 
-      <div className="flex-1 p-5 md:p-10">
+      {/* CONTEÚDO */}
+      <div className="flex-1 p-5 md:p-10 md:ml-20">
 
+        {/* HEADER */}
         <Header />
 
         {/* GRID DE NOTÍCIAS */}

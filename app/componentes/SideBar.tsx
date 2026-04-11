@@ -54,7 +54,7 @@ export default function Sidebar() {
       </div>
 
       {/* DESKTOP */}
-      <div className="hidden md:flex w-20 h-screen bg-white shadow-md flex-col items-center py-6 gap-6">
+      <div className="hidden md:flex fixed top-0 left-0 h-screen w-20 bg-white shadow-md flex-col items-center py-6 gap-6 z-40">
 
         <NextLink href="/">
           <div className={getItemStyle("/")}>

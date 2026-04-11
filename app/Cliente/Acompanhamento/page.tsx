@@ -9,15 +9,15 @@ import {
   ChevronUp,
   X,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 const etapas = [
   "Compra realizada",
   "Pedido encaminhado",
-  "Produção",
+  "Início de produção",
   "Qualidade",
-  "Transporte",
-  "Concessionária",
-  "Retirada",
+  "Vistoria",
+  "Pedido pronto",
 ];
 
 const horarios = [
@@ -26,20 +26,20 @@ const horarios = [
 ];
 
 export default function Veiculo() {
+  const router = useRouter();
 
   const [pedidos, setPedidos] = useState([
     {
       id: "1",
-      modelo: "Corolla Cross",
-      cor: "Branco",
+      modelo: "Hilux",
+      cor: "Prata Nívea",
       ano: "2026",
       status: 3,
-      imagem: "/toyota_yaris.jpg", // 🔥 imagem do carro
+      imagem: "/toyota_yaris.jpg",
     },
   ]);
 
   const [expandido, setExpandido] = useState<string | null>(null);
-
   const [modalAdd, setModalAdd] = useState(false);
   const [codigo, setCodigo] = useState("");
 
@@ -49,7 +49,6 @@ export default function Veiculo() {
 
   function adicionarPedido(e: any) {
     e.preventDefault();
-
     if (!codigo) return;
 
     setPedidos([
@@ -70,7 +69,6 @@ export default function Veiculo() {
 
   function confirmarAgendamento() {
     if (!data || !hora) return;
-
     alert(`Retirada agendada para ${data} às ${hora}`);
     setModalAgendar(false);
   }
@@ -80,21 +78,28 @@ export default function Veiculo() {
 
       <Sidebar />
 
-      <div className="flex-1 p-5 md:p-10">
+      <div className="flex-1 flex flex-col items-center p-5 md:p-10 md:ml-20">
 
         {/* HEADER */}
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-xl font-bold text-gray-900">
-            Seus Veículos
-          </h1>
+        <div className="w-full max-w-md sticky top-0 z-20 bg-gray-100 pb-4 mb-6">
+          <div className="flex justify-between items-center pt-4">
+            <div>
+              <h1 className="text-xl font-bold text-gray-900">
+                Seus Veículos
+              </h1>
+              <p className="text-sm text-gray-700">
+                {pedidos.length} pedidos
+              </p>
+            </div>
 
-          <button
-            onClick={() => setModalAdd(true)}
-            className="bg-red-500 text-white px-4 py-2 rounded-lg flex items-center gap-2"
-          >
-            <Plus size={16} />
-            Adicionar
-          </button>
+            <button
+              onClick={() => setModalAdd(true)}
+              className="bg-red-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 shadow"
+            >
+              <Plus size={16} />
+              Adicionar
+            </button>
+          </div>
         </div>
 
         {/* LISTA */}
@@ -102,16 +107,17 @@ export default function Veiculo() {
           const aberto = expandido === p.id;
 
           return (
-            <div key={p.id} className="mb-4">
+            <div key={p.id} className="w-full max-w-md mb-6">
 
               {/* CARD */}
               <div
                 onClick={() => setExpandido(aberto ? null : p.id)}
-                className="bg-white p-5 rounded-xl shadow cursor-pointer hover:shadow-xl transition-shadow max-w-sm mx-auto"
+                className="bg-white p-5 rounded-xl shadow cursor-pointer"
               >
-                <div className="flex items-start justify-between">
+                <div className="flex justify-between">
+
                   <div>
-                    <p className="text-xs text-gray-800 font-medium">
+                    <p className="text-xs text-gray-600">
                       Pedido #{p.id}
                     </p>
 
@@ -119,36 +125,31 @@ export default function Veiculo() {
                       {p.modelo}
                     </h2>
 
-                    <p className="text-sm text-gray-800">
+                    <p className="text-sm text-gray-700">
                       {p.cor} • {p.ano}
                     </p>
+
+                    <span className="mt-2 inline-block text-xs font-semibold text-red-700 bg-red-100 px-2 py-1 rounded-full">
+                      {etapas[p.status]}
+                    </span>
                   </div>
 
                   <div className="flex items-center gap-2">
                     <div className="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center">
-                      <Car className="w-5 h-5 text-red-500" />
+                      <Car className="w-5 h-5 text-red-600" />
                     </div>
 
-                    {aberto ? (
-                      <ChevronUp className="w-4 h-4 text-gray-800" />
-                    ) : (
-                      <ChevronDown className="w-4 h-4 text-gray-800" />
-                    )}
+                    {aberto ? <ChevronUp /> : <ChevronDown />}
                   </div>
-                </div>
 
-                <div className="mt-3">
-                  <span className="text-xs font-semibold text-red-600 bg-red-100 px-2 py-1 rounded-full">
-                    {etapas[p.status]}
-                  </span>
                 </div>
               </div>
 
               {/* DETALHES */}
               {aberto && (
-                <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300 max-w-sm mx-auto">
+                <div className="mt-4 space-y-4">
 
-                  {/* 🔥 IMAGEM DO CARRO */}
+                  {/* IMAGEM (MANTIDA 🔥) */}
                   <div className="w-full h-40 rounded-xl overflow-hidden">
                     <img
                       src={p.imagem}
@@ -156,42 +157,73 @@ export default function Veiculo() {
                     />
                   </div>
 
-                  <div className="bg-white p-4 rounded-xl shadow">
+                  {/* TIMELINE */}
+                  <div className="bg-white p-5 rounded-xl shadow">
 
-                    <h3 className="font-bold text-gray-900 mb-4">
+                    <h3 className="text-lg font-bold text-gray-900 mb-6">
                       Acompanhamento
                     </h3>
 
-                    {etapas.map((etapa, i) => (
-                      <div key={i} className="flex items-center gap-3 mb-2">
+                    <div className="relative">
 
-                        <div
-                          className={`w-3 h-3 rounded-full ${
-                            i <= p.status
-                              ? "bg-red-600"
-                              : "bg-gray-400"
-                          }`}
-                        />
+                      {/* LINHA */}
+                      <div className="absolute left-[13px] top-0 bottom-0 w-[2px] bg-red-500" />
 
-                        <span
-                          className={`text-sm ${
-                            i <= p.status
-                              ? "text-gray-900 font-semibold"
-                              : "text-gray-600"
-                          }`}
-                        >
-                          {etapa}
-                        </span>
+                      {etapas.map((etapa, i) => {
+                        const concluida = i <= p.status;
 
-                      </div>
-                    ))}
+                        return (
+                          <div key={i} className="flex items-start gap-4 mb-8">
+
+                            {/* BOLINHA */}
+                            <div className="z-10">
+                              <div
+                                className={`w-7 h-7 flex items-center justify-center rounded-full
+                                ${
+                                  concluida
+                                    ? "bg-red-600"
+                                    : "bg-gray-300"
+                                }`}
+                              >
+                                {concluida && (
+                                  <span className="text-white text-xs">✓</span>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* TEXTO */}
+                            <div>
+                              <p className="text-sm font-semibold text-gray-900">
+                                {etapa}
+                              </p>
+
+                              <p className="text-xs text-gray-500">
+                                15 de jan.
+                              </p>
+
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  router.push("/Cliente/SaibaMais");
+                                }}
+                                className="text-xs text-gray-500 mt-1 hover:text-red-600"
+                              >
+                                ⓘ Mais detalhes
+                              </button>
+                            </div>
+
+                          </div>
+                        );
+                      })}
+
+                    </div>
 
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         setModalAgendar(true);
                       }}
-                      className="mt-4 w-full bg-red-500 text-white py-2 rounded-lg font-semibold"
+                      className="mt-4 w-full bg-red-600 text-white py-2 rounded-lg font-semibold"
                     >
                       Agendar retirada
                     </button>
@@ -209,57 +241,35 @@ export default function Veiculo() {
 
       {/* MODAL ADD */}
       {modalAdd && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-xl w-[90%] max-w-sm">
+            <h2 className="font-bold mb-4">Adicionar Veículo</h2>
 
-          <div className="bg-white p-6 rounded-xl w-[90%] max-w-sm relative">
-
-            <X
-              onClick={() => setModalAdd(false)}
-              className="absolute right-4 top-4 cursor-pointer text-gray-800"
-            />
-
-            <h2 className="font-bold mb-4 text-gray-900">
-              Adicionar Veículo
-            </h2>
-
-            <form onSubmit={adicionarPedido} className="space-y-3">
-
+            <form onSubmit={adicionarPedido}>
               <input
                 value={codigo}
                 onChange={(e) => setCodigo(e.target.value)}
+                className="w-full border p-2 mb-3"
                 placeholder="Código"
-                className="w-full border p-2 rounded text-gray-900"
               />
-
-              <button className="w-full bg-red-500 text-white py-2 rounded font-semibold">
+              <button className="w-full bg-red-600 text-white py-2 rounded">
                 Adicionar
               </button>
-
             </form>
-
           </div>
-
         </div>
       )}
 
       {/* MODAL AGENDAR */}
       {modalAgendar && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-xl w-[90%] max-w-sm">
 
-          <div className="bg-white p-6 rounded-xl w-[90%] max-w-sm relative">
-
-            <X
-              onClick={() => setModalAgendar(false)}
-              className="absolute right-4 top-4 cursor-pointer text-gray-800"
-            />
-
-            <h2 className="font-bold mb-4 text-gray-900">
-              Agendar Retirada
-            </h2>
+            <h2 className="font-bold mb-4">Agendar Retirada</h2>
 
             <input
               type="date"
-              className="w-full border p-2 rounded mb-3 text-gray-900 font-medium"
+              className="w-full border p-2 mb-3"
               value={data}
               onChange={(e) => setData(e.target.value)}
             />
@@ -269,10 +279,8 @@ export default function Veiculo() {
                 <button
                   key={h}
                   onClick={() => setHora(h)}
-                  className={`py-2 rounded border text-sm font-medium ${
-                    hora === h
-                      ? "bg-red-500 text-white"
-                      : "text-gray-800"
+                  className={`py-2 border rounded ${
+                    hora === h ? "bg-red-600 text-white" : ""
                   }`}
                 >
                   {h}
@@ -282,13 +290,12 @@ export default function Veiculo() {
 
             <button
               onClick={confirmarAgendamento}
-              className="w-full bg-red-500 text-white py-2 rounded font-semibold"
+              className="w-full bg-red-600 text-white py-2 rounded"
             >
               Confirmar
             </button>
 
           </div>
-
         </div>
       )}
 

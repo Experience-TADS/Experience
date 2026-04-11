@@ -43,7 +43,7 @@ export default function CardCar({
           alt={title}
           className="
             w-full 
-            h-32 sm:h-36 md:h-45
+            h-32 sm:h-33 md:h-45
             object-cover 
             transition 
             duration-500 
