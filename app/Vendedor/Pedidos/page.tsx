@@ -12,8 +12,6 @@ import {
   Eye,
 } from "lucide-react";
 
-import ModalPedido from "@/app/componentes/NewsModal";
-
 const pedidosData = [
   {
     id: "#4821",
@@ -52,14 +50,12 @@ const pedidosData = [
 export default function Pedidos() {
   const [busca, setBusca] = useState("");
   const [pedidoSelecionado, setPedidoSelecionado] = useState<any>(null);
-  const [statusAtual, setStatusAtual] = useState("");
 
   function getStatusColor(status: string) {
     if (status === "Finalizado") return "bg-green-100 text-green-700";
     if (status === "Em produção") return "bg-yellow-100 text-yellow-700";
     if (status === "Em transporte") return "bg-purple-100 text-purple-700";
-    if (status === "Pedido confirmado") return "bg-blue-100 text-blue-700";
-
+    if (status === "Pedido confirmado") return "bg-green-100 text-green-700";
     return "bg-gray-100 text-gray-600";
   }
 
@@ -68,15 +64,6 @@ export default function Pedidos() {
     pedido.id.toLowerCase().includes(busca.toLowerCase()) ||
     pedido.veiculo.toLowerCase().includes(busca.toLowerCase())
   );
-
-  function abrirModal(pedido: any) {
-    setPedidoSelecionado(pedido);
-    setStatusAtual(pedido.status);
-  }
-
-  function fecharModal() {
-    setPedidoSelecionado(null);
-  }
 
   return (
     <div className="flex min-h-screen bg-gray-100">
@@ -92,13 +79,14 @@ export default function Pedidos() {
             </div>
 
             <div>
-              <p className="font-bold text-gray-900">Toyota</p>
+              <p className="font-bold text-black">Toyota</p>
               <p className="text-sm text-gray-500">Painel do Vendedor</p>
             </div>
           </div>
 
           <nav className="flex flex-col gap-2 px-4">
 
+            {/* ✅ DASHBOARD (corrigido nome) */}
             <Link
               href="/Vendedor/Dashbord"
               className="flex items-center gap-3 text-gray-600 p-3 rounded-xl hover:bg-gray-100"
@@ -107,6 +95,7 @@ export default function Pedidos() {
               Dashboard
             </Link>
 
+            {/* ✅ PEDIDOS */}
             <Link
               href="/Vendedor/Pedidos"
               className="flex items-center gap-3 bg-red-600 text-white p-3 rounded-xl"
@@ -115,6 +104,7 @@ export default function Pedidos() {
               Pedidos
             </Link>
 
+            {/* ✅ CLIENTES (corrigido) */}
             <Link
               href="/Vendedor/Clientes"
               className="flex items-center gap-3 text-gray-600 p-3 rounded-xl hover:bg-gray-100"
@@ -123,6 +113,7 @@ export default function Pedidos() {
               Clientes
             </Link>
 
+            {/* ✅ PERFIL (corrigido) */}
             <Link
               href="/Vendedor/Perfil"
               className="flex items-center gap-3 text-gray-600 p-3 rounded-xl hover:bg-gray-100"
@@ -148,9 +139,9 @@ export default function Pedidos() {
       </div>
 
       {/* CONTEÚDO */}
-      <div className="flex-1 p-5 md:p-10">
+      <div className="flex-1 p-6 md:p-10">
 
-        <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
+        <h1 className="text-3xl font-bold text-black">
           Pedidos
         </h1>
 
@@ -160,78 +151,51 @@ export default function Pedidos() {
 
         {/* BUSCA */}
         <div className="mt-6 relative max-w-lg">
-
           <Search className="absolute left-4 top-3 text-gray-400" size={18} />
 
           <input
             type="text"
-            placeholder="Buscar pedido..."
+            placeholder="Buscar por cliente, pedido ou veículo..."
             value={busca}
             onChange={(e) => setBusca(e.target.value)}
-            className="w-full pl-10 pr-4 py-3 rounded-xl border bg-white outline-none focus:ring-2 focus:ring-red-500"
+            className="w-full pl-10 pr-4 py-3 rounded-xl border bg-white outline-none focus:ring-2 focus:ring-red-500 text-black"
           />
         </div>
 
         {/* TABELA */}
-        <div className="mt-8 bg-white rounded-2xl shadow border overflow-x-auto">
+        <div className="mt-8 bg-white rounded-2xl shadow border overflow-hidden">
 
-          <div className="min-w-[700px]">
-
-            <div className="grid grid-cols-6 px-8 py-4 text-gray-500 text-sm border-b">
-              <span>Pedido</span>
-              <span>Cliente</span>
-              <span>Veículo</span>
-              <span>Status</span>
-              <span>Data</span>
-              <span></span>
-            </div>
-
-            {pedidosFiltrados.map((pedido) => (
-              <div
-                key={pedido.id}
-                className="grid grid-cols-6 px-8 py-6 items-center border-b hover:bg-gray-50"
-              >
-                
-                <span className="font-semibold text-gray-900">
-                  {pedido.id}
-                </span>
-
-                <span className="font-medium text-gray-800">
-                  {pedido.cliente}
-                </span>
-
-                <span className="text-gray-600">
-                  {pedido.veiculo}
-                </span>
-
-                <span
-                  className={`px-3 py-1 text-sm rounded-full w-fit ${getStatusColor(
-                    pedido.status
-                  )}`}
-                >
-                  {pedido.status}
-                </span>
-
-                <span className="text-gray-600">
-                  {pedido.data}
-                </span>
-
-                <Eye
-                  onClick={() => abrirModal(pedido)}
-                  className="text-gray-400 cursor-pointer hover:text-red-600"
-                  size={20}
-                />
-
-              </div>
-            ))}
-
+          <div className="grid grid-cols-6 px-8 py-4 text-gray-500 text-sm border-b bg-gray-50">
+            <span>Pedido</span>
+            <span>Cliente</span>
+            <span>Veículo</span>
+            <span>Status</span>
+            <span>Data</span>
+            <span></span>
           </div>
 
-          {pedidosFiltrados.length === 0 && (
-            <p className="p-6 text-gray-500 text-center">
-              Nenhum pedido encontrado
-            </p>
-          )}
+          {pedidosFiltrados.map((pedido) => (
+            <div
+              key={pedido.id}
+              className="grid grid-cols-6 px-8 py-5 items-center border-b hover:bg-gray-50 transition"
+            >
+              <span className="font-semibold text-black">{pedido.id}</span>
+              <span className="text-black">{pedido.cliente}</span>
+              <span className="text-gray-600">{pedido.veiculo}</span>
+
+              <span className={`px-3 py-1 rounded-full text-xs w-fit ${getStatusColor(pedido.status)}`}>
+                {pedido.status}
+              </span>
+
+              <span className="text-gray-500">{pedido.data}</span>
+
+              <Eye
+                onClick={() => setPedidoSelecionado(pedido)}
+                className="text-gray-400 cursor-pointer hover:text-red-600 transition"
+                size={20}
+              />
+            </div>
+          ))}
 
         </div>
 
@@ -239,12 +203,33 @@ export default function Pedidos() {
 
       {/* MODAL */}
       {pedidoSelecionado && (
-        <ModalPedido
-          pedido={pedidoSelecionado}
-          statusAtual={statusAtual}
-          setStatusAtual={setStatusAtual}
-          fecharModal={fecharModal}
-        />
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-lg">
+
+            <h2 className="text-xl font-bold text-black mb-4">
+              Detalhes do Pedido
+            </h2>
+
+            <div className="space-y-2 text-sm text-black">
+              <p><strong>ID:</strong> {pedidoSelecionado.id}</p>
+              <p><strong>Cliente:</strong> {pedidoSelecionado.cliente}</p>
+              <p><strong>Email:</strong> {pedidoSelecionado.email}</p>
+              <p><strong>Veículo:</strong> {pedidoSelecionado.veiculo}</p>
+              <p><strong>Status:</strong> {pedidoSelecionado.status}</p>
+              <p><strong>Data:</strong> {pedidoSelecionado.data}</p>
+            </div>
+
+            <button
+              onClick={() => setPedidoSelecionado(null)}
+              className="mt-6 w-full bg-red-600 text-white py-2 rounded-lg hover:bg-red-700 transition"
+            >
+              Fechar
+            </button>
+
+          </div>
+
+        </div>
       )}
 
     </div>

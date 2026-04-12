@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-
 import {
   LayoutDashboard,
   Package,
@@ -10,33 +9,95 @@ import {
   LogOut,
   DollarSign,
   ShoppingCart,
-  TrendingUp
+  TrendingUp,
+  Eye,
 } from "lucide-react";
 
 import {
   LineChart,
   Line,
+  BarChart,
+  Bar,
   XAxis,
   YAxis,
+  CartesianGrid,
   Tooltip,
-  ResponsiveContainer
+  ResponsiveContainer,
+  Area,
+  AreaChart,
 } from "recharts";
 
-const data = [
-  { name: "Jan", vendas: 400 },
-  { name: "Fev", vendas: 700 },
-  { name: "Mar", vendas: 500 },
-  { name: "Abr", vendas: 900 },
-  { name: "Mai", vendas: 1200 },
+// 🔴 MÉTRICAS
+const metrics = [
+  { title: "Vendas Hoje", value: "R$ 2.540", change: "+8.2%", icon: DollarSign },
+  { title: "Pedidos Ativos", value: "38", change: "+3", icon: ShoppingCart },
+  { title: "Clientes", value: "124", change: "+5", icon: Users },
+  { title: "Crescimento", value: "+12%", change: "vs mês anterior", icon: TrendingUp },
 ];
 
-export default function Dashbord() {
+// 📊 DADOS
+const chartData = [
+  { mes: "Jan", vendas: 12000, meta: 10000 },
+  { mes: "Fev", vendas: 19000, meta: 15000 },
+  { mes: "Mar", vendas: 15000, meta: 16000 },
+  { mes: "Abr", vendas: 22000, meta: 18000 },
+  { mes: "Mai", vendas: 18000, meta: 20000 },
+  { mes: "Jun", vendas: 24000, meta: 21000 },
+];
+
+// 🚗 TOP VEÍCULOS
+const topVehicles = [
+  { modelo: "Corolla Cross", vendas: 18 },
+  { modelo: "Hilux", vendas: 14 },
+  { modelo: "SW4", vendas: 11 },
+  { modelo: "RAV4", vendas: 8 },
+  { modelo: "Yaris", vendas: 6 },
+];
+
+// 📦 PREVIEW PEDIDOS
+const pedidosPreview = [
+  {
+    id: "#4821",
+    cliente: "Lauren Silva",
+    veiculo: "Corolla Cross",
+    status: "Em produção",
+    data: "05/03/2026",
+  },
+  {
+    id: "#4820",
+    cliente: "Julia Harumi",
+    veiculo: "Hilux SRV 4x4",
+    status: "Pedido confirmado",
+    data: "04/03/2026",
+  },
+  {
+    id: "#4819",
+    cliente: "Bianca Nunes",
+    veiculo: "Yaris Sedan",
+    status: "Em produção",
+    data: "03/03/2026",
+  },
+];
+
+// 🎨 CORES STATUS
+function getStatusColor(status: string) {
+  if (status === "Finalizado") return "bg-green-100 text-green-700";
+  if (status === "Em produção") return "bg-yellow-100 text-yellow-700";
+  if (status === "Em transporte") return "bg-purple-100 text-purple-700";
+  if (status === "Pedido confirmado") return "bg-blue-100 text-blue-700";
+  return "bg-gray-100 text-gray-600";
+}
+
+export default function Dashboard() {
+  const hora = new Date().getHours();
+  const saudacao =
+    hora < 12 ? "Bom dia" : hora < 18 ? "Boa tarde" : "Boa noite";
+
   return (
-    <div className="flex bg-gray-100 min-h-screen">
+    <div className="flex min-h-screen bg-gray-100">
 
       {/* SIDEBAR */}
       <div className="hidden md:flex w-64 bg-white border-r flex-col justify-between">
-
         <div>
 
           <div className="flex items-center gap-3 p-6">
@@ -52,33 +113,37 @@ export default function Dashbord() {
 
           <nav className="flex flex-col gap-2 px-4">
 
+            {/* ✅ DASHBOARD */}
             <Link
-              href="/Vendedor/Dashbord"
+              href="/Vendedor/Dashboard"
               className="flex items-center gap-3 bg-red-600 text-white p-3 rounded-xl"
             >
               <LayoutDashboard size={18} />
               Dashboard
             </Link>
 
+            {/* ✅ PEDIDOS */}
             <Link
               href="/Vendedor/Pedidos"
-              className="flex items-center gap-3 text-gray-600 p-3 rounded-xl hover:bg-gray-100 transition"
+              className="flex items-center gap-3 text-gray-600 p-3 rounded-xl hover:bg-gray-100"
             >
               <Package size={18} />
               Pedidos
             </Link>
 
+            {/* ✅ CLIENTES (CORRIGIDO) */}
             <Link
               href="/Vendedor/Clientes"
-              className="flex items-center gap-3 text-gray-600 p-3 rounded-xl hover:bg-gray-100 transition"
+              className="flex items-center gap-3 text-gray-600 p-3 rounded-xl hover:bg-gray-100"
             >
               <Users size={18} />
               Clientes
             </Link>
 
+            {/* ✅ PERFIL (CORRIGIDO) */}
             <Link
               href="/Vendedor/Perfil"
-              className="flex items-center gap-3 text-gray-600 p-3 rounded-xl hover:bg-gray-100 transition"
+              className="flex items-center gap-3 text-gray-600 p-3 rounded-xl hover:bg-gray-100"
             >
               <User size={18} />
               Perfil
@@ -91,131 +156,81 @@ export default function Dashbord() {
         <div className="p-4 border-t">
           <Link
             href="/Login"
-            className="flex items-center gap-2 text-gray-600 hover:text-red-600 transition"
+            className="flex items-center gap-2 text-gray-600 hover:text-red-600"
           >
             <LogOut size={18} />
             Sair
           </Link>
         </div>
-
       </div>
 
-
       {/* CONTEÚDO */}
-      <div className="flex-1 p-5 md:p-8">
+      <div className="flex-1 p-6 md:p-10 space-y-6">
 
-        <h1 className="text-xl md:text-2xl font-bold text-gray-900 mb-6">
-          Dashboard do Vendedor
-        </h1>
-
-
-        {/* CARDS */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-
-          <div className="bg-white p-5 rounded-xl shadow-sm hover:shadow-md hover:-translate-y-1 transition">
-
-            <div className="flex justify-between items-center">
-              <p className="text-sm text-gray-600">Vendas Hoje</p>
-              <DollarSign className="text-red-500" size={20}/>
-            </div>
-
-            <h2 className="text-2xl font-bold text-gray-900 mt-2">
-              R$ 2.540
-            </h2>
-
-          </div>
-
-
-          <div className="bg-white p-5 rounded-xl shadow-sm hover:shadow-md hover:-translate-y-1 transition">
-
-            <div className="flex justify-between items-center">
-              <p className="text-sm text-gray-600">Pedidos</p>
-              <ShoppingCart className="text-red-500" size={20}/>
-            </div>
-
-            <h2 className="text-2xl font-bold text-gray-900 mt-2">
-              38
-            </h2>
-
-          </div>
-
-
-          <div className="bg-white p-5 rounded-xl shadow-sm hover:shadow-md hover:-translate-y-1 transition">
-
-            <div className="flex justify-between items-center">
-              <p className="text-sm text-gray-600">Clientes</p>
-              <Users className="text-red-500" size={20}/>
-            </div>
-
-            <h2 className="text-2xl font-bold text-gray-900 mt-2">
-              124
-            </h2>
-
-          </div>
-
-
-          <div className="bg-white p-5 rounded-xl shadow-sm hover:shadow-md hover:-translate-y-1 transition">
-
-            <div className="flex justify-between items-center">
-              <p className="text-sm text-gray-600">Crescimento</p>
-              <TrendingUp className="text-green-500" size={20}/>
-            </div>
-
-            <h2 className="text-2xl font-bold text-green-600 mt-2">
-              +12%
-            </h2>
-
-            <p className="text-xs text-gray-500">
-              em relação ao mês anterior
-            </p>
-
-          </div>
-
+        {/* HEADER */}
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">
+            {saudacao}, Ricardo 👋
+          </h1>
+          <p className="text-gray-500">
+            Aqui está o resumo das suas vendas de hoje.
+          </p>
         </div>
 
+        {/* MÉTRICAS */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {metrics.map((m) => (
+            <div key={m.title} className="bg-white p-5 rounded-xl shadow-sm">
+              <div className="flex justify-between items-center">
+                <p className="text-sm text-gray-500">{m.title}</p>
+                <m.icon className="text-red-600" size={20} />
+              </div>
 
-        {/* GRÁFICO */}
-        <div className="bg-white p-4 md:p-6 rounded-xl shadow-sm">
+              <h2 className="text-2xl font-bold text-gray-900 mt-2">
+                {m.value}
+              </h2>
 
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">
-            Vendas Mensais
-          </h2>
+              <p className="text-sm text-green-600 mt-1">
+                {m.change}
+              </p>
+            </div>
+          ))}
+        </div>
 
-          <ResponsiveContainer width="100%" height={300}>
+        {/* GRÁFICOS */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
 
-            <LineChart data={data}>
+          <div className="bg-white p-6 rounded-xl shadow lg:col-span-2">
+            <h2 className="text-lg font-bold text-gray-900 mb-4">
+              Vendas Mensais
+            </h2>
 
-              <XAxis
-                dataKey="name"
-                stroke="#6b7280"
-                tick={{ fill: "#374151", fontSize: 12 }}
-              />
+            <ResponsiveContainer width="100%" height={300}>
+              <AreaChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="mes" />
+                <YAxis />
+                <Tooltip />
+                <Area type="monotone" dataKey="vendas" stroke="#dc2626" fill="#fecaca" />
+                <Line type="monotone" dataKey="meta" stroke="#9ca3af" strokeDasharray="5 5" />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
 
-              <YAxis
-                stroke="#6b7280"
-                tick={{ fill: "#374151", fontSize: 12 }}
-              />
+          <div className="bg-white p-6 rounded-xl shadow">
+            <h2 className="text-lg font-bold text-gray-900 mb-4">
+              Top Veículos
+            </h2>
 
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "#fff",
-                  borderRadius: "10px",
-                  border: "1px solid #e5e7eb"
-                }}
-              />
-
-              <Line
-                type="monotone"
-                dataKey="vendas"
-                stroke="#ef4444"
-                strokeWidth={3}
-                dot={{ r: 5 }}
-                activeDot={{ r: 8 }}
-              />
-
-            </LineChart>
-
-          </ResponsiveContainer>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={topVehicles} layout="vertical">
+                <XAxis type="number" />
+                <YAxis dataKey="modelo" type="category" />
+                <Tooltip />
+                <Bar dataKey="vendas" fill="#dc2626" radius={[0, 6, 6, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
 
         </div>
 

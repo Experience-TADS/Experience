@@ -2,7 +2,7 @@
 
 import NextLink from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, User, Car, Store } from "lucide-react";
+import { Home, User, Car, Store, Smartphone } from "lucide-react";
 
 export default function Sidebar() {
   const pathname = usePathname();
@@ -26,7 +26,7 @@ export default function Sidebar() {
     <>
       {/* MOBILE */}
       <div className="fixed bottom-0 left-0 w-full bg-white shadow-md flex justify-around items-center py-3 md:hidden z-50">
-        
+
         <NextLink href="/">
           <div className={getItemStyle("/")}>
             <Home size={22} />
@@ -42,6 +42,13 @@ export default function Sidebar() {
         <NextLink href="/Cliente/Loja">
           <div className={getItemStyle("/Cliente/Loja")}>
             <Store size={22} />
+          </div>
+        </NextLink>
+
+        {/* NOVO - APPS */}
+        <NextLink href="/Cliente/Apps">
+          <div className={getItemStyle("/Cliente/Apps")}>
+            <Smartphone size={22} />
           </div>
         </NextLink>
 
@@ -71,6 +78,13 @@ export default function Sidebar() {
         <NextLink href="/Cliente/Loja">
           <div className={getItemStyle("/Cliente/Loja")}>
             <Store size={22} />
+          </div>
+        </NextLink>
+
+        {/* NOVO - APPS */}
+        <NextLink href="/Cliente/Apps">
+          <div className={getItemStyle("/Cliente/Apps")}>
+            <Smartphone size={22} />
           </div>
         </NextLink>
 

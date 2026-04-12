@@ -9,7 +9,7 @@ const etapas = [
   "Início de produção",
   "Qualidade",
   "Vistoria",
-  "Pedido pronto",
+  "Pedido pronto", // 🔥 VOLTEI COM ELE
   "Aguardando cegonha",
   "Em trânsito",
   "Concessionária",
@@ -17,14 +17,14 @@ const etapas = [
 ];
 
 const descricoes = [
-  "Parabéns! Sua compra foi confirmada com sucesso.",
-  "Seu pedido foi encaminhado à fábrica.",
-  "Seu veículo começou a produção.",
-  "O carro está passando por testes.",
-  "Inspeção final em andamento.",
-  "Seu veículo está pronto.",
-  "Aguardando transporte.",
-  "Seu veículo está a caminho.",
+  "Seu pedido foi confirmado com sucesso e registrado em nosso sistema.",
+  "Seu pedido foi encaminhado à fábrica da Toyota.",
+  "Seu veículo iniciou o processo de produção.",
+  "Seu veículo está passando por testes de qualidade.",
+  "Inspeção detalhada em andamento.",
+  "Seu veículo foi finalizado com sucesso.",
+  "Aguardando transporte cegonha.",
+  "Veículo em trânsito para concessionária.",
   "Chegou na concessionária.",
   "Pronto para retirada.",
 ];
@@ -32,29 +32,26 @@ const descricoes = [
 export default function SaibaMais() {
   const [etapa, setEtapa] = useState(1);
 
-  // 🔥 POSIÇÕES CORRETAS
-const posicoes = [
-  { top: "93%", left: "48%" },
-  { top: "80%", left: "95%" },
-  { top: "60%", left: "62%" },
-  { top: "47%", left: "85%" },
-  { top: "20%", left: "65%" },
-  { top: "70%", left: "45%" },
-  { top: "8%", left: "20%" },
-  { top: "49%", left: "25%" },
-  { top: "70%", left: "6%" },
-  { top: "93%", left: "25%" },
-];
-  // 🔥 PROGRESSO (tava faltando)
+  const posicoes = [
+    { top: "93%", left: "48%" },
+    { top: "80%", left: "95%" },
+    { top: "60%", left: "62%" },
+    { top: "47%", left: "85%" },
+    { top: "20%", left: "65%" },
+    { top: "70%", left: "45%" },
+    { top: "8%", left: "20%" },
+    { top: "49%", left: "25%" },
+    { top: "70%", left: "6%" },
+    { top: "93%", left: "25%" },
+  ];
+
   const progresso = Math.round((etapa / etapas.length) * 100);
 
   return (
     <div className="flex min-h-screen bg-gray-100">
-
       <Sidebar />
 
       <div className="flex-1 flex justify-center">
-
         <div className="w-full max-w-lg p-5">
 
           {/* HEADER */}
@@ -67,7 +64,7 @@ const posicoes = [
             </p>
           </div>
 
-          {/* 🛣️ MAPA */}
+          {/* MAPA */}
           <div className="relative w-full h-[320px] rounded-xl overflow-hidden shadow mb-6">
 
             <img
@@ -75,7 +72,7 @@ const posicoes = [
               className="w-full h-full object-cover"
             />
 
-            {/* 🔴 PONTOS */}
+            {/* PONTOS */}
             {posicoes.map((p, i) => {
               const n = i + 1;
 
@@ -84,10 +81,9 @@ const posicoes = [
                   key={n}
                   onClick={() => setEtapa(n)}
                   className={`absolute w-7 h-7 rounded-full text-xs flex items-center justify-center font-bold text-white shadow-md border-2 z-10
-                    ${
-                      n <= etapa
-                        ? "bg-red-600 border-white"
-                        : "bg-gray-400 border-white"
+                    ${n <= etapa
+                      ? "bg-red-600 border-white"
+                      : "bg-gray-400 border-white"
                     }
                   `}
                   style={{
@@ -101,16 +97,33 @@ const posicoes = [
               );
             })}
 
-            {/* 🚗 CARRO */}
+            {/* 🚗 CARRO SUAVE E CORRETO */}
             <div
-              className="absolute transition-all duration-700 z-50"
+              className="absolute z-50 transition-all duration-700 ease-out"
               style={{
                 left: posicoes[etapa - 1]?.left,
                 top: posicoes[etapa - 1]?.top,
-                transform: "translate(-50%, -120%)", // 🔥 sobe o carro acima do ponto
+                transform: `
+                  translate(-50%, -60%)
+                  scaleX(-1)
+                  rotate(${
+                    [
+                      0,
+                      15,
+                      30,
+                      15,
+                      -10,
+                      -25,
+                      -35,
+                      -15,
+                      -5,
+                      0
+                    ][etapa - 1]
+                  }deg)
+                `,
               }}
             >
-              <div className="text-3xl drop-shadow-2xl">
+              <div className="text-3xl drop-shadow-lg">
                 🚗
               </div>
             </div>
@@ -119,7 +132,6 @@ const posicoes = [
 
           {/* ETAPA ATUAL */}
           <div className="flex items-center gap-4 justify-center mb-4">
-
             <div className="w-12 h-12 rounded-full bg-red-600 text-white flex items-center justify-center font-bold">
               {etapa}
             </div>
@@ -129,7 +141,6 @@ const posicoes = [
                 {etapas[etapa - 1]}
               </h2>
             </div>
-
           </div>
 
           {/* DESCRIÇÃO */}
@@ -156,7 +167,6 @@ const posicoes = [
 
           {/* LISTA */}
           <div className="grid grid-cols-2 gap-2">
-
             {etapas.map((e, i) => {
               const n = i + 1;
 
@@ -165,10 +175,9 @@ const posicoes = [
                   key={n}
                   onClick={() => setEtapa(n)}
                   className={`p-3 rounded-lg border text-xs text-center transition
-                    ${
-                      n === etapa
-                        ? "bg-red-100 border-red-600 text-red-700 font-semibold"
-                        : "bg-white border-gray-200 text-gray-700"
+                    ${n === etapa
+                      ? "bg-red-100 border-red-600 text-red-700 font-semibold"
+                      : "bg-white border-gray-200 text-gray-700"
                     }
                   `}
                 >
@@ -176,7 +185,6 @@ const posicoes = [
                 </button>
               );
             })}
-
           </div>
 
         </div>
