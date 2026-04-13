@@ -1,90 +1,114 @@
 "use client";
 
-import Sidebar from "@/app/componentes/SideBar"; // ✅ SUA SIDEBAR DE CLIENTE
+import Sidebar from "@/app/componentes/SideBar";
 import { Smartphone, ExternalLink } from "lucide-react";
 
 const toyotaApps = [
   {
+    name: "Toyota App",
+    description:
+      "Aplicativo oficial da Toyota para acompanhar informações do veículo, agendar serviços, acessar manuais digitais e receber notificações importantes.",
+    url: "https://www.toyota.com.br/servicos/toyota-app",
+    icon: "📱",
+  },
+  {
     name: "Toyota Play",
-    description: "Acesse conteúdos exclusivos, vídeos e novidades sobre os modelos Toyota.",
-    url: "https://play.google.com/store/apps/details?id=br.com.toyota.toyotaplay",
+    description:
+      "Central multimídia com acesso a conteúdos exclusivos, conectividade com apps e integração com seu veículo Toyota.",
+    url: "https://www.toyota.com.br/inovacao/toyota-play",
     icon: "🎬",
   },
   {
-    name: "Toyota Mobility Services",
-    description: "Gerencie seu veículo conectado e serviços remotos.",
-    url: "https://play.google.com/store/apps/details?id=com.toyota.oneapp",
+    name: "Toyota Mobility",
+    description:
+      "Gerencie veículos conectados, acompanhe diagnósticos em tempo real e utilize serviços inteligentes de mobilidade.",
+    url: "https://www.toyota.com.br/inovacao/mobilidade",
     icon: "🚗",
   },
   {
-    name: "Toyota Gazoo Racing",
-    description: "Acompanhe corridas e novidades do automobilismo Toyota.",
-    url: "https://play.google.com/store/apps/details?id=com.toyota.gazooracing",
-    icon: "🏁",
-  },
-  {
     name: "KINTO Share",
-    description: "Alugue veículos por horas ou dias com praticidade.",
-    url: "https://play.google.com/store/apps/details?id=com.kinto.share",
+    description:
+      "Serviço de compartilhamento de carros da Toyota. Alugue veículos por horas ou dias com praticidade e segurança.",
+    url: "https://www.kintomobility.com.br/",
     icon: "🔑",
   },
   {
-    name: "Toyota Financial Services",
-    description: "Consulte financiamentos e serviços financeiros.",
-    url: "https://play.google.com/store/apps/details?id=br.com.toyotafinancialservices",
+    name: "Toyota Gazoo Racing",
+    description:
+      "Acompanhe o mundo das corridas, eventos automobilísticos e novidades esportivas da Toyota Gazoo Racing.",
+    url: "https://www.toyota.com.br/mundo-toyota/gazoo-racing",
+    icon: "🏁",
+  },
+  {
+    name: "Toyota Financial",
+    description:
+      "Acesse seus financiamentos, consulte parcelas, contratos e serviços financeiros diretamente pelo app oficial.",
+    url: "https://www.toyotafinancial.com.br/",
     icon: "💳",
   },
 ];
 
 export default function Apps() {
   return (
-    <div className="bg-gray-100 min-h-screen">
+    <div className="bg-gray-100 min-h-screen flex">
 
-      {/* ✅ SIDEBAR CLIENTE */}
+      {/* SIDEBAR */}
       <Sidebar />
 
-      {/* ✅ CONTEÚDO */}
-      <div className="md:ml-20 px-4 pt-10 pb-20 space-y-6">
+      {/* CONTEÚDO */}
+      <div className="flex-1 md:ml-20 flex flex-col">
 
-        <div>
-          <h1 className="text-xl font-bold text-black">
-            Apps Toyota
-          </h1>
-          <p className="text-sm text-gray-500">
-            Explore os aplicativos oficiais
-          </p>
-        </div>
+        <div className="flex-1 max-w-4xl mx-auto w-full px-4 pt-10 pb-10">
 
-        <div className="space-y-3">
+          <div className="mb-6">
+            <h1 className="text-xl font-bold text-black">
+              Apps Toyota
+            </h1>
+            <p className="text-sm text-gray-500">
+              Explore os aplicativos oficiais da Toyota
+            </p>
+          </div>
 
-          {toyotaApps.map((app) => (
-            <div
-              key={app.name}
-              onClick={() => window.open(app.url, "_blank")}
-              className="bg-white p-4 rounded-xl shadow hover:shadow-md transition cursor-pointer flex items-center gap-3"
-            >
+          {/* GRID */}
+          <div className="grid grid-cols-2 gap-4">
 
-              <div className="w-10 h-10 flex items-center justify-center bg-red-100 rounded-lg text-lg">
-                {app.icon}
-              </div>
+            {toyotaApps.map((app) => (
+              <div
+                key={app.name}
+                onClick={() => window.open(app.url, "_blank")}
+                className="bg-white p-5 rounded-2xl shadow hover:shadow-md transition cursor-pointer flex flex-col justify-between min-h-[150px]"
+              >
 
-              <div className="flex-1">
-                <p className="font-semibold text-black text-sm">
-                  {app.name}
-                </p>
-                <p className="text-xs text-gray-600 line-clamp-2">
+                {/* TOPO */}
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 flex items-center justify-center bg-red-100 rounded-lg text-lg">
+                    {app.icon}
+                  </div>
+
+                  <p className="font-semibold text-black text-sm">
+                    {app.name}
+                  </p>
+                </div>
+
+                {/* DESCRIÇÃO */}
+                <p className="text-xs text-gray-600 leading-relaxed">
                   {app.description}
                 </p>
+
+                {/* LINK ICON */}
+                <div className="flex justify-end mt-3">
+                  <ExternalLink className="text-gray-400" size={14} />
+                </div>
+
               </div>
+            ))}
 
-              <ExternalLink className="text-gray-400" size={16} />
-
-            </div>
-          ))}
+          </div>
 
         </div>
 
-        <div className="text-center pt-4 text-gray-500 text-xs flex items-center justify-center gap-2">
+        {/* RODAPÉ FIXADO MAIS EMBAIXO */}
+        <div className="text-center pb-6 text-gray-500 text-xs flex items-center justify-center gap-2">
           <Smartphone size={14} />
           Disponível na Play Store e App Store
         </div>

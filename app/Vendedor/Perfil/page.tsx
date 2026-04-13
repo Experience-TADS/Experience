@@ -55,7 +55,7 @@ export default function Perfil() {
 
           <nav className="flex flex-col gap-2 px-4">
 
-            <Link href="/Vendedor/Dashboard" className="flex items-center gap-3 text-gray-600 p-3 rounded-xl hover:bg-gray-100">
+            <Link href="/Vendedor/Dashbord" className="flex items-center gap-3 text-gray-600 p-3 rounded-xl hover:bg-gray-100">
               <LayoutDashboard size={18} />
               Dashboard
             </Link>

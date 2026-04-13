@@ -112,52 +112,31 @@ export default function Dashboard() {
           </div>
 
           <nav className="flex flex-col gap-2 px-4">
-
-            {/* ✅ DASHBOARD */}
-            <Link
-              href="/Vendedor/Dashboard"
-              className="flex items-center gap-3 bg-red-600 text-white p-3 rounded-xl"
-            >
+            <Link href="#" className="flex items-center gap-3 bg-red-600 text-white p-3 rounded-xl">
               <LayoutDashboard size={18} />
               Dashboard
             </Link>
 
-            {/* ✅ PEDIDOS */}
-            <Link
-              href="/Vendedor/Pedidos"
-              className="flex items-center gap-3 text-gray-600 p-3 rounded-xl hover:bg-gray-100"
-            >
+            <Link href="/Vendedor/Pedidos" className="flex items-center gap-3 text-gray-600 p-3 rounded-xl hover:bg-gray-100">
               <Package size={18} />
               Pedidos
             </Link>
 
-            {/* ✅ CLIENTES (CORRIGIDO) */}
-            <Link
-              href="/Vendedor/Clientes"
-              className="flex items-center gap-3 text-gray-600 p-3 rounded-xl hover:bg-gray-100"
-            >
+            <Link href="#" className="flex items-center gap-3 text-gray-600 p-3 rounded-xl hover:bg-gray-100">
               <Users size={18} />
               Clientes
             </Link>
 
-            {/* ✅ PERFIL (CORRIGIDO) */}
-            <Link
-              href="/Vendedor/Perfil"
-              className="flex items-center gap-3 text-gray-600 p-3 rounded-xl hover:bg-gray-100"
-            >
+            <Link href="#" className="flex items-center gap-3 text-gray-600 p-3 rounded-xl hover:bg-gray-100">
               <User size={18} />
               Perfil
             </Link>
-
           </nav>
 
         </div>
 
         <div className="p-4 border-t">
-          <Link
-            href="/Login"
-            className="flex items-center gap-2 text-gray-600 hover:text-red-600"
-          >
+          <Link href="/Login" className="flex items-center gap-2 text-gray-600 hover:text-red-600">
             <LogOut size={18} />
             Sair
           </Link>
@@ -180,7 +159,7 @@ export default function Dashboard() {
         {/* MÉTRICAS */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {metrics.map((m) => (
-            <div key={m.title} className="bg-white p-5 rounded-xl shadow-sm">
+            <div key={m.title} className="bg-white p-5 rounded-xl shadow-sm hover:shadow-md transition">
               <div className="flex justify-between items-center">
                 <p className="text-sm text-gray-500">{m.title}</p>
                 <m.icon className="text-red-600" size={20} />
@@ -230,6 +209,85 @@ export default function Dashboard() {
                 <Bar dataKey="vendas" fill="#dc2626" radius={[0, 6, 6, 0]} />
               </BarChart>
             </ResponsiveContainer>
+          </div>
+
+        </div>
+
+        {/* PREVIEW PEDIDOS */}
+        <div className="bg-white rounded-xl shadow p-6">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg font-bold text-gray-900">
+              Pedidos Recentes
+            </h2>
+
+            <Link href="/Vendedor/Pedidos" className="text-red-600 text-sm hover:underline flex items-center gap-1">
+              Ver todos <Eye size={14} />
+            </Link>
+          </div>
+
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-left text-gray-500 border-b">
+                <th className="pb-3">Pedido</th>
+                <th className="pb-3">Cliente</th>
+                <th className="pb-3">Veículo</th>
+                <th className="pb-3">Status</th>
+                <th className="pb-3">Data</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {pedidosPreview.map((p) => (
+                <tr key={p.id} className="border-b hover:bg-gray-50">
+                  <td className="py-4 font-semibold text-gray-900">{p.id}</td>
+                  <td className="text-gray-800">{p.cliente}</td>
+                  <td className="text-gray-600">{p.veiculo}</td>
+                  <td>
+                    <span className={`px-3 py-1 rounded-full text-xs ${getStatusColor(p.status)}`}>
+                      {p.status}
+                    </span>
+                  </td>
+                  <td className="text-gray-500">{p.data}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* 🕒 ATIVIDADES RECENTES (AGORA CERTO EMBAIXO) */}
+        <div className="bg-white rounded-2xl shadow border p-6">
+
+          <h2 className="text-lg font-bold text-gray-900 mb-4">
+            Atividade Recente
+          </h2>
+
+          <div className="space-y-4">
+            {[
+              {
+                text: "Novo pedido #006 criado para Lucas Ferreira — Corolla Sedan GLi",
+                time: "Há 15 min",
+              },
+              {
+                text: "Status do pedido #003 atualizado para 'Chegou na concessionária'",
+                time: "Há 1 hora",
+              },
+              {
+                text: "Cliente Ana Costa retirou o veículo Yaris Sedan XLS",
+                time: "Há 3 horas",
+              },
+              {
+                text: "Novo cliente cadastrado: Fernanda Souza",
+                time: "Há 5 horas",
+              },
+            ].map((item, i) => (
+              <div key={i} className="flex items-start gap-3">
+                <div className="w-2 h-2 rounded-full bg-red-600 mt-2" />
+                <div>
+                  <p className="text-sm text-gray-800">{item.text}</p>
+                  <p className="text-xs text-gray-500">{item.time}</p>
+                </div>
+              </div>
+            ))}
           </div>
 
         </div>
