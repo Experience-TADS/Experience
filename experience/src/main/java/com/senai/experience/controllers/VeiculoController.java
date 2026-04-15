@@ -8,7 +8,7 @@ import com.senai.experience.entities.Veiculo;
 import com.senai.experience.services.VeiculoService;
 
 @RestController
-@RequestMapping("/veiculos")    
+@RequestMapping("/api/veiculo")    
 
 public class VeiculoController {
     @Autowired
