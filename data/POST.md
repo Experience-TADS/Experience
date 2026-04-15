@@ -87,7 +87,25 @@ POST /api/produto
 
 ---
 
-## 6. Endereço
+## 6. Veículo
+
+```
+POST /api/veiculo
+```
+```json
+{
+  "chassi": 123456,
+  "statusVeiculo": "Disponivel",
+  "produto": {
+    "idProduto": 1
+  }
+}
+```
+> Cadastre o Produto primeiro e use o `idProduto` retornado.
+
+---
+
+## 7. Endereço
 
 ```
 POST /api/endereco
@@ -106,7 +124,7 @@ POST /api/endereco
 
 ---
 
-## 7. Telefone
+## 8. Telefone
 
 ```
 POST /api/telefones
