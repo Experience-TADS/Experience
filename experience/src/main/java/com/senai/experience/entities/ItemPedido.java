@@ -7,6 +7,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import lombok.Data;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 
 @Data
 @Entity
@@ -15,9 +16,10 @@ public class ItemPedido {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long idItemPedido;
 
-    // @ManyToOne
-    // @JoinColumn(name = "idPedido")
-    // private Pedido pedido;
+    @JsonBackReference
+    @ManyToOne
+    @JoinColumn(name = "idPedido")
+    private Pedido pedido;
 
     @ManyToOne
     @JoinColumn(name = "idProduto")
