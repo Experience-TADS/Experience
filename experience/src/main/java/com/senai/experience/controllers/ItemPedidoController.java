@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 
 
 @RestController
-@RequestMapping("/itens-pedido")
+@RequestMapping("/api/itens-pedido")
 
 public class ItemPedidoController {
     @Autowired
