@@ -25,4 +25,3 @@ Atualmente, a arquitetura suporta um índice de 87.5% de disponibilidade.
 - **Ferramentas de Design:** draw.io (Arquitetura e Mockup)
   
 
-![Mapa de Fluxo Toyota](MAPA-DE-FLUXO.draw.io.png)
