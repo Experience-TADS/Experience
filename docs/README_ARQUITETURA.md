@@ -1,5 +1,5 @@
-#Arquitetura de Integração e Monitoramento - Projeto Toyota**
-##Este documento detalha a estrutura técnica da solução proposta para a automação e monitoramento da linha de produção (Chassi 04) na unidade de Sorocaba/SP.
+# Arquitetura de Integração e Monitoramento - Projeto Toyota**
+## Este documento detalha a estrutura técnica da solução proposta para a automação e monitoramento da linha de produção (Chassi 04) na unidade de Sorocaba/SP.
 
 **1. Integração Vertical (Chão de Fábrica → Nuvem)**
 A integração vertical garante que os eventos físicos da fábrica se tornem dados estratégicos:
@@ -23,3 +23,5 @@ Atualmente, a arquitetura suporta um índice de 87.5% de disponibilidade.
 **Cloud & Backend:** AWS Cloud Services.
 **Sistemas Integrados:** SAP (ERP), Salesforce (CRM).
 **Ferramentas de Design:** draw.io (Arquitetura e Mockup)
+
+![Mapa de Fluxo Toyota](documentos/MAPA-DE-FLUXO.draw.io.png)
