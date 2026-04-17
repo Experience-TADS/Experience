@@ -1,4 +1,4 @@
-# Arquitetura de Integração e Monitoramento - Projeto Toyota**
+# Arquitetura de Integração e Monitoramento - Projeto Toyota
 ## Este documento detalha a estrutura técnica da solução proposta para a automação e monitoramento da linha de produção (Chassi 04) na unidade de Sorocaba/SP.
 
 **1. Integração Vertical (Chão de Fábrica → Nuvem)**
