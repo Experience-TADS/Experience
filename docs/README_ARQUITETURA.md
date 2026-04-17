@@ -18,10 +18,8 @@ Para atender aos requisitos de interface e visualização:
 Atualmente, a arquitetura suporta um índice de 87.5% de disponibilidade.
 - Interface Mobile (Toyota Smart Factory): Aplicação para supervisores que exibe o status operacional da linha, contagem de produção e alertas de integração com os sistemas corporativos.
 
-### **Tecnologias Envolvidas**
+**4. Tecnologias Envolvidas**
 - **Hardware:** Sensor Indutivo, PLC/Gateway.
 - **Cloud & Backend:** AWS Cloud Services.
 - **Sistemas Integrados:** SAP (ERP), Salesforce (CRM).
 - **Ferramentas de Design:** draw.io (Arquitetura e Mockup)
-  
-
