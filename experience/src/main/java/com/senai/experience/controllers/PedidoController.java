@@ -4,6 +4,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.senai.experience.DTO.PedidoRequest;
 import com.senai.experience.entities.Pedido;
 import com.senai.experience.services.PedidoService;
 
@@ -29,13 +30,13 @@ public class PedidoController {
     }
 
     @PostMapping
-    public ResponseEntity<Pedido> createPedido(@RequestBody Pedido pedido) {
-        return ResponseEntity.ok(pedidoService.save(pedido));
+    public ResponseEntity<Pedido> createPedido(@RequestBody PedidoRequest request) {
+        return ResponseEntity.ok(pedidoService.save(request));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Pedido> updatePedido(@PathVariable Long id, @RequestBody Pedido pedido) {
-        Pedido atualizado = pedidoService.update(id, pedido);
+    public ResponseEntity<Pedido> updatePedido(@PathVariable Long id, @RequestBody PedidoRequest request) {
+        Pedido atualizado = pedidoService.update(id, request);
         if (atualizado != null) {
             return ResponseEntity.ok(atualizado);
         }

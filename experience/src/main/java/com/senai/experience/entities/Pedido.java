@@ -22,8 +22,14 @@ public class Pedido {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id; // use Long for JPA primary key
 
-    private int idCliente;
-    private int idVendedor;
+    @ManyToOne
+    @JoinColumn(name = "id_cliente")
+    private Usuario idCliente;
+
+    @ManyToOne
+    @JoinColumn(name = "id_vendedor")
+    private Usuario idVendedor;
+
     private LocalDateTime dataPedido;
     private BigDecimal valorTotal;
 
