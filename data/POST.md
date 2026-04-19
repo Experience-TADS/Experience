@@ -94,14 +94,26 @@ POST /api/veiculo
 ```
 ```json
 {
+  "idProduto": 1,
   "chassi": 123456,
-  "statusVeiculo": "Disponivel",
-  "produto": {
-    "idProduto": 1
-  }
+  "statusVeiculo": "AGUARDANDO"
 }
 ```
 > Cadastre o Produto primeiro e use o `idProduto` retornado.
+> Valores válidos para `statusVeiculo`: `AGUARDANDO`, `EM_FABRICACAO`, `PINTURA`, `CONTROLE_QUALIDADE`, `CONCLUIDO`, `ENTREGUE`, `CANCELADO`
+
+---
+
+## 6.1. Atualizar Status do Veículo
+
+```
+POST /api/veiculo/{id}/status
+```
+```json
+"EM_FABRICACAO"
+```
+> Sequência válida: `AGUARDANDO` → `EM_FABRICACAO` → `PINTURA` → `CONTROLE_QUALIDADE` → `CONCLUIDO` → `ENTREGUE`
+> Qualquer estado pode ir para `CANCELADO`.
 
 ---
 
@@ -112,13 +124,13 @@ POST /api/endereco
 ```
 ```json
 {
-  "id_usuario": "1",
   "cep": "01310100",
   "logradouro": "Avenida Paulista",
   "numero": 1000,
   "bairro": "Bela Vista",
   "cidade": "São Paulo",
-  "estado": "SP"
+  "estado": "SP",
+  "idUsuario": 1
 }
 ```
 
@@ -167,8 +179,8 @@ POST /api/telefones
 ```
 ```json
 {
-    "id_usuario": "1",
-    "numero": "11987654321"
+  "numero": "11987654321",
+  "idUsuario": 1
 }
 ```
 > 10 dígitos (fixo) ou 11 dígitos (celular com 9), apenas números.
