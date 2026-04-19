@@ -20,6 +20,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import com.senai.experience.entities.role.UserRole;
+
 @Entity
 @Data
 @NoArgsConstructor
@@ -52,7 +54,15 @@ public class Usuario {
     @NotNull
     private LocalDate dataNascimento;
 
-    // Este é o construtor manual que as classes filhas (PF e PJ) chamam via super()
+    // Construtor usado pelas subclasses PessoaFisica e PessoaJuridica (sem role)
+    public Usuario(String nome, String email, String senhaHash, LocalDate dataNascimento) {
+        this.nome = nome;
+        this.email = email;
+        this.senhaHash = senhaHash;
+        this.dataNascimento = dataNascimento;
+    }
+
+    // Construtor com role — usado quando o role é definido na criação
     public Usuario(String nome, String email, String senhaHash, LocalDate dataNascimento, UserRole role) {
         this.nome = nome;
         this.email = email;
