@@ -4,55 +4,58 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import com.senai.experience.DTO.request.ItemPedidoRequest;
+import com.senai.experience.DTO.response.ItemPedidoResponse;
 import com.senai.experience.entities.ItemPedido;
+import com.senai.experience.mappers.ItemPedidoMapper;
 import com.senai.experience.services.ItemPedidoService;
-import org.springframework.web.bind.annotation.PutMapping;
-
-
 
 @RestController
 @RequestMapping("/itens-pedido")
-
 public class ItemPedidoController {
+
     @Autowired
     private ItemPedidoService service;
 
-    @PostMapping
-    public ResponseEntity<ItemPedido> criar(@RequestBody ItemPedido item) {
-        return ResponseEntity.ok(service.save(item));
+    @GetMapping
+    public List<ItemPedidoResponse> getAllItemPedidos() {
+        return service.listarTodos()
+                .stream()
+                .map(ItemPedidoMapper::toResponse)
+                .toList();
     }
 
-    @GetMapping
-    public List<ItemPedido> listar() {
-        return service.listarTodos();
+    @GetMapping("/{id}")
+    public ResponseEntity<ItemPedidoResponse> buscarPorId(@PathVariable Long id) {
+        ItemPedido item = service.findById(id);
+        if (item == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(ItemPedidoMapper.toResponse(item));
+    }
+
+    @PostMapping
+    public ResponseEntity<ItemPedidoResponse> createItemPedido(@RequestBody ItemPedidoRequest dto) {
+        ItemPedido salvo = service.save(ItemPedidoMapper.toEntity(dto));
+        return ResponseEntity.status(201).body(ItemPedidoMapper.toResponse(salvo));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ItemPedidoResponse> updateItemPedido(@PathVariable Long id, @RequestBody ItemPedidoRequest dto) {
+        ItemPedido item = ItemPedidoMapper.toEntity(dto);
+        item.setIdItemPedido(id);
+        ItemPedido atualizado = service.update(item);
+        if (atualizado == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(ItemPedidoMapper.toResponse(atualizado));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletar(@PathVariable Long id) {
         service.deleteById(id);
         return ResponseEntity.noContent().build();
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<ItemPedido> buscarPorId(@PathVariable Long id) {
-        return ResponseEntity.ok(service.findById(id));
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<ItemPedido> atualizar(@PathVariable Long id, @RequestBody ItemPedido item) {
-        item.setIdItemPedido(id);
-        ItemPedido atualizado = service.update(item);
-        if (atualizado != null) {
-            return ResponseEntity.ok(atualizado);
-        }
-        return ResponseEntity.notFound().build();
     }
 }

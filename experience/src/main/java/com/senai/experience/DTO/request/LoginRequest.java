@@ -1,4 +1,4 @@
-package com.senai.experience.DTO;
+package com.senai.experience.DTO.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

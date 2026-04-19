@@ -1,45 +1,55 @@
 package com.senai.experience.controllers;
 
 import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import com.senai.experience.DTO.request.VeiculoRequest;
+import com.senai.experience.DTO.response.VeiculoResponse;
 import com.senai.experience.entities.Veiculo;
+import com.senai.experience.mappers.VeiculoMapper;
 import com.senai.experience.services.VeiculoService;
 
 @RestController
-@RequestMapping("/veiculos")    
-
+@RequestMapping("/veiculos")
 public class VeiculoController {
+
     @Autowired
-    private VeiculoService veiculoService;  
+    private VeiculoService veiculoService;
 
     @GetMapping
-    public ResponseEntity<List<Veiculo>> getAllVeiculos() {
-        return ResponseEntity.ok(veiculoService.findAll());
-    }   
+    public List<VeiculoResponse> getAllVeiculos() {
+        return veiculoService.findAll()
+                .stream()
+                .map(VeiculoMapper::toResponse)
+                .toList();
+    }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Veiculo> getVeiculoById(@PathVariable Long id) {
+    public ResponseEntity<VeiculoResponse> getVeiculoById(@PathVariable Long id) {
         Veiculo veiculo = veiculoService.findById(id);
-        if (veiculo != null) {
-            return ResponseEntity.ok(veiculo);
+        if (veiculo == null) {
+            return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.notFound().build();
+        return ResponseEntity.ok(VeiculoMapper.toResponse(veiculo));
     }
 
     @PostMapping
-    public ResponseEntity<Veiculo> createVeiculo(@RequestBody Veiculo veiculo) {
-        return ResponseEntity.ok(veiculoService.save(veiculo));
-    }   
+    public ResponseEntity<VeiculoResponse> createVeiculo(@RequestBody VeiculoRequest dto) {
+        Veiculo salvo = veiculoService.save(VeiculoMapper.toEntity(dto));
+        return ResponseEntity.status(201).body(VeiculoMapper.toResponse(salvo));
+    }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Veiculo> updateVeiculo(@PathVariable Long id, @RequestBody Veiculo veiculo) {
+    public ResponseEntity<VeiculoResponse> updateVeiculo(@PathVariable Long id, @RequestBody VeiculoRequest dto) {
+        Veiculo veiculo = VeiculoMapper.toEntity(dto);
         Veiculo atualizado = veiculoService.update(id, veiculo);
-        if (atualizado != null) {
-            return ResponseEntity.ok(atualizado);
+        if (atualizado == null) {
+            return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.notFound().build();
+        return ResponseEntity.ok(VeiculoMapper.toResponse(atualizado));
     }
 
     @DeleteMapping("/{id}")
