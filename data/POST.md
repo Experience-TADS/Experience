@@ -87,7 +87,25 @@ POST /api/produto
 
 ---
 
-## 6. Endereço
+## 6. Veículo
+
+```
+POST /api/veiculo
+```
+```json
+{
+  "chassi": 123456,
+  "statusVeiculo": "Disponivel",
+  "produto": {
+    "idProduto": 1
+  }
+}
+```
+> Cadastre o Produto primeiro e use o `idProduto` retornado.
+
+---
+
+## 7. Endereço
 
 ```
 POST /api/endereco
@@ -106,7 +124,43 @@ POST /api/endereco
 
 ---
 
-## 7. Telefone
+## 8. Pedido
+
+```
+POST /api/pedido
+```
+```json
+{
+  "idCliente": 1,
+  "idVendedor": 2,
+  "dataPedido": "2026-04-16T10:00:00",
+  "valorTotal": 150000.00
+}
+```
+
+---
+
+## 9. Item Pedido
+
+```
+POST /api/itens-pedido
+```
+```json
+{
+  "quantidade": 1,
+  "pedido": {
+    "id": 1
+  },
+  "produto": {
+    "idProduto": 1
+  }
+}
+```
+> Cadastre o Pedido e o Produto primeiro e use os ids retornados.
+
+---
+
+## 10. Telefone
 
 ```
 POST /api/telefones

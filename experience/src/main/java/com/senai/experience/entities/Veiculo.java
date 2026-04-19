@@ -18,7 +18,10 @@ public class Veiculo {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id; // use Long for JPA primary key
 
-    private int idProduto;
+    @ManyToOne
+    @JoinColumn(name = "id_produto")
+    private Produto produto;
+
     private int chassi;
     private String StatusVeiculo;
     
@@ -28,7 +31,7 @@ public class Veiculo {
     public String toString() {
         return "Veiculo{" +
                 "id=" + id +
-                ", idProduto=" + idProduto +
+                ", idProduto=" + produto +
                 ", chassi=" + chassi +
                 ", StatusVeiculo='" + StatusVeiculo + '\'' +
                 '}';

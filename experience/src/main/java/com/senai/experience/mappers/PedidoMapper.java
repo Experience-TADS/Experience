@@ -6,22 +6,15 @@ import com.senai.experience.entities.Pedido;
 
 public class PedidoMapper {
 
-    public static Pedido toEntity(PedidoRequest dto) {
-        Pedido p = new Pedido();
-        p.setIdCliente(dto.getIdCliente());
-        p.setIdVendedor(dto.getIdVendedor());
-        p.setValorTotal(dto.getValorTotal());
-        
-        return p;
-    }
-
+    // toEntity não é mais usado diretamente — o PedidoService monta o Pedido
+    // buscando os objetos Usuario pelo id. Mantido para compatibilidade.
     public static PedidoResponse toResponse(Pedido p) {
         PedidoResponse r = new PedidoResponse();
-                r.setId(p.getId());
-                r.setIdCliente(p.getIdCliente());
-                r.setIdVendedor(p.getIdVendedor());
-                r.setValorTotal(p.getValorTotal());
-                r.setDataPedido(p.getDataPedido());
+        r.setId(p.getId());
+        r.setIdCliente(p.getIdCliente() != null ? p.getIdCliente().getId() : null);
+        r.setIdVendedor(p.getIdVendedor() != null ? p.getIdVendedor().getId() : null);
+        r.setValorTotal(p.getValorTotal());
+        r.setDataPedido(p.getDataPedido());
         return r;
     }
 }

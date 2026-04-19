@@ -5,7 +5,7 @@ import lombok.Data;
 @Data
 public class VeiculoResponse {
     private Long id;
-    private int idProduto;
+    private Long idProduto;
     private int chassi;
     private String statusVeiculo;
 }

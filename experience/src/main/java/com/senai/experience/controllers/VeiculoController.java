@@ -13,7 +13,7 @@ import com.senai.experience.mappers.VeiculoMapper;
 import com.senai.experience.services.VeiculoService;
 
 @RestController
-@RequestMapping("/veiculos")
+@RequestMapping("/api/veiculo")
 public class VeiculoController {
 
     @Autowired

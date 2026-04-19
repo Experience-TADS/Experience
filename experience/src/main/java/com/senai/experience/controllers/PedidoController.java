@@ -38,14 +38,13 @@ public class PedidoController {
 
     @PostMapping
     public ResponseEntity<PedidoResponse> createPedido(@RequestBody PedidoRequest dto) {
-        Pedido salvo = pedidoService.save(PedidoMapper.toEntity(dto));
+        Pedido salvo = pedidoService.save(dto);
         return ResponseEntity.status(201).body(PedidoMapper.toResponse(salvo));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<PedidoResponse> updatePedido(@PathVariable Long id, @RequestBody PedidoRequest dto) {
-        Pedido pedido = PedidoMapper.toEntity(dto);
-        Pedido atualizado = pedidoService.update(id, pedido);
+        Pedido atualizado = pedidoService.update(id, dto);
         if (atualizado == null) {
             return ResponseEntity.notFound().build();
         }

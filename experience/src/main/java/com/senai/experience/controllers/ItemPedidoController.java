@@ -13,7 +13,7 @@ import com.senai.experience.mappers.ItemPedidoMapper;
 import com.senai.experience.services.ItemPedidoService;
 
 @RestController
-@RequestMapping("/itens-pedido")
+@RequestMapping("/api/itens-pedido")
 public class ItemPedidoController {
 
     @Autowired

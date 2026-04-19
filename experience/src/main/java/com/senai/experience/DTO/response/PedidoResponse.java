@@ -7,8 +7,8 @@ import java.time.LocalDateTime;
 @Data
 public class PedidoResponse {
     private Long id;
-    private int idCliente;
-    private int idVendedor;
+    private Long idCliente;
+    private Long idVendedor;
     private LocalDateTime dataPedido;
     private BigDecimal valorTotal;
 }
