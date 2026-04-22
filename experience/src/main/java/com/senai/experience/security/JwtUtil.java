@@ -23,21 +23,33 @@ public class JwtUtil {
         key = Keys.hmacShaKeyFor(Decoders.BASE64.decode(secret));
     }
 
-    public static String generateToken(String email) {
+    // Gera token com email no subject e role como claim separado
+    public static String generateToken(String email, String role) {
         return Jwts.builder()
                 .setSubject(email)
+                .claim("role", role)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
     }
 
+    // Retorna o email (subject) do token
     public static String extractUsername(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(key).build()
                 .parseClaimsJws(token)
                 .getBody()
                 .getSubject();
+    }
+
+    // Retorna o role gravado no claim "role"
+    public static String extractRole(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(key).build()
+                .parseClaimsJws(token)
+                .getBody()
+                .get("role", String.class);
     }
 
     public static boolean validateToken(String token) {
