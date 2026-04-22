@@ -11,7 +11,7 @@ import lombok.Setter;
 
 @Getter //getter para todos os atributos
 @Setter //setter para todos os atributos
-@AllArgsConstructor //construtor com todos os argumentos  
+@AllArgsConstructor //construtor com todos os argumentos
 @NoArgsConstructor //construtor sem argumentos
 @Entity
 @Table(name = "tb_endereco")
