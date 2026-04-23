@@ -16,22 +16,20 @@ public class CustomUserDetailsService implements UserDetailsService {
         this.usuarioRepository = usuarioRepository;
     }
 
-
-    // criar exceção de usuário não encontrado
-    // throws UsuarioNotFoundException
     @Override
     public UserDetails loadUserByUsername(String emailUsuario) {
-        // Buscar o usuário no banco de dados pelo username
         Usuario usuario = usuarioRepository.findByEmail(emailUsuario);
         if (usuario == null) {
             throw new UsernameNotFoundException("Usuário não encontrado: " + emailUsuario);
         }
 
-        // Retornar um objeto UserDetails com as informações do usuário
+        
+        String role = usuario.getRole() != null ? usuario.getRole().name() : "CLIENTE";
+
         return org.springframework.security.core.userdetails.User.builder()
                 .username(usuario.getEmail())
-                .password(usuario.getSenhaHash()) // A senha já deve estar codificada
-                .roles("USER") // Defina o papel do usuário (exemplo: "USER")
+                .password(usuario.getSenhaHash())
+                .roles(role) 
                 .build();
     }
 }
