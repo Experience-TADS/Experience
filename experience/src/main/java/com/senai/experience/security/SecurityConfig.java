@@ -44,17 +44,19 @@ public class SecurityConfig {
 
                 // IoT: apenas POST em endpoints de fabricação
                 .requestMatchers(HttpMethod.POST, "/api/fabricacao/**").hasRole("IOT")
+                
+                // Status de fabricação: leitura para autenticados, escrita apenas para IOT e ADMIN
+                .requestMatchers(HttpMethod.GET, "/api/veiculo/*/status").authenticated()
+                .requestMatchers(HttpMethod.POST, "/api/veiculo/*/status").hasAnyRole("IOT", "ADMIN")
 
                 // Admin: acesso total ao painel admin
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
 
-                // ATENÇÃO: regra específica ANTES da genérica
                 // Cliente: apenas os próprios pedidos
                 .requestMatchers("/api/pedido/meus-pedidos/**").hasAnyRole("CLIENTE", "VENDEDOR", "ADMIN")
                 // Vendedor e Admin: acesso a todos os pedidos
                 .requestMatchers("/api/pedido/**").hasAnyRole("VENDEDOR", "ADMIN")
 
-                // Produto: leitura autenticada, escrita restrita
                 .requestMatchers(HttpMethod.GET, "/api/produto/**").authenticated()
                 .requestMatchers(HttpMethod.POST, "/api/produto/**").hasAnyRole("ADMIN", "VENDEDOR")
                 .requestMatchers(HttpMethod.PUT, "/api/produto/**").hasAnyRole("ADMIN", "VENDEDOR")
