@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import com.senai.experience.DTO.request.PedidoRequest;
 import com.senai.experience.entities.Pedido;
 import com.senai.experience.entities.Usuario;
+import com.senai.experience.entities.role.UserRole;
 import com.senai.experience.repositories.PedidoRepository;
 import com.senai.experience.repositories.UsuarioRepository;
 
@@ -60,5 +61,18 @@ public class PedidoService {
 
     public void delete(Long id) {
         pedidoRepository.deleteById(id);
+    }
+
+    public List<Pedido> findMeusPedidos(String email) {
+        Usuario usuario = usuarioRepository.findByEmail(email);
+        if (usuario == null) return List.of();
+
+        if (usuario.getRole() == UserRole.ADMIN) {
+            return pedidoRepository.findAll();
+        } else if (usuario.getRole() == UserRole.VENDEDOR) {
+            return pedidoRepository.findByIdVendedor(usuario);
+        } else {
+            return pedidoRepository.findByIdCliente(usuario);
+        }
     }
 }
