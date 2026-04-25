@@ -16,12 +16,8 @@ public class CustomUserDetailsService implements UserDetailsService {
         this.usuarioRepository = usuarioRepository;
     }
 
-
-    // criar exceção de usuário não encontrado
-    // throws UsuarioNotFoundException
     @Override
     public UserDetails loadUserByUsername(String emailUsuario) {
-        // Buscar o usuário no banco de dados pelo username
         Usuario usuario = usuarioRepository.findByEmail(emailUsuario);
         if (usuario == null) {
             throw new UsernameNotFoundException("Usuário não encontrado: " + emailUsuario);

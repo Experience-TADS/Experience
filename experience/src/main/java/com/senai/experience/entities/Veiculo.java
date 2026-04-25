@@ -23,7 +23,13 @@ public class Veiculo {
     private Produto produto;
 
     private int chassi;
-    private String StatusVeiculo;
+
+    @Enumerated(EnumType.STRING)
+    private StatusFabricacao statusVeiculo;
+
+    @OneToMany(mappedBy = "veiculo", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @com.fasterxml.jackson.annotation.JsonManagedReference
+    private java.util.List<StatusHistorico> historico;
     
 
     //TO STRING
@@ -33,7 +39,7 @@ public class Veiculo {
                 "id=" + id +
                 ", idProduto=" + produto +
                 ", chassi=" + chassi +
-                ", StatusVeiculo='" + StatusVeiculo + '\'' +
+                ", StatusVeiculo='" + statusVeiculo + '\'' +
                 '}';
     }
 }

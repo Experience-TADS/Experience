@@ -4,6 +4,10 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import com.senai.experience.DTO.request.EnderecoRequest;
+import com.senai.experience.DTO.response.EnderecoResponse;
+import com.senai.experience.mappers.EnderecoMapper;
 import com.senai.experience.entities.Endereco;
 import com.senai.experience.services.EnderecoService;
 
@@ -15,29 +19,37 @@ public class EnderecoController {
     private EnderecoService enderecoService;
 
     @GetMapping
-    public ResponseEntity<List<Endereco>> getAllEnderecos() {
-        return ResponseEntity.ok(enderecoService.findAll());
+    public ResponseEntity<List<EnderecoResponse>> getAllEnderecos() {
+        return ResponseEntity.ok(
+            enderecoService.findAll()
+                .stream()
+                .map(EnderecoMapper::toResponse)
+                .toList()
+        );
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Endereco> getEnderecoById(@PathVariable Long id) {
+    public ResponseEntity<EnderecoResponse> getEnderecoById(@PathVariable Long id) {
         Endereco endereco = enderecoService.findById(id);
         if (endereco != null) {
-            return ResponseEntity.ok(endereco);
+            return ResponseEntity.ok(EnderecoMapper.toResponse(endereco));
         }
         return ResponseEntity.notFound().build();
     }
 
     @PostMapping
-    public ResponseEntity<Endereco> createEndereco(@RequestBody Endereco endereco) {
-        return ResponseEntity.ok(enderecoService.save(endereco));
+    public ResponseEntity<EnderecoResponse> createEndereco(@RequestBody EnderecoRequest dto) {
+        Endereco endereco = EnderecoMapper.toEntity(dto);
+        Endereco salvo = enderecoService.save(endereco);
+        return ResponseEntity.status(201).body(EnderecoMapper.toResponse(salvo));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Endereco> updateEndereco(@PathVariable Long id, @RequestBody Endereco endereco) {
+    public ResponseEntity<EnderecoResponse> updateEndereco(@PathVariable Long id, @RequestBody EnderecoRequest dto) {
+        Endereco endereco = EnderecoMapper.toEntity(dto);
         Endereco atualizado = enderecoService.update(id, endereco);
         if (atualizado != null) {
-            return ResponseEntity.ok(atualizado);
+            return ResponseEntity.ok(EnderecoMapper.toResponse(atualizado));
         }
         return ResponseEntity.notFound().build();
     }
