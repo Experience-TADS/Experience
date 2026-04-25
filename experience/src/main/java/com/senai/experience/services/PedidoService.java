@@ -65,7 +65,7 @@ public class PedidoService {
 
     public List<Pedido> findMeusPedidos(String email) {
         Usuario usuario = usuarioRepository.findByEmail(email);
-        if (usuario == null) return List.of();
+        if (usuario == null || usuario.getRole() == null) return List.of();
 
         if (usuario.getRole() == UserRole.ADMIN) {
             return pedidoRepository.findAll();

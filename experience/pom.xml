@@ -108,12 +108,14 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/x
             <scope>test</scope>
         </dependency>
 
-        <!-- JWT Auth0 -->
+        <!-- JWT Auth0 — removido: duplicado, não utilizado no projeto -->
+        <!--
         <dependency>
             <groupId>com.auth0</groupId>
             <artifactId>java-jwt</artifactId>
             <version>4.5.0</version>
         </dependency>
+        -->
     </dependencies>
 
     <build>

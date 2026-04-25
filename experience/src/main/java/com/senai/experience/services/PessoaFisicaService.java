@@ -1,9 +1,11 @@
 package com.senai.experience.services;
+
 import com.senai.experience.entities.PessoaFisica;
 import com.senai.experience.repositories.PessoaFisicaRepository;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
 import java.util.List;
 
 @Service
@@ -12,7 +14,7 @@ public class PessoaFisicaService {
     private final PessoaFisicaRepository repository;
     private final PasswordEncoder passwordEncoder;
 
-    public PessoaFisicaService(PessoaFisicaRepository repository, PasswordEncoder passwordEncoder){
+    public PessoaFisicaService(PessoaFisicaRepository repository, PasswordEncoder passwordEncoder) {
         this.repository = repository;
         this.passwordEncoder = passwordEncoder;
     }
@@ -20,24 +22,14 @@ public class PessoaFisicaService {
     public List<PessoaFisica> findAll() {
         return repository.findAll();
     }
-    
+
     public PessoaFisica findById(Long id) {
         return repository.findById(id).orElse(null);
     }
 
     public PessoaFisica save(PessoaFisica pessoaFisica) {
-       if(pessoaFisica.getId() !=null && repository.existsById(pessoaFisica.getId())){
-          PessoaFisica atual = repository.findById(pessoaFisica.getId()).get();
-
-          if(!passwordEncoder.matches(pessoaFisica.getSenhaHash(), atual.getSenhaHash())){
-            pessoaFisica.setSenhaHash(passwordEncoder.encode(pessoaFisica.getSenhaHash()));
-          }else{
-            pessoaFisica.setSenhaHash(atual.getSenhaHash());
-          }
-        }
-          else{
-            pessoaFisica.setSenhaHash(passwordEncoder.encode(pessoaFisica.getSenhaHash()));
-          }
+        // Sempre encoda a senha — vem como texto puro do request
+        pessoaFisica.setSenhaHash(passwordEncoder.encode(pessoaFisica.getSenhaHash()));
         return repository.save(pessoaFisica);
     }
 
