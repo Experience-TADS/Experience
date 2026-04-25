@@ -34,8 +34,17 @@ public class UsuarioService {
 
     public Usuario update(Usuario usuario) {
         if (usuario.getId() != null && usuarioRepository.existsById(usuario.getId())) {
+            
+            Usuario atual = usuarioRepository.findById(usuario.getId()).get();
+
+        if(!passwordEncoder.matches(usuario.getSenhaHash(), atual.getSenhaHash())){
+            usuario.setSenhaHash(passwordEncoder.encode(usuario.getSenhaHash()));
+        }else{
+            usuario.setSenhaHash(atual.getSenhaHash());
+        }
             return usuarioRepository.save(usuario);
         }
+
         return null;
     }
 
