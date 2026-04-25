@@ -1,7 +1,4 @@
-package com.senai.experience.entities; //
-
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
+package com.senai.experience.entities; 
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -42,12 +39,6 @@ public class Telefone{
             return numero.replaceAll("(\\d{2})(\\d{4})(\\d{4})", "($1) $2-$3");
         }
         return numero; // Retorna o número como está se não se encaixar nos padrões
-    }
-
-    @JsonCreator
-    public Telefone(@JsonProperty("id_usuario") Long id_usuario) {
-        this.usuario = new Usuario();
-        this.usuario.setId(id_usuario);
     }
 
     //TO STRING
