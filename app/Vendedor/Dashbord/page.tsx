@@ -11,6 +11,7 @@ import {
   ShoppingCart,
   TrendingUp,
   Eye,
+  Shield,
 } from "lucide-react";
 
 import {
@@ -27,7 +28,7 @@ import {
   AreaChart,
 } from "recharts";
 
-// 🔴 MÉTRICAS
+/* DADOS */
 const metrics = [
   { title: "Vendas Hoje", value: "R$ 2.540", change: "+8.2%", icon: DollarSign },
   { title: "Pedidos Ativos", value: "38", change: "+3", icon: ShoppingCart },
@@ -35,7 +36,6 @@ const metrics = [
   { title: "Crescimento", value: "+12%", change: "vs mês anterior", icon: TrendingUp },
 ];
 
-// 📊 DADOS
 const chartData = [
   { mes: "Jan", vendas: 12000, meta: 10000 },
   { mes: "Fev", vendas: 19000, meta: 15000 },
@@ -45,7 +45,6 @@ const chartData = [
   { mes: "Jun", vendas: 24000, meta: 21000 },
 ];
 
-// 🚗 TOP VEÍCULOS
 const topVehicles = [
   { modelo: "Corolla Cross", vendas: 18 },
   { modelo: "Hilux", vendas: 14 },
@@ -54,7 +53,6 @@ const topVehicles = [
   { modelo: "Yaris", vendas: 6 },
 ];
 
-// 📦 PREVIEW PEDIDOS
 const pedidosPreview = [
   {
     id: "#4821",
@@ -79,7 +77,6 @@ const pedidosPreview = [
   },
 ];
 
-// 🎨 CORES STATUS
 function getStatusColor(status: string) {
   if (status === "Finalizado") return "bg-green-100 text-green-700";
   if (status === "Em produção") return "bg-yellow-100 text-yellow-700";
@@ -98,8 +95,10 @@ export default function Dashboard() {
 
       {/* SIDEBAR */}
       <div className="hidden md:flex w-64 bg-white border-r flex-col justify-between">
+
         <div>
 
+          {/* HEADER */}
           <div className="flex items-center gap-3 p-6">
             <div className="bg-red-600 text-white p-3 rounded-lg">
               <Package size={20} />
@@ -111,36 +110,47 @@ export default function Dashboard() {
             </div>
           </div>
 
+          {/* MENU */}
           <nav className="flex flex-col gap-2 px-4">
-            <Link href="#" className="flex items-center gap-3 bg-red-600 text-white p-3 rounded-xl">
+
+            {/* ✅ DASHBOARD ATIVO (CORRETO AGORA) */}
+            <Link href="/Vendedor/Dashboard" className="flex items-center gap-3 bg-red-600 text-white p-3 rounded-xl">
               <LayoutDashboard size={18} />
               Dashboard
             </Link>
 
-            <Link href="/Vendedor/Pedidos" className="flex items-center gap-3 text-gray-600 p-3 rounded-xl hover:bg-gray-100">
+            <Link href="/Vendedor/Pedidos" className="flex items-center gap-3 text-gray-700 p-3 rounded-xl hover:bg-gray-100">
               <Package size={18} />
               Pedidos
             </Link>
 
-            <Link href="#" className="flex items-center gap-3 text-gray-600 p-3 rounded-xl hover:bg-gray-100">
+            <Link href="/Vendedor/Clientes" className="flex items-center gap-3 text-gray-700 p-3 rounded-xl hover:bg-gray-100">
               <Users size={18} />
               Clientes
             </Link>
 
-            <Link href="#" className="flex items-center gap-3 text-gray-600 p-3 rounded-xl hover:bg-gray-100">
+            <Link href="/Vendedor/Perfil" className="flex items-center gap-3 text-gray-700 p-3 rounded-xl hover:bg-gray-100">
               <User size={18} />
               Perfil
             </Link>
+
+            <Link href="/Vendedor/Administracao" className="flex items-center gap-3 text-gray-700 p-3 rounded-xl hover:bg-gray-100">
+              <Shield size={18} />
+              Administração
+            </Link>
+
           </nav>
 
         </div>
 
+        {/* SAIR */}
         <div className="p-4 border-t">
           <Link href="/Login" className="flex items-center gap-2 text-gray-600 hover:text-red-600">
             <LogOut size={18} />
             Sair
           </Link>
         </div>
+
       </div>
 
       {/* CONTEÚDO */}
@@ -213,17 +223,9 @@ export default function Dashboard() {
 
         </div>
 
-        {/* PREVIEW PEDIDOS */}
+        {/* PEDIDOS */}
         <div className="bg-white rounded-xl shadow p-6">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-bold text-gray-900">
-              Pedidos Recentes
-            </h2>
-
-            <Link href="/Vendedor/Pedidos" className="text-red-600 text-sm hover:underline flex items-center gap-1">
-              Ver todos <Eye size={14} />
-            </Link>
-          </div>
+          <h2 className="text-lg font-bold mb-4">Pedidos Recentes</h2>
 
           <table className="w-full text-sm">
             <thead>
@@ -252,44 +254,6 @@ export default function Dashboard() {
               ))}
             </tbody>
           </table>
-        </div>
-
-        {/* 🕒 ATIVIDADES RECENTES (AGORA CERTO EMBAIXO) */}
-        <div className="bg-white rounded-2xl shadow border p-6">
-
-          <h2 className="text-lg font-bold text-gray-900 mb-4">
-            Atividade Recente
-          </h2>
-
-          <div className="space-y-4">
-            {[
-              {
-                text: "Novo pedido #006 criado para Lucas Ferreira — Corolla Sedan GLi",
-                time: "Há 15 min",
-              },
-              {
-                text: "Status do pedido #003 atualizado para 'Chegou na concessionária'",
-                time: "Há 1 hora",
-              },
-              {
-                text: "Cliente Ana Costa retirou o veículo Yaris Sedan XLS",
-                time: "Há 3 horas",
-              },
-              {
-                text: "Novo cliente cadastrado: Fernanda Souza",
-                time: "Há 5 horas",
-              },
-            ].map((item, i) => (
-              <div key={i} className="flex items-start gap-3">
-                <div className="w-2 h-2 rounded-full bg-red-600 mt-2" />
-                <div>
-                  <p className="text-sm text-gray-800">{item.text}</p>
-                  <p className="text-xs text-gray-500">{item.time}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-
         </div>
 
       </div>

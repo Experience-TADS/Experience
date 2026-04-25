@@ -20,14 +20,12 @@ export default function Perfil() {
     concessionaria: "Toyota Central São Paulo",
   });
 
-  // ✅ NOVO STATE PARA PREFERÊNCIAS
   const [prefs, setPrefs] = useState({
     emailNotif: true,
     smsNotif: false,
     promo: false,
   });
 
-  // ✅ FUNÇÃO PARA ALTERAR
   function updatePref(key: string) {
     setPrefs((prev) => ({
       ...prev,
@@ -73,6 +71,14 @@ export default function Perfil() {
             <Link href="/Vendedor/Perfil" className="flex items-center gap-3 bg-red-600 text-white p-3 rounded-xl">
               <User size={18} />
               Perfil
+            </Link>
+
+            <Link
+              href="/Vendedor/Administracao"
+              className="flex items-center gap-3 text-gray-600 p-3 rounded-xl hover:bg-gray-100"
+            >
+              <Shield size={18} />
+              Administração
             </Link>
 
           </nav>
@@ -149,46 +155,38 @@ export default function Perfil() {
           <h2 className="text-sm font-semibold text-gray-800 mb-2">
             Preferências
           </h2>
-          <p className="text-xs text-gray-600 mb-4">
-            Configure suas preferências
-          </p>
 
-          <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+          <div className="bg-white rounded-2xl shadow-lg border overflow-hidden">
 
-            {/* ITEM */}
-            <div
-              onClick={() => updatePref("emailNotif")}
-              className="flex items-center justify-between p-4 border-b cursor-pointer hover:bg-gray-50"
-            >
-              <p className="text-sm text-black">Notificações por Email</p>
+            {[
+              { key: "emailNotif", label: "Notificações por Email" },
+              { key: "smsNotif", label: "Notificações por SMS" },
+              { key: "promo", label: "Emails Promocionais" },
+            ].map((item) => (
+              <div
+                key={item.key}
+                onClick={() => updatePref(item.key)}
+                className="flex items-center justify-between p-4 border-b cursor-pointer hover:bg-gray-50"
+              >
+                <p className="text-sm text-black">{item.label}</p>
 
-              {/* SWITCH SIMPLES */}
-              <div className={`w-10 h-5 flex items-center rounded-full p-1 transition ${prefs.emailNotif ? "bg-red-600" : "bg-gray-300"}`}>
-                <div className={`bg-white w-4 h-4 rounded-full shadow transform transition ${prefs.emailNotif ? "translate-x-5" : ""}`} />
+                <div
+                  className={`w-10 h-5 flex items-center rounded-full p-1 transition ${
+                    prefs[item.key as keyof typeof prefs]
+                      ? "bg-red-600"
+                      : "bg-gray-300"
+                  }`}
+                >
+                  <div
+                    className={`bg-white w-4 h-4 rounded-full shadow transform transition ${
+                      prefs[item.key as keyof typeof prefs]
+                        ? "translate-x-5"
+                        : ""
+                    }`}
+                  />
+                </div>
               </div>
-            </div>
-
-            <div
-              onClick={() => updatePref("smsNotif")}
-              className="flex items-center justify-between p-4 border-b cursor-pointer hover:bg-gray-50"
-            >
-              <p className="text-sm text-black">Notificações por SMS</p>
-
-              <div className={`w-10 h-5 flex items-center rounded-full p-1 transition ${prefs.smsNotif ? "bg-red-600" : "bg-gray-300"}`}>
-                <div className={`bg-white w-4 h-4 rounded-full shadow transform transition ${prefs.smsNotif ? "translate-x-5" : ""}`} />
-              </div>
-            </div>
-
-            <div
-              onClick={() => updatePref("promo")}
-              className="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50"
-            >
-              <p className="text-sm text-black">Emails Promocionais</p>
-
-              <div className={`w-10 h-5 flex items-center rounded-full p-1 transition ${prefs.promo ? "bg-red-600" : "bg-gray-300"}`}>
-                <div className={`bg-white w-4 h-4 rounded-full shadow transform transition ${prefs.promo ? "translate-x-5" : ""}`} />
-              </div>
-            </div>
+            ))}
 
           </div>
         </div>
@@ -223,9 +221,7 @@ export default function Perfil() {
 
             <div className="flex justify-between">
               <span>Total de vendas</span>
-              <span className="font-medium text-red-600">
-                247 veículos
-              </span>
+              <span className="font-medium text-red-600">247 veículos</span>
             </div>
 
           </div>

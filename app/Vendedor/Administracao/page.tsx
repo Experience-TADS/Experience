@@ -25,6 +25,7 @@ export default function Administracao() {
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
 
+  // MODAL
   const [modalAtivo, setModalAtivo] = useState(false);
   const [usuarioSelecionado, setUsuarioSelecionado] = useState<number | null>(null);
 
@@ -82,11 +83,8 @@ export default function Administracao() {
   if (status === "blocked") {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 text-center">
-        <h1 className="text-2xl font-bold text-red-600">
-          Acesso negado 🚫
-        </h1>
-
-        <p className="text-black mt-2">
+        <h1 className="text-2xl font-bold text-red-600">Acesso negado 🚫</h1>
+        <p className="text-gray-600 mt-2">
           Apenas administradores podem acessar essa página.
         </p>
 
@@ -105,37 +103,37 @@ export default function Administracao() {
 
       {/* SIDEBAR */}
       <div className="hidden md:flex w-64 bg-white border-r flex-col justify-between">
-
         <div>
+
           <div className="flex items-center gap-3 p-6">
             <div className="bg-red-600 text-white p-3 rounded-lg">
               <Package size={20} />
             </div>
 
             <div>
-              <p className="font-bold text-black">Toyota</p>
-              <p className="text-sm text-black">Administração</p>
+              <p className="font-bold text-gray-900">Toyota</p>
+              <p className="text-sm text-gray-500">Administração</p>
             </div>
           </div>
 
           <nav className="flex flex-col gap-2 px-4">
 
-            <Link href="/Vendedor/Dashbord" className="flex items-center gap-3 text-black p-3 rounded-xl hover:bg-gray-100">
+            <Link href="/Vendedor/Dashbord" className="flex items-center gap-3 text-gray-700 p-3 rounded-xl hover:bg-gray-100">
               <LayoutDashboard size={18} />
               Dashboard
             </Link>
 
-            <Link href="/Vendedor/Pedidos" className="flex items-center gap-3 text-black p-3 rounded-xl hover:bg-gray-100">
+            <Link href="/Vendedor/Pedidos" className="flex items-center gap-3 text-gray-700 p-3 rounded-xl hover:bg-gray-100">
               <Package size={18} />
               Pedidos
             </Link>
 
-            <Link href="/Vendedor/Clientes" className="flex items-center gap-3 text-black p-3 rounded-xl hover:bg-gray-100">
+            <Link href="/Vendedor/Clientes" className="flex items-center gap-3 text-gray-700 p-3 rounded-xl hover:bg-gray-100">
               <Users size={18} />
               Clientes
             </Link>
 
-            <Link href="/Vendedor/Perfil" className="flex items-center gap-3 text-black p-3 rounded-xl hover:bg-gray-100">
+            <Link href="/Vendedor/Perfil" className="flex items-center gap-3 text-gray-700 p-3 rounded-xl hover:bg-gray-100">
               <User size={18} />
               Perfil
             </Link>
@@ -149,7 +147,7 @@ export default function Administracao() {
         </div>
 
         <div className="p-4 border-t">
-          <Link href="/login" className="flex items-center gap-2 text-black hover:text-red-600">
+          <Link href="/login" className="flex items-center gap-2 text-gray-600 hover:text-red-600">
             <LogOut size={18} />
             Sair
           </Link>
@@ -159,7 +157,7 @@ export default function Administracao() {
       {/* CONTEÚDO */}
       <div className="flex-1 p-6 md:p-10 space-y-6">
 
-        <h1 className="text-2xl font-bold text-black">
+        <h1 className="text-2xl font-bold text-gray-900">
           Painel Administrativo 👑
         </h1>
 
@@ -169,17 +167,20 @@ export default function Administracao() {
             value={nome}
             onChange={(e) => setNome(e.target.value)}
             placeholder="Nome"
-            className="border p-3 rounded w-full text-black"
+            className="border p-3 rounded w-full"
           />
 
           <input
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="Email"
-            className="border p-3 rounded w-full text-black"
+            className="border p-3 rounded w-full"
           />
 
-          <button className="bg-red-600 text-white px-6 rounded">
+          <button
+            onClick={adicionar}
+            className="bg-red-600 text-white px-6 rounded"
+          >
             Adicionar
           </button>
         </div>
@@ -189,7 +190,7 @@ export default function Administracao() {
           <table className="w-full text-sm">
 
             <thead>
-              <tr className="text-left text-black border-b">
+              <tr className="text-left text-gray-500 border-b">
                 <th>Nome</th>
                 <th>Email</th>
                 <th>Status</th>
@@ -201,8 +202,8 @@ export default function Administracao() {
               {vendedores.map((v) => (
                 <tr key={v.id} className="border-b">
 
-                  <td className="py-3 font-semibold text-black">{v.nome}</td>
-                  <td className="text-black">{v.email}</td>
+                  <td className="py-3 font-semibold">{v.nome}</td>
+                  <td>{v.email}</td>
 
                   <td>
                     <span className={`px-3 py-1 rounded-full text-xs ${
@@ -238,14 +239,14 @@ export default function Administracao() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
           <div className="bg-white p-6 rounded-xl w-96 text-center">
 
-            <h2 className="text-lg font-bold mb-4 text-black">
+            <h2 className="text-lg font-bold mb-4">
               Deseja realmente alterar o status deste usuário?
             </h2>
 
             <div className="flex gap-4 justify-center">
               <button
                 onClick={() => setModalAtivo(false)}
-                className="px-4 py-2 border rounded text-black"
+                className="px-4 py-2 border rounded"
               >
                 Não
               </button>

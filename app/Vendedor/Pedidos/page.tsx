@@ -10,6 +10,7 @@ import {
   LogOut,
   Search,
   Eye,
+  Shield,
 } from "lucide-react";
 
 const pedidosData = [
@@ -121,7 +122,13 @@ export default function Pedidos() {
               <User size={18} />
               Perfil
             </Link>
-
+ <Link
+              href="/Vendedor/Administracao"
+              className="flex items-center gap-3 text-gray-600 p-3 rounded-xl hover:bg-gray-100"
+            >
+              <User size={18} />
+              Administração
+            </Link>
           </nav>
 
         </div>
