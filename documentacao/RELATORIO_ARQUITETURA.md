@@ -62,16 +62,191 @@ com.senai.experience
 
 ---
 
-## 2. Problemas Identificados na v1
+## 2. Arquitetura Atual com Cloud AWS e MQTT/IoT
 
-### 2.1 Críticos
+> Este diagrama representa a arquitetura atual do código (MVC Spring Boot), com a camada de Cloud AWS e a integração MQTT/IoT inseridas como estão planejadas — sem refatoração hexagonal.
+
+```mermaid
+graph TB
+
+    subgraph IOT["🔧 Dispositivo IoT"]
+        ESP32["ESP32\nSimulador Linha de Produção\nPublica status via MQTT QoS 1\nPublica sensores via MQTT QoS 0"]
+    end
+
+    subgraph BROKER["📡 MQTT Broker — Mosquitto\n(AWS EC2 — porta 1883 interna / 8883 TLS externa)"]
+        T1["experience/fabricacao/{pedidoId}/status"]
+        T2["experience/fabricacao/{pedidoId}/sensor"]
+        T3["experience/fabricacao/heartbeat"]
+    end
+
+    subgraph REPO_FRONTEND["📦 Repositório Externo — Frontend"]
+        subgraph AMPLIFY["AWS Amplify + CloudFront"]
+            UI_LOGIN["Login\nPOST /api/usuario/login"]
+            UI_ACOMP["Acompanhamento\nGET /api/pedido/meus-pedidos\nGET /api/veiculo/{id}/status"]
+            UI_PEDIDOS["Pedidos Vendedor\nGET /api/pedido"]
+            UI_ADMIN["Administração\nGET /api/usuario\nPATCH /api/usuario/{id}/ativar"]
+            UI_PERFIL["Perfil\nGET /api/usuario/me\nPUT /api/usuario/{id}"]
+        end
+    end
+
+    subgraph AWS["☁️ AWS"]
+
+        subgraph EC2["EC2 — Backend Spring Boot MVC :8080"]
+
+            subgraph CONTROLLERS["controllers/"]
+                C1["UsuarioController\n/api/usuario"]
+                C2["PedidoController\n/api/pedido"]
+                C3["VeiculoController\n/api/veiculo"]
+                C4["StatusHistoricoController\n/api/veiculo/{id}/status"]
+                C5["outros controllers"]
+            end
+
+            subgraph MQTT_ADAPTER["MQTT — spring-integration-mqtt\n(a implementar)"]
+                MA1["MqttFabricacaoAdapter\n@ServiceActivator\nassina T1"]
+                MA2["MqttSensorAdapter\n@ServiceActivator\nassina T2"]
+            end
+
+            subgraph SERVICES["services/"]
+                S1["UsuarioService\n(BCrypt, login)"]
+                S2["PedidoService\n(findMeusPedidos por role)"]
+                S3["VeiculoService"]
+                S4["StatusHistoricoService\n(máquina de estados ✅)"]
+                S5["outros services"]
+            end
+
+            subgraph REPOSITORIES["repositories/ — Spring Data JPA"]
+                R1["UsuarioRepository"]
+                R2["PedidoRepository"]
+                R3["VeiculoRepository"]
+                R4["StatusHistoricoRepository"]
+                R5["outros repositories"]
+            end
+
+            subgraph ENTITIES["entities/ — @Entity"]
+                E1["Usuario / PessoaFisica / PessoaJuridica"]
+                E2["Pedido (@ManyToOne cliente/vendedor)"]
+                E3["Veiculo (@ManyToOne produto)\nStatusFabricacao enum"]
+                E4["StatusHistorico (@ManyToOne veiculo)"]
+                E5["Produto / Endereco / Telefone / ItemPedido"]
+            end
+
+            subgraph DTO_MAP["DTO/ + mappers/"]
+                D1["request/ + response/\nmappers manuais"]
+            end
+
+            subgraph SECURITY["security/"]
+                SEC["JwtUtil + JwtAuthFilter\nSecurityConfig\nCorsConfig ← a adicionar"]
+            end
+
+        end
+
+        subgraph RDS["AWS RDS — PostgreSQL 16"]
+            DB[("db_experience\nMulti-AZ\nBackup automático")]
+        end
+
+        subgraph SM["AWS Secrets Manager"]
+            ENV["JWT_SECRET\nDB_PASSWORD\nSMTP_CREDENTIALS"]
+        end
+
+        subgraph SES["AWS SES"]
+            EMAIL["E-mail transacional"]
+        end
+
+        subgraph ALB["Application Load Balancer\nHTTPS :443 + ACM"]
+        end
+
+        subgraph CICD["GitHub Actions CI/CD"]
+            GHA_BE["build → test → deploy EC2"]
+            GHA_FE["build → deploy Amplify"]
+        end
+
+    end
+
+    %% IoT → Broker → Backend
+    ESP32 -->|"MQTT Publish QoS 1"| T1
+    ESP32 -->|"MQTT Publish QoS 0"| T2
+    ESP32 -->|"MQTT Publish QoS 0"| T3
+    T1 -->|"spring-integration-mqtt"| MA1
+    T2 -->|"spring-integration-mqtt"| MA2
+
+    %% Frontend → Backend (HTTPS via ALB)
+    UI_LOGIN & UI_ACOMP & UI_PEDIDOS & UI_ADMIN & UI_PERFIL -->|"HTTPS + JWT"| ALB --> EC2
+
+    %% MQTT Adapters → Services
+    MA1 --> S4
+    MA2 --> S5
+
+    %% Controllers → Services → Repositories → Entities → RDS
+    C1 --> S1 --> R1
+    C2 --> S2 --> R2
+    C3 --> S3 --> R3
+    C4 --> S4 --> R4
+    C5 --> S5 --> R5
+    R1 & R2 & R3 & R4 & R5 -->|"JPA/Hibernate"| E1 & E2 & E3 & E4 & E5
+    E1 & E2 & E3 & E4 & E5 -->|"@Entity → tabelas"| DB
+
+    %% Infraestrutura transversal
+    SEC -.->|"JWT filter + CORS"| C1 & C2 & C3 & C4
+    D1 -.->|"request/response"| C1 & C2 & C3 & C4
+    ENV -.->|"injetado em runtime"| EC2
+    EC2 -->|"SDK"| SES
+
+    %% CI/CD
+    GHA_BE -.->|"deploy"| EC2
+    GHA_FE -.->|"deploy"| AMPLIFY
+
+    style IOT fill:#d4edda,stroke:#28a745,color:#000
+    style BROKER fill:#cce5ff,stroke:#004085,color:#000
+    style REPO_FRONTEND fill:#e8f4f8,stroke:#0077b6,color:#000
+    style AWS fill:#fff8e1,stroke:#ff9900,color:#000
+    style EC2 fill:#ffe8cc,stroke:#ff9900,color:#000
+    style RDS fill:#ffe8cc,stroke:#ff9900,color:#000
+    style SM fill:#ffe8cc,stroke:#ff9900,color:#000
+    style SES fill:#ffe8cc,stroke:#ff9900,color:#000
+    style ALB fill:#ffe8cc,stroke:#ff9900,color:#000
+    style AMPLIFY fill:#ffe8cc,stroke:#ff9900,color:#000
+    style CICD fill:#ffe8cc,stroke:#ff9900,color:#000
+    style MQTT_ADAPTER fill:#d4edda,stroke:#28a745,color:#000,stroke-dasharray: 5 5
+```
+
+> Itens com borda tracejada (MQTT Adapters, CorsConfig) ainda não estão implementados — são os próximos passos imediatos antes da integração frontend-backend.
+
+### 2.1 O que já está bem na v1
+
+| Aspecto | Situação |
+|---|---|
+| DTOs de request e response | ✅ Já separados das entidades |
+| Mappers manuais | ✅ Já existem para todos os domínios |
+| Máquina de estados de fabricação | ✅ `StatusHistoricoService` com validação de transições |
+| Autenticação JWT + BCrypt | ✅ Funcionando |
+| Roles por endpoint no SecurityConfig | ✅ Configurado |
+| Relacionamentos JPA reais | ✅ `@ManyToOne` em Pedido, Veiculo, StatusHistorico |
+
+### 2.2 O que precisa evoluir para a v3
+
+| Aspecto | Situação |
+|---|---|
+| CORS | ❌ Não configurado |
+| Frontend integrado à API | ❌ Dados mockados |
+| MQTT / IoT | ❌ Não implementado |
+| Cloud AWS | ❌ Roda apenas local |
+| Frontend em repositório separado | ❌ Mesmo repositório |
+| Arquitetura Hexagonal | ❌ MVC tradicional |
+| Endpoints ativar/desativar usuário | ❌ Não existem |
+| PedidoResponse enriquecido | ❌ Não retorna clienteNome/veiculoModelo |
+
+---
+
+## 3. Problemas Identificados na v1
+
+### 3.1 Críticos
 
 - **Credenciais expostas no código-fonte**: `application.properties` contém senha de e-mail Gmail em texto puro e chave JWT hardcoded. Risco de segurança grave em repositório versionado.
 - **Banco PostgreSQL configurado**: Banco de produção único, sem H2.
 - **Dois providers JWT simultâneos**: `jjwt` (0.11.5) e `auth0 java-jwt` (4.5.0) coexistem no `pom.xml`. Apenas o `jjwt` é utilizado. Dependência morta e risco de conflito.
 - **`JwtUtil` com estado estático**: A chave JWT é armazenada em campo `static`, o que quebra o contrato de injeção de dependência do Spring e dificulta testes.
 
-### 2.2 Arquiteturais
+### 3.2 Arquiteturais
 
 - **Entidades JPA expostas diretamente nas APIs**: Controllers recebem e retornam `@Entity` diretamente. Qualquer mudança no modelo de banco impacta o contrato da API.
 - **Ausência de relacionamentos JPA**: `Pedido` referencia `idCliente` e `idVendedor` como `int` primitivo, sem `@ManyToOne`. `Endereco` e `Telefone` não possuem FK para `Usuario`.
@@ -84,7 +259,7 @@ com.senai.experience
 - **Sem tratamento global de erros**: Nenhum `@ControllerAdvice` / `@ExceptionHandler` global.
 - **Sem camada de domínio real**: A lógica de negócio está nos services, mas eles operam diretamente sobre entidades JPA, sem objetos de domínio ricos.
 
-### 2.3 Funcionais (para o contexto do produto)
+### 3.3 Funcionais (para o contexto do produto)
 
 - **Sem foco em acompanhamento**: A entidade `Pedido` não possui campos de status de fabricação nem histórico de transições. O sistema atual não serve ao propósito principal de permitir que o cliente visualize o andamento da fabricação e entrega do veículo.
 - **Sem módulo de Dashboard**: Nenhuma entidade ou endpoint para notícias/conteúdo da marca exibido no painel do cliente.
@@ -93,9 +268,9 @@ com.senai.experience
 
 ---
 
-## 3. Arquitetura Proposta — v2 (Monolito Hexagonal)
+## 4. Arquitetura Proposta — v3 (Monolito Hexagonal + Cloud AWS)
 
-### 3.1 Conceito
+### 4.1 Conceito
 
 A Arquitetura Hexagonal (Ports & Adapters) isola o núcleo de domínio de qualquer detalhe de infraestrutura. O domínio não conhece Spring, JPA, HTTP ou banco de dados. Ele expõe **portas** (interfaces) e a infraestrutura fornece **adaptadores** (implementações).
 
@@ -113,167 +288,179 @@ A partir da v3, o sistema é composto por **cinco camadas externas distintas**:
 
 ```mermaid
 graph TB
-    subgraph DISPOSITIVO["🔧 DISPOSITIVO IoT"]
-        ESP32["ESP32\n(Simulador Linha de Produção)\nPublica via MQTT"]
-    end
 
-    subgraph BROKER["📡 BROKER MQTT (Mosquitto)"]
-        MQ["Tópicos:\nexperience/fabricacao/{pedidoId}/status\nexperience/fabricacao/{pedidoId}/sensor\nexperience/fabricacao/heartbeat"]
+    subgraph IOT["🔧 DISPOSITIVO IoT"]
+        ESP32["ESP32\nSimulador Linha de Produção\nPublica status MQTT QoS 1\nPublica sensores MQTT QoS 0"]
     end
 
     subgraph NODERED_OPT["🔍 Node-RED (opcional — monitoramento)"]
-        NR["Assina tópicos\nVisualiza fluxo\nDebug / alertas"]
+        NR["Assina tópicos\nVisualiza fluxo / Debug"]
     end
 
-    subgraph REPO_FRONTEND["� Repositório Externo — Frontend"]
-        subgraph FRONTEND["�🖥️ FRONTEND (SPA — Next.js)\nAWS Amplify"]
-            DASH["Dashboard\n(Status Fabricação\n+ Notícias da Marca)"]
-            PEDIDOS_UI["Consulta de Pedidos"]
-            AUTH_UI["Login / Perfil"]
+    subgraph REPO_FRONTEND["📦 Repositório Externo — Frontend"]
+        subgraph AMPLIFY_FE["AWS Amplify + CloudFront CDN"]
+            UI_LOGIN["Login\nPOST /api/usuario/login"]
+            UI_ACOMP["Acompanhamento\nGET /api/pedido/meus-pedidos\nGET /api/veiculo/{id}/status"]
+            UI_PEDIDOS["Pedidos Vendedor\nGET /api/pedido"]
+            UI_ADMIN["Administração\nGET /api/usuario\nPATCH /api/usuario/{id}/ativar"]
+            UI_DASH["Dashboard\nGET /api/dashboard\nGET /api/dados\nGET /api/alertas"]
         end
     end
 
     subgraph AWS["☁️ AWS — Cloud"]
 
-        subgraph AMPLIFY["AWS Amplify\n(Frontend Hosting + CI/CD)"]
-            CDN["CloudFront CDN\nDistribuição global"]
+        subgraph BROKER_AWS["📡 EC2 — MQTT Broker (Mosquitto)\nporta 1883 interna / 8883 TLS externa"]
+            T1["experience/fabricacao/{pedidoId}/status\nQoS 1 — retain"]
+            T2["experience/fabricacao/{pedidoId}/sensor\nQoS 0"]
+            T3["experience/fabricacao/heartbeat\nQoS 0"]
         end
 
-        subgraph EC2_ECS["AWS EC2 / ECS\n(Backend Runtime)"]
-            subgraph BACKEND["⬡ BACKEND — Monolito Hexagonal (Spring Boot)"]
+        subgraph EC2_ECS["EC2 / ECS — Backend Spring Boot"]
 
-                subgraph ENTRADA["Adaptadores de Entrada"]
-                    MQTT_IN["MQTT Listener\n(MqttFabricacaoAdapter)\nspring-integration-mqtt"]
-                    REST_CLI["REST — Cliente\n(AcompanhamentoController\nDashboardController)"]
-                    REST_AUTH["REST — Auth\n(UsuarioController)"]
-                    REST_DADOS["REST — Dados IoT\nGET /api/dados\nGET /api/alertas"]
+            subgraph ENTRADA["Adaptadores de Entrada"]
+                MQTT_IN["MqttFabricacaoAdapter\n@ServiceActivator\nspring-integration-mqtt\nassina T1"]
+                MQTT_SEN["MqttSensorAdapter\n@ServiceActivator\nassina T2"]
+                REST_AUTH["UsuarioController\nPOST /api/usuario/login\nGET /api/usuario/me"]
+                REST_CLI["AcompanhamentoController\nDashboardController"]
+                REST_DADOS["DadosController\nGET /api/dados\nGET /api/alertas"]
+            end
+
+            subgraph CORE["⬡ Núcleo Hexagonal — Domínio Puro"]
+
+                subgraph PORTS_IN["Portas de Entrada (Use Cases)"]
+                    FUC["FabricacaoUseCase\n(máquina de estados)"]
+                    PUC["AcompanhamentoPedidoUseCase"]
+                    DUC["DashboardUseCase"]
+                    AUC["AlertaUseCase"]
+                    CUC["ClienteUseCase"]
                 end
 
-                subgraph CORE["Núcleo Hexagonal"]
-                    subgraph PORTS_IN["Portas de Entrada (Use Cases)"]
-                        PUC["AcompanhamentoPedidoUseCase"]
-                        FUC["FabricacaoUseCase"]
-                        CUC["ClienteUseCase"]
-                        DUC["DashboardUseCase"]
-                        AUC["AlertaUseCase"]
-                    end
-
-                    subgraph DOMAIN["Domínio Puro"]
-                        PED["Pedido"]
-                        VEI["Veiculo"]
-                        CLI["Cliente"]
-                        STA["StatusFabricacao\n(Enum)"]
-                        HIS["StatusHistorico"]
-                        SEN["LeituraSensor"]
-                        NOT["Noticia"]
-                    end
-
-                    subgraph PORTS_OUT["Portas de Saída (Interfaces)"]
-                        PRP["PedidoRepositoryPort"]
-                        CRP["ClienteRepositoryPort"]
-                        VRP["VeiculoRepositoryPort"]
-                        FRP["FabricacaoRepositoryPort"]
-                        SRP["SensorRepositoryPort"]
-                        NRP["NoticiaRepositoryPort"]
-                        MLP["MailPort"]
-                    end
+                subgraph DOMAIN["Modelos de Domínio"]
+                    PED["Pedido"]
+                    VEI["Veiculo"]
+                    STA["StatusFabricacao\nAGUARDANDO → EM_FABRICACAO\n→ PINTURA → CONTROLE_QUALIDADE\n→ CONCLUIDO → ENTREGUE"]
+                    HIS["StatusHistorico"]
+                    SEN["LeituraSensor"]
+                    CLI["Cliente"]
+                    NOT["Noticia"]
                 end
 
-                subgraph SAIDA["Adaptadores de Saída"]
-                    JPA["JPA Adapters\n(RDS PostgreSQL)"]
-                    SMTP["SMTP Adapter\n(SES)"]
-                end
-
-                subgraph INFRA["Infraestrutura Transversal"]
-                    SEC["Security\n(JWT + Spring Security)"]
-                    APP["DTOs + Mappers"]
-                    MQTTCFG["MqttConfig"]
+                subgraph PORTS_OUT["Portas de Saída (Interfaces)"]
+                    PRP["PedidoRepositoryPort"]
+                    VRP["VeiculoRepositoryPort"]
+                    FRP["FabricacaoRepositoryPort"]
+                    SRP["SensorRepositoryPort"]
+                    CRP["ClienteRepositoryPort"]
+                    NRP["NoticiaRepositoryPort"]
+                    MLP["MailPort"]
                 end
 
             end
+
+            subgraph SAIDA["Adaptadores de Saída"]
+                JPA["JPA Adapters\n(implementam as portas)"]
+                SMTP_ADP["SES Adapter\n(implementa MailPort)"]
+            end
+
+            subgraph INFRA_T["Infraestrutura Transversal"]
+                SEC["Spring Security + JWT\nCorsConfig"]
+                APP["DTOs + Mappers\napplication/"]
+                MQTTCFG["MqttConfig\nConnectionFactory\nMessageChannel"]
+            end
+
         end
 
-        subgraph RDS["AWS RDS\n(PostgreSQL Gerenciado)"]
-            DB[("db_experience\nPostgreSQL 16")]
+        subgraph RDS["AWS RDS — PostgreSQL 16\nMulti-AZ / Backup automático"]
+            DB[("db_experience")]
         end
 
         subgraph S3["AWS S3"]
             ASSETS["Assets estáticos\nImagens / Documentos"]
         end
 
-        subgraph SECRETS["AWS Secrets Manager"]
-            ENV["JWT Secret\nDB Credentials\nSMTP Credentials"]
+        subgraph SM["AWS Secrets Manager"]
+            ENV["JWT_SECRET\nDB_PASSWORD\nSMTP_CREDENTIALS\nMQTT_PASSWORD"]
+        end
+
+        subgraph SES["AWS SES"]
+            EMAIL["E-mail transacional"]
+        end
+
+        subgraph ALB["Application Load Balancer\nHTTPS :443 + ACM"]
         end
 
         subgraph CICD["CI/CD — GitHub Actions"]
-            GHA_BE["Pipeline Backend\nbuild → test → deploy EC2/ECS"]
-            GHA_FE["Pipeline Frontend\nbuild → deploy Amplify"]
+            GHA_BE["Pipeline Backend\nbuild → test → docker → ECR → ECS"]
+            GHA_FE["Pipeline Frontend\nbuild → amplify publish"]
         end
 
     end
 
-    ESP32 -->|"MQTT Publish QoS 1"| MQ
-    MQ -->|"spring-integration-mqtt"| MQTT_IN
-    MQ -.->|"Subscribe (opcional)"| NR
+    %% IoT → Broker
+    ESP32 -->|"MQTT Publish QoS 1\nTLS :8883"| T1
+    ESP32 -->|"MQTT Publish QoS 0\nTLS :8883"| T2
+    ESP32 -->|"MQTT Publish QoS 0"| T3
+    T1 -.->|"Subscribe (opcional)"| NR
 
-    DASH -->|"HTTPS + JWT\nGET /api/dashboard\nGET /api/pedido"| REST_CLI
-    PEDIDOS_UI -->|"HTTPS + JWT\nGET /api/pedido/:id"| REST_CLI
-    AUTH_UI -->|"HTTPS\nPOST /api/usuario/login"| REST_AUTH
-    DASH -->|"HTTPS + JWT\nGET /api/dados\nGET /api/alertas"| REST_DADOS
+    %% Broker → Backend
+    T1 -->|"spring-integration-mqtt"| MQTT_IN
+    T2 -->|"spring-integration-mqtt"| MQTT_SEN
 
-    CDN --> DASH
-    CDN --> PEDIDOS_UI
-    CDN --> AUTH_UI
+    %% Frontend → ALB → Backend
+    UI_LOGIN & UI_ACOMP & UI_PEDIDOS & UI_ADMIN & UI_DASH -->|"HTTPS + JWT"| ALB
+    ALB --> REST_AUTH & REST_CLI & REST_DADOS
 
+    %% Adaptadores de entrada → Use Cases
     MQTT_IN --> FUC
-    REST_CLI --> PUC
-    REST_CLI --> DUC
+    MQTT_SEN --> AUC
+    REST_CLI --> PUC & DUC
     REST_DADOS --> AUC
     REST_AUTH --> CUC
 
-    PUC --> PED
-    FUC --> STA
-    FUC --> HIS
-    FUC --> SEN
-    AUC --> HIS
+    %% Use Cases → Domínio
+    FUC --> STA & HIS & VEI
+    PUC --> PED & VEI & HIS
+    DUC --> NOT & PED
+    AUC --> SEN & HIS
     CUC --> CLI
-    DUC --> NOT
-    PED --> VEI
 
-    PRP --> JPA
-    CRP --> JPA
-    VRP --> JPA
-    FRP --> JPA
-    SRP --> JPA
-    NRP --> JPA
-    MLP --> SMTP
-    JPA --> DB
+    %% Domínio → Portas de Saída
+    PRP & VRP & FRP & SRP & CRP & NRP --> JPA
+    MLP --> SMTP_ADP
 
-    MQTTCFG -.->|configura| MQTT_IN
-    SEC -.->|protege| REST_CLI
-    SEC -.->|protege| REST_DADOS
-    APP -.->|transforma| PUC
-    APP -.->|transforma| FUC
-    ENV -.->|injetado em runtime| BACKEND
-    ASSETS -.->|referenciado por| NOT
+    %% Adaptadores de Saída → AWS
+    JPA -->|"JPA/Hibernate"| DB
+    SMTP_ADP --> EMAIL
+    ASSETS -.->|"referenciado por"| NOT
 
-    GHA_BE -.->|deploy| EC2_ECS
-    GHA_FE -.->|deploy| AMPLIFY
+    %% Infraestrutura transversal
+    MQTTCFG -.->|"configura"| MQTT_IN & MQTT_SEN
+    SEC -.->|"JWT filter + CORS"| REST_AUTH & REST_CLI & REST_DADOS
+    APP -.->|"request/response"| REST_AUTH & REST_CLI & REST_DADOS
+    ENV -.->|"injetado em runtime"| EC2_ECS
 
+    %% CI/CD
+    GHA_BE -.->|"deploy"| EC2_ECS
+    GHA_FE -.->|"deploy"| AMPLIFY_FE
+
+    style IOT fill:#d4edda,stroke:#28a745,color:#000
     style NODERED_OPT fill:#f8f9fa,stroke:#adb5bd,color:#6c757d,stroke-dasharray: 5 5
-    style DISPOSITIVO fill:#d4edda,stroke:#28a745,color:#000
-    style BROKER fill:#cce5ff,stroke:#004085,color:#000
     style REPO_FRONTEND fill:#e8f4f8,stroke:#0077b6,color:#000
     style AWS fill:#fff8e1,stroke:#ff9900,color:#000
-    style AMPLIFY fill:#ffe8cc,stroke:#ff9900,color:#000
+    style BROKER_AWS fill:#cce5ff,stroke:#004085,color:#000
     style EC2_ECS fill:#ffe8cc,stroke:#ff9900,color:#000
+    style CORE fill:#f3e5f5,stroke:#7b1fa2,color:#000
+    style DOMAIN fill:#ede7f6,stroke:#7b1fa2,color:#000
     style RDS fill:#ffe8cc,stroke:#ff9900,color:#000
     style S3 fill:#ffe8cc,stroke:#ff9900,color:#000
-    style SECRETS fill:#ffe8cc,stroke:#ff9900,color:#000
+    style SM fill:#ffe8cc,stroke:#ff9900,color:#000
+    style SES fill:#ffe8cc,stroke:#ff9900,color:#000
+    style ALB fill:#ffe8cc,stroke:#ff9900,color:#000
+    style AMPLIFY_FE fill:#ffe8cc,stroke:#ff9900,color:#000
     style CICD fill:#ffe8cc,stroke:#ff9900,color:#000
 ```
 
-### 3.2 Estrutura de Pacotes Proposta
+### 4.2 Estrutura de Pacotes Proposta
 
 ```
 com.senai.experience
@@ -372,7 +559,7 @@ com.senai.experience
         └── UsuarioController.java
 ```
 
-### 3.3 Módulos Funcionais da v2
+### 4.3 Módulos Funcionais da v3
 
 #### Módulo 1 — Acompanhamento de Pedidos
 Responsável pela consulta e visualização do status dos pedidos de veículos. Os pedidos são criados externamente (ex: concessionária, sistema legado) e registrados no sistema para acompanhamento.
@@ -539,7 +726,7 @@ Agrega dados para o painel do cliente no frontend. Não possui domínio próprio
 
 ---
 
-## 4. Frontend — Repositório Externo e Integração
+## 5. Frontend — Repositório Externo e Integração
 
 > A partir da v3, o frontend reside em um **repositório Git separado** do backend. Os dois projetos se comunicam exclusivamente via API REST pública com autenticação JWT. Não há dependência de código entre os repositórios.
 
@@ -709,9 +896,9 @@ experience-frontend/          ← repositório separado
 
 ---
 
-## 5. Infraestrutura Cloud — AWS
+## 6. Infraestrutura Cloud — AWS
 
-### 5.1 Visão Geral dos Serviços AWS
+### 6.1 Visão Geral dos Serviços AWS
 
 | Serviço AWS | Uso no Projeto | Justificativa |
 |---|---|---|
@@ -726,7 +913,7 @@ experience-frontend/          ← repositório separado
 | **ACM (Certificate Manager)** | Certificados SSL/TLS | HTTPS automático para API e frontend |
 | **GitHub Actions** | CI/CD | Pipeline de build, test e deploy para backend e frontend |
 
-### 5.2 Diagrama de Infraestrutura AWS
+### 6.2 Diagrama de Infraestrutura AWS
 
 ```mermaid
 graph TB
@@ -800,7 +987,7 @@ graph TB
     style INTERNET fill:#e8ffe8,stroke:#28a745,color:#000
 ```
 
-### 5.3 Configuração de Variáveis de Ambiente
+### 6.3 Configuração de Variáveis de Ambiente
 
 **Backend (EC2 / ECS — via Secrets Manager ou variáveis de ambiente):**
 ```properties
@@ -830,7 +1017,7 @@ MQTT_BROKER_URL=tcp://localhost:1883
 NEXT_PUBLIC_API_URL=https://api.experience.com
 ```
 
-### 5.4 Pipeline CI/CD
+### 6.4 Pipeline CI/CD
 
 ```mermaid
 flowchart LR
@@ -848,7 +1035,7 @@ flowchart LR
     end
 ```
 
-### 5.5 Segurança na AWS
+### 6.5 Segurança na AWS
 
 | Aspecto | Implementação |
 |---|---|
@@ -862,7 +1049,7 @@ flowchart LR
 
 ---
 
-## 6. Novas Entidades Necessárias
+## 7. Novas Entidades Necessárias
 
 ### `Veiculo`
 ```java
@@ -911,7 +1098,7 @@ boolean ativo
 
 ---
 
-## 7. Plano de Migração v1 → v3
+## 8. Plano de Migração v1 → v3
 
 ### Fase 1 — Fundação (sem quebrar a v1)
 1. Criar estrutura de pacotes hexagonal
@@ -968,7 +1155,7 @@ boolean ativo
 
 ---
 
-## 8. Dependências a Adicionar no pom.xml
+## 9. Dependências a Adicionar no pom.xml
 
 ```xml
 <!-- MQTT via Spring Integration -->
@@ -1015,7 +1202,7 @@ boolean ativo
 
 ---
 
-## 9. Resumo das Prioridades
+## 10. Resumo das Prioridades
 
 | Prioridade | Item                                              | Impacto       |
 |------------|---------------------------------------------------|---------------|
@@ -1037,13 +1224,13 @@ boolean ativo
 
 ---
 
-## 10. Avaliação de Conformidade — Requisitos Arquiteturais (Entrega 1)
+## 11. Avaliação de Conformidade — Requisitos Arquiteturais (Entrega 1)
 
 > Comparação entre a arquitetura proposta neste documento e os requisitos do documento de referência da UC de Integração com IIoT.
 
 ---
 
-### 8.1 Matriz de Conformidade
+### 11.1 Matriz de Conformidade
 
 | # | Requisito | Status | Observação |
 |---|-----------|--------|------------|
@@ -1075,7 +1262,7 @@ boolean ativo
 
 ---
 
-### 10.2 Resumo por Status
+### 11.2 Resumo por Status
 
 | Status | Quantidade | Itens |
 |--------|-----------|-------|
