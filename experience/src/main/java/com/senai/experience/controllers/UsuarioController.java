@@ -70,7 +70,7 @@ public class UsuarioController {
         if (usuario == null) {
             return ResponseEntity.status(401).body("Email ou senha inválidos.");
         }
-        String token = JwtUtil.generateToken(usuario.getEmail(), usuario.getRole().name());
+        String token = JwtUtil.generateToken(usuario.getEmail(), usuario.getRole() != null ? usuario.getRole().name() : "CLIENTE");
         return ResponseEntity.ok(new LoginResponse(token, usuario.getEmail(), usuario.getRole()));
     }
 

@@ -1,18 +1,20 @@
 package com.senai.experience.services;
+
 import com.senai.experience.entities.PessoaJuridica;
 import com.senai.experience.repositories.PessoaJuridicaRepository;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import java.util.List;
 
+import java.util.List;
 
 @Service
 public class PessoaJuridicaService {
-    
+
     private final PessoaJuridicaRepository repository;
     private final PasswordEncoder passwordEncoder;
 
-    public PessoaJuridicaService(PessoaJuridicaRepository repository, PasswordEncoder passwordEncoder){
+    public PessoaJuridicaService(PessoaJuridicaRepository repository, PasswordEncoder passwordEncoder) {
         this.repository = repository;
         this.passwordEncoder = passwordEncoder;
     }
@@ -20,23 +22,14 @@ public class PessoaJuridicaService {
     public List<PessoaJuridica> findAll() {
         return repository.findAll();
     }
-    
+
     public PessoaJuridica findById(Long id) {
         return repository.findById(id).orElse(null);
     }
 
     public PessoaJuridica save(PessoaJuridica pessoaJuridica) {
-       if(pessoaJuridica.getId() !=null && repository.existsById(pessoaJuridica.getId())){
-          PessoaJuridica atual = repository.findById(pessoaJuridica.getId()).get();
-
-          if(!passwordEncoder.matches(pessoaJuridica.getSenhaHash(), atual.getSenhaHash())){
-            pessoaJuridica.setSenhaHash(passwordEncoder.encode(pessoaJuridica.getSenhaHash()));
-          }else{
-            pessoaJuridica.setSenhaHash(atual.getSenhaHash());
-          }
-        } else{
-            pessoaJuridica.setSenhaHash(passwordEncoder.encode(pessoaJuridica.getSenhaHash()));
-       }
+        // Sempre encoda a senha — vem como texto puro do request
+        pessoaJuridica.setSenhaHash(passwordEncoder.encode(pessoaJuridica.getSenhaHash()));
         return repository.save(pessoaJuridica);
     }
 
