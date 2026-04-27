@@ -12,6 +12,7 @@ US-002 — Nome da história 2
  <img width="786" height="560" alt="image" src="https://github.com/user-attachments/assets/daee4997-f1fd-48f6-989d-5accbfa58e5f" />
 
 
+
  
 **HISTÓRIA DE USUÁRIO — US-001 Nome da História**
 
@@ -23,15 +24,14 @@ Critério 1
 
 Critério 2
 
-Critério 3
- 
-Subtarefas:
+Subtarefas da história:
 
 Subtarefa 1 
 
 Subtarefa 2
 
 <img width="789" height="561" alt="image" src="https://github.com/user-attachments/assets/565f595d-f892-40b9-ac20-819be98bbf40" />
+
 
 
 
