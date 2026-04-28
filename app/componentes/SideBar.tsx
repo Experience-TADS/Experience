@@ -2,7 +2,14 @@
 
 import NextLink from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, User, Car, Store, Smartphone } from "lucide-react";
+import {
+  Home,
+  User,
+  Car,
+  Store,
+  Smartphone,
+  LogOut,
+} from "lucide-react";
 
 export default function Sidebar() {
   const pathname = usePathname();
@@ -20,6 +27,11 @@ export default function Sidebar() {
           : "text-gray-400 hover:bg-gray-100"
       }
     `;
+  }
+
+  function logout() {
+    localStorage.removeItem("user");
+    window.location.href = "/Login";
   }
 
   return (
@@ -45,7 +57,6 @@ export default function Sidebar() {
           </div>
         </NextLink>
 
-        {/* NOVO - APPS */}
         <NextLink href="/Cliente/Apps">
           <div className={getItemStyle("/Cliente/Apps")}>
             <Smartphone size={22} />
@@ -61,38 +72,55 @@ export default function Sidebar() {
       </div>
 
       {/* DESKTOP */}
-      <div className="hidden md:flex fixed top-0 left-0 h-screen w-20 bg-white shadow-md flex-col items-center py-6 gap-6 z-40">
+      <div className="hidden md:flex fixed top-0 left-0 h-screen w-20 bg-white shadow-md flex-col justify-between items-center py-6 z-40">
 
-        <NextLink href="/">
-          <div className={getItemStyle("/")}>
-            <Home size={22} />
-          </div>
-        </NextLink>
+        {/* TOPO */}
+        <div className="flex flex-col items-center gap-6">
 
-        <NextLink href="/Cliente/Acompanhamento">
-          <div className={getItemStyle("/Cliente/Acompanhamento")}>
-            <Car size={22} />
-          </div>
-        </NextLink>
+          <NextLink href="/">
+            <div className={getItemStyle("/")}>
+              <Home size={22} />
+            </div>
+          </NextLink>
 
-        <NextLink href="/Cliente/Loja">
-          <div className={getItemStyle("/Cliente/Loja")}>
-            <Store size={22} />
-          </div>
-        </NextLink>
+          <NextLink href="/Cliente/Acompanhamento">
+            <div className={getItemStyle("/Cliente/Acompanhamento")}>
+              <Car size={22} />
+            </div>
+          </NextLink>
 
-        {/* NOVO - APPS */}
-        <NextLink href="/Cliente/Apps">
-          <div className={getItemStyle("/Cliente/Apps")}>
-            <Smartphone size={22} />
-          </div>
-        </NextLink>
+          <NextLink href="/Cliente/Loja">
+            <div className={getItemStyle("/Cliente/Loja")}>
+              <Store size={22} />
+            </div>
+          </NextLink>
 
-        <NextLink href="/Cliente/perfil">
-          <div className={getItemStyle("/Cliente/perfil")}>
-            <User size={22} />
+          <NextLink href="/Cliente/Apps">
+            <div className={getItemStyle("/Cliente/Apps")}>
+              <Smartphone size={22} />
+            </div>
+          </NextLink>
+
+          <NextLink href="/Cliente/perfil">
+            <div className={getItemStyle("/Cliente/perfil")}>
+              <User size={22} />
+            </div>
+          </NextLink>
+
+        </div>
+
+        {/* LOGOUT EMBAIXO */}
+        <div>
+          <div
+            onClick={logout}
+            className="
+              p-3 rounded-xl cursor-pointer transition
+              text-gray-400 hover:bg-red-100 hover:text-red-600
+            "
+          >
+            <LogOut size={22} />
           </div>
-        </NextLink>
+        </div>
 
       </div>
     </>
