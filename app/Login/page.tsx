@@ -1,267 +1,133 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import Link from "next/link";
-import {
-  LayoutDashboard,
-  Package,
-  Users,
-  User,
-  LogOut,
-  Shield,
-} from "lucide-react";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Car } from "lucide-react";
 
-export default function Administracao() {
-  const [status, setStatus] = useState<"loading" | "admin" | "blocked">("loading");
+export default function LoginPage() {
+  const router = useRouter();
 
-  const [vendedores, setVendedores] = useState([
-    { id: 1, nome: "Ricardo Lima", email: "ricardo@toyota.com", role: "vendedor", ativo: true },
-    { id: 2, nome: "Ana Costa", email: "ana@toyota.com", role: "vendedor", ativo: true },
-    { id: 3, nome: "Lucas Martins", email: "lucas@toyota.com", role: "vendedor", ativo: true },
-    { id: 4, nome: "Juliana Alves", email: "juliana@toyota.com", role: "vendedor", ativo: true },
-    { id: 5, nome: "Carlos Souza", email: "carlos@toyota.com", role: "vendedor", ativo: true },
-  ]);
-
-  const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
+  const [senha, setSenha] = useState("");
+  const [erro, setErro] = useState("");
+  const [isCadastro, setIsCadastro] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const [modalAtivo, setModalAtivo] = useState(false);
-  const [usuarioSelecionado, setUsuarioSelecionado] = useState<number | null>(null);
-
-  useEffect(() => {
-    const role = localStorage.getItem("userRole");
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setErro("");
+    setLoading(true);
 
     setTimeout(() => {
-      if (role === "admin") setStatus("admin");
-      else setStatus("blocked");
+      if (!email || !senha) {
+        setErro("Preencha todos os campos");
+        setLoading(false);
+        return;
+      }
+
+      let role = "cliente";
+
+      // 🔥 REGRAS DE ACESSO
+      if (email.includes("@admin")) {
+        role = "admin"; // vendedor com acesso admin
+      } else if (email.includes("@toyota")) {
+        role = "vendedor";
+      } else if (email.includes("@gmail")) {
+        role = "cliente";
+      }
+
+      // 💾 SALVA
+      localStorage.setItem("user", email);
+      localStorage.setItem("userRole", role);
+
+      // 🔀 REDIRECIONAMENTO
+      if (role === "admin") {
+        router.push("/Vendedor/Administracao");
+      } else if (role === "vendedor") {
+        router.push("/Vendedor/Dashbord");
+      } else {
+        router.push("/");
+      }
+
+      setLoading(false);
     }, 800);
-  }, []);
-
-  function adicionar() {
-    if (!nome || !email) return;
-
-    const novo = {
-      id: Date.now(),
-      nome,
-      email,
-      role: "vendedor",
-      ativo: true,
-    };
-
-    setVendedores([...vendedores, novo]);
-    setNome("");
-    setEmail("");
-  }
-
-  function abrirModal(id: number) {
-    setUsuarioSelecionado(id);
-    setModalAtivo(true);
-  }
-
-  function confirmarToggle() {
-    if (!usuarioSelecionado) return;
-
-    setVendedores((prev) =>
-      prev.map((v) =>
-        v.id === usuarioSelecionado ? { ...v, ativo: !v.ativo } : v
-      )
-    );
-
-    setModalAtivo(false);
-    setUsuarioSelecionado(null);
-  }
-
-  if (status === "loading") {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-100">
-        <div className="w-10 h-10 border-4 border-red-600 border-t-transparent rounded-full animate-spin"></div>
-      </div>
-    );
-  }
-
-  if (status === "blocked") {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 text-center">
-        <h1 className="text-2xl font-bold text-red-600">
-          Acesso negado 🚫
-        </h1>
-
-        <p className="text-black mt-2">
-          Apenas administradores podem acessar essa página.
-        </p>
-
-        <Link
-          href="/Vendedor/Dashbord"
-          className="mt-4 bg-red-600 text-white px-6 py-2 rounded-lg"
-        >
-          Voltar ao Dashboard
-        </Link>
-      </div>
-    );
   }
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
+    <div className="flex items-center justify-center min-h-screen bg-gray-100">
+      <div className="bg-white p-8 rounded-2xl shadow-md w-96">
 
-      {/* SIDEBAR */}
-      <div className="hidden md:flex w-64 bg-white border-r flex-col justify-between">
-
-        <div>
-          <div className="flex items-center gap-3 p-6">
-            <div className="bg-red-600 text-white p-3 rounded-lg">
-              <Package size={20} />
-            </div>
-
-            <div>
-              <p className="font-bold text-black">Toyota</p>
-              <p className="text-sm text-black">Administração</p>
-            </div>
+        <div className="flex flex-col items-center mb-6">
+          <div className="bg-red-600 p-4 rounded-xl mb-4">
+            <Car className="text-white w-8 h-8" />
           </div>
 
-          <nav className="flex flex-col gap-2 px-4">
-
-            <Link href="/Vendedor/Dashbord" className="flex items-center gap-3 text-black p-3 rounded-xl hover:bg-gray-100">
-              <LayoutDashboard size={18} />
-              Dashboard
-            </Link>
-
-            <Link href="/Vendedor/Pedidos" className="flex items-center gap-3 text-black p-3 rounded-xl hover:bg-gray-100">
-              <Package size={18} />
-              Pedidos
-            </Link>
-
-            <Link href="/Vendedor/Clientes" className="flex items-center gap-3 text-black p-3 rounded-xl hover:bg-gray-100">
-              <Users size={18} />
-              Clientes
-            </Link>
-
-            <Link href="/Vendedor/Perfil" className="flex items-center gap-3 text-black p-3 rounded-xl hover:bg-gray-100">
-              <User size={18} />
-              Perfil
-            </Link>
-
-            <Link href="/Vendedor/Administracao" className="flex items-center gap-3 bg-red-600 text-white p-3 rounded-xl">
-              <Shield size={18} />
-              Administração
-            </Link>
-
-          </nav>
+          <h1 className="text-2xl font-bold text-gray-900">
+            Toyota Experience
+          </h1>
+          <p className="text-gray-600 text-sm">
+            {isCadastro
+              ? "Crie sua conta"
+              : "Acompanhe seu veículo em tempo real"}
+          </p>
         </div>
 
-        <div className="p-4 border-t">
-          <Link href="/login" className="flex items-center gap-2 text-black hover:text-red-600">
-            <LogOut size={18} />
-            Sair
-          </Link>
-        </div>
-      </div>
+        <form onSubmit={handleSubmit} className="space-y-4">
 
-      {/* CONTEÚDO */}
-      <div className="flex-1 p-6 md:p-10 space-y-6">
+          <div>
+            <label className="text-sm text-gray-600">Email</label>
+            <input
+              type="email"
+              placeholder="seu@email.com"
+              className="w-full mt-1 p-3 rounded-lg border bg-gray-50 text-gray-900 placeholder:text-gray-600 focus:outline-none focus:ring-2 focus:ring-red-500"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
 
-        <h1 className="text-2xl font-bold text-black">
-          Painel Administrativo 👑
-        </h1>
+          <div>
+            <label className="text-sm text-gray-600">Senha</label>
+            <input
+              type="password"
+              placeholder="••••••••"
+              className="w-full mt-1 p-3 rounded-lg border bg-gray-50 text-gray-900 placeholder:text-gray-600 focus:outline-none focus:ring-2 focus:ring-red-500"
+              value={senha}
+              onChange={(e) => setSenha(e.target.value)}
+              required
+            />
+          </div>
 
-        {/* FORM */}
-        <div className="bg-white p-4 rounded-xl shadow flex gap-4">
-          <input
-            value={nome}
-            onChange={(e) => setNome(e.target.value)}
-            placeholder="Nome"
-            className="border p-3 rounded w-full text-black"
-          />
+          {erro && (
+            <p className="text-red-500 text-sm">{erro}</p>
+          )}
 
-          <input
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="Email"
-            className="border p-3 rounded w-full text-black"
-          />
-
-          <button className="bg-red-600 text-white px-6 rounded">
-            Adicionar
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-red-600 text-white py-3 rounded-lg font-semibold hover:bg-red-700 transition disabled:opacity-50"
+          >
+            {loading
+              ? "Carregando..."
+              : isCadastro
+              ? "Criar Conta"
+              : "Entrar"}
           </button>
-        </div>
+        </form>
 
-        {/* TABELA */}
-        <div className="bg-white rounded-xl shadow p-6">
-          <table className="w-full text-sm">
+        <p
+          onClick={() => {
+            setIsCadastro(!isCadastro);
+            setErro("");
+          }}
+          className="text-center text-sm text-red-600 mt-4 cursor-pointer hover:underline"
+        >
+          {isCadastro
+            ? "Já tem conta? Fazer login"
+            : "Não tem conta? Criar agora"}
+        </p>
 
-            <thead>
-              <tr className="text-left text-black border-b">
-                <th>Nome</th>
-                <th>Email</th>
-                <th>Status</th>
-                <th>Ações</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {vendedores.map((v) => (
-                <tr key={v.id} className="border-b">
-
-                  <td className="py-3 font-semibold text-black">{v.nome}</td>
-                  <td className="text-black">{v.email}</td>
-
-                  <td>
-                    <span className={`px-3 py-1 rounded-full text-xs ${
-                      v.ativo
-                        ? "bg-green-100 text-green-700"
-                        : "bg-red-100 text-red-700"
-                    }`}>
-                      {v.ativo ? "Ativo" : "Inativo"}
-                    </span>
-                  </td>
-
-                  <td>
-                    <button
-                      onClick={() => abrirModal(v.id)}
-                      className={`text-sm ${
-                        v.ativo ? "text-red-600" : "text-green-600"
-                      }`}
-                    >
-                      {v.ativo ? "Desativar" : "Ativar"}
-                    </button>
-                  </td>
-
-                </tr>
-              ))}
-            </tbody>
-
-          </table>
-        </div>
       </div>
-
-      {/* MODAL */}
-      {modalAtivo && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
-          <div className="bg-white p-6 rounded-xl w-96 text-center">
-
-            <h2 className="text-lg font-bold mb-4 text-black">
-              Deseja realmente alterar o status deste usuário?
-            </h2>
-
-            <div className="flex gap-4 justify-center">
-              <button
-                onClick={() => setModalAtivo(false)}
-                className="px-4 py-2 border rounded text-black"
-              >
-                Não
-              </button>
-
-              <button
-                onClick={confirmarToggle}
-                className="px-4 py-2 bg-red-600 text-white rounded"
-              >
-                Sim
-              </button>
-            </div>
-
-          </div>
-        </div>
-      )}
-
     </div>
   );
 }
