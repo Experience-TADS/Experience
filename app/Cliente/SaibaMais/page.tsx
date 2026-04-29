@@ -24,15 +24,6 @@ const descricoes = [
 
   "A etapa de inspeção é a fase final do processo de fabricação e representa a última garantia de qualidade antes do veículo ser entregue ao cliente. Nesse momento, o carro passa por uma verificação completa para assegurar que todos os sistemas estejam funcionando perfeitamente.",
 
-  "A produção foi concluída com sucesso. O veículo está completamente montado, revisado e pronto para transporte.",
-
-  "O veículo aguarda liberação logística. A equipe organiza o envio por caminhões cegonha com total segurança.",
-
-  "Seu veículo está em trânsito. Ele está sendo transportado até a concessionária com todos os cuidados necessários.",
-
-  "O veículo chegou à concessionária e passa pelos últimos ajustes, limpeza e preparação final antes da entrega.",
-
-  "Tudo pronto! Seu veículo está disponível para retirada. Agora é só ir até a concessionária e aproveitar seu carro novo.",
 ];
 
 const videos = [
@@ -67,7 +58,7 @@ export default function SaibaMais() {
           {/* HEADER */}
           <div className="mb-8 text-center">
             <h1 className="text-3xl font-bold text-gray-900">
-              Conheça nossa fábrica
+              Conheça nossos processos de produção
             </h1>
             <p className="text-gray-600 mt-2">
               Etapa {etapa + 1} de {etapas.length}
