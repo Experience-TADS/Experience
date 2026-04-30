@@ -54,7 +54,8 @@ Evidências:
 
 ---
 
-**Labels (Etiquetas)** / Diferentes labels podem ser criadas de acordo com a necessidade do projeto 
+**Labels (Etiquetas)** / Diferentes labels podem ser criadas de acordo com a necessidade do projeto
+
 As labels são usadas para categorizar e priorizar as issues do projeto. Cada issue pode ter uma ou mais labels aplicadas.
 
 <img width="316" height="433" alt="{2D3B0C00-236E-45F5-8AC8-8D1C869C266A}" src="https://github.com/user-attachments/assets/86077b82-5557-4da7-8b07-f92825fe46ad" />
@@ -64,6 +65,7 @@ Como aplicar: Ao criar ou editar uma issue, use o menu "Apply labels to this iss
 ---
 
 **Type (Tipo de Issue)**
+
 O tipo define a natureza do item de trabalho. Cada issue deve ter exatamente um tipo.
 
 <img width="315" height="245" alt="{5F1E3119-B2AC-4529-BA7B-6B63B4F310A8}" src="https://github.com/user-attachments/assets/ed39756d-7057-4edb-9635-99792237ea84" />
@@ -73,6 +75,7 @@ Como definir: Ao criar uma issue, selecione o tipo adequado. Use Bug para defeit
 ---
 
 **Assignees (Responsáveis)**
+
 Os assignees são os membros da equipe responsáveis por executar cada issue.
 
 <img width="327" height="192" alt="{E7240456-9570-4D51-9AD4-987C2F8E491C}" src="https://github.com/user-attachments/assets/c3eb9225-a6e9-4075-8540-ef7125d9c57d" />
