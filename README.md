@@ -70,6 +70,7 @@ O tipo define a natureza do item de trabalho. Cada issue deve ter exatamente um 
 
 <img width="315" height="245" alt="{5F1E3119-B2AC-4529-BA7B-6B63B4F310A8}" src="https://github.com/user-attachments/assets/ed39756d-7057-4edb-9635-99792237ea84" />
 
+
 Como definir: Ao criar uma issue, selecione o tipo adequado. Use Bug para defeitos, Feature para novas funcionalidades e Task para tarefas gerais.
 
 ---
@@ -79,5 +80,6 @@ Como definir: Ao criar uma issue, selecione o tipo adequado. Use Bug para defeit
 Os assignees são os membros da equipe responsáveis por executar cada issue.
 
 <img width="327" height="192" alt="{E7240456-9570-4D51-9AD4-987C2F8E491C}" src="https://github.com/user-attachments/assets/c3eb9225-a6e9-4075-8540-ef7125d9c57d" />
+
 
 Como atribuir: Ao criar ou editar uma issue, use o menu "Assignees" para filtrar e selecionar o(s) responsável(is) pela tarefa.
