@@ -54,8 +54,8 @@ Evidências:
 
 ---
 
-**Labels (Etiquetas)** / Diferentes labels podem ser criadas de acordo com a necessidade do projeto
-
+**Labels (Etiquetas)** / **Diferentes labels podem ser criadas de acordo com a necessidade do projeto
+**
 As labels são usadas para categorizar e priorizar as issues do projeto. Cada issue pode ter uma ou mais labels aplicadas.
 
 <img width="316" height="433" alt="{2D3B0C00-236E-45F5-8AC8-8D1C869C266A}" src="https://github.com/user-attachments/assets/86077b82-5557-4da7-8b07-f92825fe46ad" />
