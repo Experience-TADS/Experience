@@ -48,6 +48,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/usuario/login").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/usuario").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/pessoaFisica").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/pessoaJuridica").permitAll()
 
                 // IoT: apenas POST em endpoints de fabricação
                 .requestMatchers(HttpMethod.POST, "/api/fabricacao/**").hasRole("IOT")
