@@ -1,8 +1,8 @@
 package com.senai.experience.controllers;
 
-import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,11 +20,9 @@ public class VeiculoController {
     private VeiculoService veiculoService;
 
     @GetMapping
-    public List<VeiculoResponse> getAllVeiculos() {
-        return veiculoService.findAll()
-                .stream()
-                .map(VeiculoMapper::toResponse)
-                .toList();
+    public Page<VeiculoResponse> getAllVeiculos(Pageable pageable) {
+        return veiculoService.findAll(pageable)
+                .map(VeiculoMapper::toResponse);
     }
 
     @GetMapping("/{id}")

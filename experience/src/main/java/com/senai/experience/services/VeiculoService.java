@@ -1,7 +1,8 @@
 package com.senai.experience.services;
 
-import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PathVariable;
 
@@ -12,8 +13,8 @@ import com.senai.experience.repositories.VeiculoRepository;
 public class VeiculoService {
     @Autowired
     private VeiculoRepository veiculoRepository;
-    public List<Veiculo> findAll() { 
-        return veiculoRepository.findAll();
+    public Page<Veiculo> findAll(Pageable pageable) {
+        return veiculoRepository.findAll(pageable);
     }
     public Veiculo findById(Long id) {
         return veiculoRepository.findById(id).orElse(null);
