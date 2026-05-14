@@ -22,11 +22,17 @@ public class PedidoService {
     private UsuarioRepository usuarioRepository;
 
     public List<Pedido> findAll() {
-        return pedidoRepository.findAll();
+        List<Pedido> pedidos = pedidoRepository.findAll();
+        pedidos.forEach(p -> p.getItens().size());
+        return pedidos;
     }
 
     public Pedido findById(Long id) {
-        return pedidoRepository.findById(id).orElse(null);
+        Pedido pedido = pedidoRepository.findById(id).orElse(null);
+        if (pedido != null) {
+            pedido.getItens().size();
+        }
+        return pedido;
     }
 
     public Pedido save(PedidoRequest request) {
