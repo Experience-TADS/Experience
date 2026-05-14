@@ -57,4 +57,14 @@ public class VeiculoController {
         veiculoService.delete(id);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/chassi/{chassi}")
+    public ResponseEntity<VeiculoResponse> getVeiculoByChassi(@PathVariable Integer chassi) {
+        Veiculo veiculo = veiculoService.findByChassi(chassi);
+        if (veiculo == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(VeiculoMapper.toResponse(veiculo));
+    }
+
 }
