@@ -3,8 +3,6 @@ package com.senai.experience.services;
 import com.senai.experience.entities.PessoaFisica;
 import com.senai.experience.repositories.PessoaFisicaRepository;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -23,10 +21,6 @@ public class PessoaFisicaService {
 
     public List<PessoaFisica> findAll() {
         return repository.findAll();
-    }
-
-    public Page<PessoaFisica> findAll(Pageable pageable) {
-        return repository.findAll(pageable);
     }
 
     public PessoaFisica findById(Long id) {

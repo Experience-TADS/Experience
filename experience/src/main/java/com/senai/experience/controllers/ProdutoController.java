@@ -1,7 +1,7 @@
 package com.senai.experience.controllers;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import java.util.List;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,9 +22,11 @@ public class ProdutoController {
     }
 
     @GetMapping
-    public Page<ProdutoResponse> getAllProdutos(Pageable pageable) {
-        return produtoService.findAll(pageable)
-                .map(ProdutoMapper::toResponse);
+    public List<ProdutoResponse> getAllProdutos() {
+        return produtoService.findAll()
+                .stream()
+                .map(ProdutoMapper::toResponse)
+                .toList();
     }
 
     @GetMapping("/{id}")

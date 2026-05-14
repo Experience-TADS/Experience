@@ -2,10 +2,9 @@ package com.senai.experience.controllers;
 import com.senai.experience.entities.PessoaFisica;
 import com.senai.experience.services.PessoaFisicaService;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/pessoaFisica")
@@ -17,8 +16,8 @@ public class PessoaFisicaController{
     }
 
     @GetMapping
-    public Page<PessoaFisica> getAll(Pageable pageable) {
-        return service.findAll(pageable);
+    public List<PessoaFisica> getAll() {
+        return service.findAll();
     }
 
     @GetMapping("/{id}")

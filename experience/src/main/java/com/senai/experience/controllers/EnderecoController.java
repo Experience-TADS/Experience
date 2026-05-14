@@ -11,11 +11,11 @@ import com.senai.experience.mappers.EnderecoMapper;
 import com.senai.experience.entities.Endereco;
 import com.senai.experience.services.EnderecoService;
 
-@RestController 
-@RequestMapping("/api/endereco") 
+@RestController //Transforma a classe em um controlador REST, permitindo que ela responda a requisições HTTP
+@RequestMapping("/api/endereco") //Define o caminho base para as rotas deste controlador, ou seja, todas as rotas definidas aqui começarão com "/api/endereco"
 
 public class EnderecoController {
-    @Autowired
+    @Autowired //Injeta a dependência do serviço de endereço, permitindo que o controlador utilize os métodos definidos no serviço para manipular os dados de endereço
     private EnderecoService enderecoService;
 
     @GetMapping

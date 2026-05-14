@@ -1,7 +1,7 @@
 package com.senai.experience.services;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 
 import com.senai.experience.entities.Produto;
@@ -34,8 +34,8 @@ public class ProdutoService {
         return null;
     }
 
-    public Page<Produto> findAll(Pageable pageable) {
-        return produtoRepository.findAll(pageable);
+    public List<Produto> findAll() {
+        return produtoRepository.findAll();
     }
 
 }

@@ -25,9 +25,5 @@ public class ItemPedido {
     @JoinColumn(name = "idProduto")
     private Produto produto;
 
-    @ManyToOne
-    @JoinColumn(name = "idVeiculo")
-    private Veiculo veiculo;
-
     private Integer quantidade;
 }
