@@ -32,4 +32,8 @@ public class VeiculoService {
     public void delete(Long id) {
         veiculoRepository.deleteById(id);
     }
+
+    public Veiculo findByChassi(int chassi){
+        return veiculoRepository.findByChassi(chassi);
+    }
 }

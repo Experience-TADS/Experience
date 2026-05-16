@@ -54,6 +54,8 @@ public class Usuario {
     @NotNull
     private LocalDate dataNascimento;
 
+    private boolean ativo = true;
+
     // Construtor usado pelas subclasses PessoaFisica e PessoaJuridica (sem role)
     public Usuario(String nome, String email, String senhaHash, LocalDate dataNascimento) {
         this.nome = nome;

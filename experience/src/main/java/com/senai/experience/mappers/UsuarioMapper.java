@@ -23,6 +23,7 @@ public class UsuarioMapper {
         r.setEmail(u.getEmail());
         r.setDataNascimento(u.getDataNascimento());
         r.setRole(u.getRole());
+        r.setAtivo(u.isAtivo());
         return r;
     }
 }

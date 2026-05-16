@@ -45,7 +45,8 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 // Rotas públicas
                 .requestMatchers("/h2-console/**").permitAll()
-                .requestMatchers(HttpMethod.POST, "/error").permitAll()
+                .requestMatchers("/error").permitAll()
+                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/usuario/login").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/usuario").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/pessoaFisica").permitAll()
