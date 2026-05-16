@@ -85,4 +85,87 @@ void canceladoNaoPermiteNenhumaTransicao() {
         .hasMessageContaining("Transição inválida");
 }
 
+// ── Transições válidas restantes ──────────────────────────────────────────────
+
+@Test
+void emFabricacaoParaPinturaDeveSerPermitido() {
+    veiculo.setStatusVeiculo(StatusFabricacao.EM_FABRICACAO);
+    when(veiculoRepository.findById(1L)).thenReturn(Optional.of(veiculo));
+    when(veiculoRepository.save(any())).thenReturn(veiculo);
+    when(statusHistoricoRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+
+    StatusHistorico resultado = service.atualizarStatus(1L, StatusFabricacao.PINTURA);
+
+    assertThat(resultado.getStatus()).isEqualTo(StatusFabricacao.PINTURA);
+}
+
+@Test
+void pinturaParaControleQualidadeDeveSerPermitido() {
+    veiculo.setStatusVeiculo(StatusFabricacao.PINTURA);
+    when(veiculoRepository.findById(1L)).thenReturn(Optional.of(veiculo));
+    when(veiculoRepository.save(any())).thenReturn(veiculo);
+    when(statusHistoricoRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+
+    StatusHistorico resultado = service.atualizarStatus(1L, StatusFabricacao.CONTROLE_QUALIDADE);
+
+    assertThat(resultado.getStatus()).isEqualTo(StatusFabricacao.CONTROLE_QUALIDADE);
+}
+
+@Test
+void controleQualidadeParaConcluidoDeveSerPermitido() {
+    veiculo.setStatusVeiculo(StatusFabricacao.CONTROLE_QUALIDADE);
+    when(veiculoRepository.findById(1L)).thenReturn(Optional.of(veiculo));
+    when(veiculoRepository.save(any())).thenReturn(veiculo);
+    when(statusHistoricoRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+
+    StatusHistorico resultado = service.atualizarStatus(1L, StatusFabricacao.CONCLUIDO);
+
+    assertThat(resultado.getStatus()).isEqualTo(StatusFabricacao.CONCLUIDO);
+}
+
+@Test
+void concluidoParaEntregueDeveSerPermitido() {
+    veiculo.setStatusVeiculo(StatusFabricacao.CONCLUIDO);
+    when(veiculoRepository.findById(1L)).thenReturn(Optional.of(veiculo));
+    when(veiculoRepository.save(any())).thenReturn(veiculo);
+    when(statusHistoricoRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+
+    StatusHistorico resultado = service.atualizarStatus(1L, StatusFabricacao.ENTREGUE);
+
+    assertThat(resultado.getStatus()).isEqualTo(StatusFabricacao.ENTREGUE);
+}
+
+@Test
+void aguardandoParaCanceladoDeveSerPermitido() {
+    veiculo.setStatusVeiculo(StatusFabricacao.AGUARDANDO);
+    when(veiculoRepository.findById(1L)).thenReturn(Optional.of(veiculo));
+    when(veiculoRepository.save(any())).thenReturn(veiculo);
+    when(statusHistoricoRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+
+    StatusHistorico resultado = service.atualizarStatus(1L, StatusFabricacao.CANCELADO);
+
+    assertThat(resultado.getStatus()).isEqualTo(StatusFabricacao.CANCELADO);
+}
+
+@Test
+void entregueNaoPermiteNenhumaTransicao() {
+    veiculo.setStatusVeiculo(StatusFabricacao.ENTREGUE);
+    when(veiculoRepository.findById(1L)).thenReturn(Optional.of(veiculo));
+
+    assertThatThrownBy(() -> service.atualizarStatus(1L, StatusFabricacao.CONCLUIDO))
+        .isInstanceOf(RuntimeException.class)
+        .hasMessageContaining("Transição inválida");
+}
+
+@Test
+void concluidoNaoPodeCancelar() {
+    // CONCLUIDO só pode ir para ENTREGUE, não para CANCELADO
+    veiculo.setStatusVeiculo(StatusFabricacao.CONCLUIDO);
+    when(veiculoRepository.findById(1L)).thenReturn(Optional.of(veiculo));
+
+    assertThatThrownBy(() -> service.atualizarStatus(1L, StatusFabricacao.CANCELADO))
+        .isInstanceOf(RuntimeException.class)
+        .hasMessageContaining("Transição inválida");
+}
+
 }
