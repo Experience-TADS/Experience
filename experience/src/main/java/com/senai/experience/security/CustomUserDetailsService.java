@@ -33,7 +33,7 @@ public class CustomUserDetailsService implements UserDetailsService {
                 .username(usuario.getEmail())
                 .password(usuario.getSenhaHash()) // A senha já deve estar codificada
                 .authorities(role) // authorities em vez de roles() para evitar duplicação do prefixo ROLE_
-                .disabled(usuario.isAtivo())
+                .disabled(!usuario.isAtivo())
                 .build();
     }
 }

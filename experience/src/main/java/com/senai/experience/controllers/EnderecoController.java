@@ -9,14 +9,19 @@ import com.senai.experience.DTO.request.EnderecoRequest;
 import com.senai.experience.DTO.response.EnderecoResponse;
 import com.senai.experience.mappers.EnderecoMapper;
 import com.senai.experience.entities.Endereco;
+import com.senai.experience.entities.Usuario;
 import com.senai.experience.services.EnderecoService;
+import com.senai.experience.services.UsuarioService;
 
-@RestController //Transforma a classe em um controlador REST, permitindo que ela responda a requisições HTTP
-@RequestMapping("/api/endereco") //Define o caminho base para as rotas deste controlador, ou seja, todas as rotas definidas aqui começarão com "/api/endereco"
-
+@RestController
+@RequestMapping("/api/endereco")
 public class EnderecoController {
-    @Autowired //Injeta a dependência do serviço de endereço, permitindo que o controlador utilize os métodos definidos no serviço para manipular os dados de endereço
+
+    @Autowired
     private EnderecoService enderecoService;
+
+    @Autowired
+    private UsuarioService usuarioService;
 
     @GetMapping
     public ResponseEntity<List<EnderecoResponse>> getAllEnderecos() {
@@ -39,14 +44,22 @@ public class EnderecoController {
 
     @PostMapping
     public ResponseEntity<EnderecoResponse> createEndereco(@RequestBody EnderecoRequest dto) {
-        Endereco endereco = EnderecoMapper.toEntity(dto);
+        Usuario usuario = usuarioService.findById(dto.getIdUsuario());
+        if (usuario == null) {
+            return ResponseEntity.badRequest().build();
+        }
+        Endereco endereco = EnderecoMapper.toEntity(dto, usuario);
         Endereco salvo = enderecoService.save(endereco);
         return ResponseEntity.status(201).body(EnderecoMapper.toResponse(salvo));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<EnderecoResponse> updateEndereco(@PathVariable Long id, @RequestBody EnderecoRequest dto) {
-        Endereco endereco = EnderecoMapper.toEntity(dto);
+        Usuario usuario = usuarioService.findById(dto.getIdUsuario());
+        if (usuario == null) {
+            return ResponseEntity.badRequest().build();
+        }
+        Endereco endereco = EnderecoMapper.toEntity(dto, usuario);
         Endereco atualizado = enderecoService.update(id, endereco);
         if (atualizado != null) {
             return ResponseEntity.ok(EnderecoMapper.toResponse(atualizado));
