@@ -10,10 +10,8 @@ import org.springframework.web.bind.annotation.*;
 import com.senai.experience.DTO.request.TelefoneRequest;
 import com.senai.experience.DTO.response.TelefoneResponse;
 import com.senai.experience.entities.Telefone;
-import com.senai.experience.entities.Usuario;
 import com.senai.experience.mappers.TelefoneMapper;
 import com.senai.experience.services.TelefoneService;
-import com.senai.experience.services.UsuarioService;
 
 @RestController
 @RequestMapping("/api/telefones")
@@ -21,9 +19,6 @@ public class TelefoneController {
 
     @Autowired
     private TelefoneService telefoneService;
-
-    @Autowired
-    private UsuarioService usuarioService;
 
     @GetMapping
     public ResponseEntity<Page<Telefone>> getAllTelefones(Pageable pageable) {
@@ -41,22 +36,14 @@ public class TelefoneController {
 
     @PostMapping
     public ResponseEntity<TelefoneResponse> createTelefone(@RequestBody TelefoneRequest dto) {
-        Usuario usuario = usuarioService.findById(dto.getIdUsuario());
-        if (usuario == null) {
-            return ResponseEntity.badRequest().build();
-        }
-        Telefone telefone = TelefoneMapper.toEntity(dto, usuario);
+        Telefone telefone = TelefoneMapper.toEntity(dto);
         Telefone novoTelefone = telefoneService.save(telefone);
         return ResponseEntity.status(201).body(TelefoneMapper.toResponse(novoTelefone));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<TelefoneResponse> updateTelefone(@PathVariable Long id, @RequestBody TelefoneRequest dto) {
-        Usuario usuario = usuarioService.findById(dto.getIdUsuario());
-        if (usuario == null) {
-            return ResponseEntity.badRequest().build();
-        }
-        Telefone telefone = TelefoneMapper.toEntity(dto, usuario);
+        Telefone telefone = TelefoneMapper.toEntity(dto);
         Telefone atualizado = telefoneService.update(id, telefone);
         if (atualizado != null) {
             return ResponseEntity.ok(TelefoneMapper.toResponse(atualizado));

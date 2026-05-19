@@ -6,6 +6,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.senai.experience.entities.ItemPedido;
+import com.senai.experience.entities.Pedido;
+import com.senai.experience.entities.Produto;
 import com.senai.experience.repositories.ItemPedidoRepository;
 import com.senai.experience.repositories.PedidoRepository;
 import com.senai.experience.repositories.ProdutoRepository;

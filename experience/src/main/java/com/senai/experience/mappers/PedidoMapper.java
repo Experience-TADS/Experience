@@ -2,7 +2,6 @@ package com.senai.experience.mappers;
 
 import com.senai.experience.DTO.response.PedidoResponse;
 import com.senai.experience.entities.Pedido;
-import com.senai.experience.entities.ItemPedido;
 import java.util.stream.Collectors;
 
 public class PedidoMapper {

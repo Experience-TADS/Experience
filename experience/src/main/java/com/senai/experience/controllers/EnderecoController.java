@@ -11,9 +11,7 @@ import com.senai.experience.DTO.request.EnderecoRequest;
 import com.senai.experience.DTO.response.EnderecoResponse;
 import com.senai.experience.mappers.EnderecoMapper;
 import com.senai.experience.entities.Endereco;
-import com.senai.experience.entities.Usuario;
 import com.senai.experience.services.EnderecoService;
-import com.senai.experience.services.UsuarioService;
 
 @RestController
 @RequestMapping("/api/endereco")
@@ -21,9 +19,6 @@ public class EnderecoController {
 
     @Autowired
     private EnderecoService enderecoService;
-
-    @Autowired
-    private UsuarioService usuarioService;
 
     @GetMapping
     public ResponseEntity<Page<Endereco>> getAllEnderecos(Pageable pageable) {
@@ -41,22 +36,14 @@ public class EnderecoController {
 
     @PostMapping
     public ResponseEntity<EnderecoResponse> createEndereco(@RequestBody EnderecoRequest dto) {
-        Usuario usuario = usuarioService.findById(dto.getIdUsuario());
-        if (usuario == null) {
-            return ResponseEntity.badRequest().build();
-        }
-        Endereco endereco = EnderecoMapper.toEntity(dto, usuario);
+        Endereco endereco = EnderecoMapper.toEntity(dto);
         Endereco salvo = enderecoService.save(endereco);
         return ResponseEntity.status(201).body(EnderecoMapper.toResponse(salvo));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<EnderecoResponse> updateEndereco(@PathVariable Long id, @RequestBody EnderecoRequest dto) {
-        Usuario usuario = usuarioService.findById(dto.getIdUsuario());
-        if (usuario == null) {
-            return ResponseEntity.badRequest().build();
-        }
-        Endereco endereco = EnderecoMapper.toEntity(dto, usuario);
+        Endereco endereco = EnderecoMapper.toEntity(dto);
         Endereco atualizado = enderecoService.update(id, endereco);
         if (atualizado != null) {
             return ResponseEntity.ok(EnderecoMapper.toResponse(atualizado));

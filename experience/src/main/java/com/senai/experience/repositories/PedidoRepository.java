@@ -10,5 +10,6 @@ import com.senai.experience.entities.Usuario;
 
 public interface PedidoRepository extends JpaRepository<Pedido, Long> {
     List<Pedido> findByIdCliente(Usuario cliente);
+    List<Pedido> findByIdVendedor(Usuario vendedor);
     Page<Pedido> findAll(Pageable pageable);
 }

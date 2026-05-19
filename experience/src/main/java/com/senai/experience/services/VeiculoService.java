@@ -16,6 +16,9 @@ public class VeiculoService {
     @Autowired
     private VeiculoRepository veiculoRepository;
 
+    @Autowired
+    private ProdutoRepository produtoRepository;
+
     public Page<Veiculo> findAll(Pageable pageable) { 
         return veiculoRepository.findAll(pageable);
     }

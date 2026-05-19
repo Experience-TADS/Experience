@@ -1,6 +1,5 @@
 package com.senai.experience.Test;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.senai.experience.config.PostgresTestContainer;
 import org.junit.jupiter.api.BeforeEach;
