@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import com.senai.experience.DTO.request.PedidoRequest;
 import com.senai.experience.entities.Pedido;
 import com.senai.experience.entities.Usuario;
+import com.senai.experience.entities.role.UserRole;
 import com.senai.experience.repositories.PedidoRepository;
 import com.senai.experience.repositories.UsuarioRepository;
 
@@ -27,7 +28,11 @@ public class PedidoService {
     }
 
     public Pedido findById(Long id) {
-        return pedidoRepository.findById(id).orElse(null);
+        Pedido pedido = pedidoRepository.findById(id).orElse(null);
+        if (pedido != null) {
+            pedido.getItens().size();
+        }
+        return pedido;
     }
 
     public Pedido save(PedidoRequest request) {
@@ -62,5 +67,18 @@ public class PedidoService {
 
     public void delete(Long id) {
         pedidoRepository.deleteById(id);
+    }
+
+    public List<Pedido> findMeusPedidos(String email) {
+        Usuario usuario = usuarioRepository.findByEmail(email);
+        if (usuario == null || usuario.getRole() == null) return List.of();
+
+        if (usuario.getRole() == UserRole.ADMIN) {
+            return pedidoRepository.findAll();
+        } else if (usuario.getRole() == UserRole.VENDEDOR) {
+            return pedidoRepository.findByIdVendedor(usuario);
+        } else {
+            return pedidoRepository.findByIdCliente(usuario);
+        }
     }
 }

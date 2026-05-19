@@ -13,6 +13,7 @@ import com.senai.experience.services.UsuarioService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -69,7 +70,7 @@ public class UsuarioController {
         if (usuario == null) {
             return ResponseEntity.status(401).body("Email ou senha inválidos.");
         }
-        String token = JwtUtil.generateToken(usuario.getEmail(), usuario.getRole().name());
+        String token = JwtUtil.generateToken(usuario.getEmail(), usuario.getRole() != null ? usuario.getRole().name() : "CLIENTE");
         return ResponseEntity.ok(new LoginResponse(token, usuario.getEmail(), usuario.getRole()));
     }
 
@@ -87,6 +88,23 @@ public class UsuarioController {
         if (usuario == null) {
             return ResponseEntity.status(404).body("Usuário não encontrado.");
         }
+        return ResponseEntity.ok(UsuarioMapper.toResponse(usuario));
+    }
+
+    @PatchMapping("/{id}/ativar")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<UsuarioResponse> ativar(@PathVariable Long id){
+        Usuario usuario = usuarioService.ativar(id);
+        if (usuario == null) return ResponseEntity.notFound().build();
+        return ResponseEntity.ok(UsuarioMapper.toResponse(usuario));
+    }
+
+    
+    @PatchMapping("/{id}/desativar")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<UsuarioResponse> desativar(@PathVariable Long id){
+        Usuario usuario = usuarioService.desativar(id);
+        if (usuario == null) return ResponseEntity.notFound().build();
         return ResponseEntity.ok(UsuarioMapper.toResponse(usuario));
     }
 }
