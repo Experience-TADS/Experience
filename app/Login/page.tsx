@@ -6,7 +6,6 @@ import { Car } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
-
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [erro, setErro] = useState("");
@@ -26,105 +25,75 @@ export default function LoginPage() {
       }
 
       let role = "cliente";
+      if (email.includes("@admin")) role = "admin";
+      else if (email.includes("@toyota")) role = "vendedor";
+      else if (email.includes("@gmail")) role = "cliente";
 
-      // 🔥 REGRAS DE ACESSO
-      if (email.includes("@admin")) {
-        role = "admin"; // vendedor com acesso admin
-      } else if (email.includes("@toyota")) {
-        role = "vendedor";
-      } else if (email.includes("@gmail")) {
-        role = "cliente";
-      }
-
-      // 💾 SALVA
       localStorage.setItem("user", email);
       localStorage.setItem("userRole", role);
 
-      // 🔀 REDIRECIONAMENTO
-      if (role === "admin") {
-        router.push("/Vendedor/Administracao");
-      } else if (role === "vendedor") {
-        router.push("/Vendedor/Dashbord");
-      } else {
-        router.push("/");
-      }
+      if (role === "admin") router.push("/Vendedor/Administracao");
+      else if (role === "vendedor") router.push("/Vendedor/Dashbord");
+      else router.push("/");
 
       setLoading(false);
     }, 800);
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <div className="bg-white p-8 rounded-2xl shadow-md w-96">
+    <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-gray-950">
+      <div className="bg-white dark:bg-gray-900 p-8 rounded-2xl shadow-md dark:shadow-gray-800 w-96 border border-transparent dark:border-gray-700">
 
         <div className="flex flex-col items-center mb-6">
           <div className="bg-red-600 p-4 rounded-xl mb-4">
             <Car className="text-white w-8 h-8" />
           </div>
-
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
             Toyota Experience
           </h1>
-          <p className="text-gray-600 text-sm">
-            {isCadastro
-              ? "Crie sua conta"
-              : "Acompanhe seu veículo em tempo real"}
+          <p className="text-gray-600 dark:text-gray-400 text-sm">
+            {isCadastro ? "Crie sua conta" : "Acompanhe seu veículo em tempo real"}
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-
           <div>
-            <label className="text-sm text-gray-600">Email</label>
+            <label className="text-sm text-gray-600 dark:text-gray-400">Email</label>
             <input
               type="email"
               placeholder="seu@email.com"
-              className="w-full mt-1 p-3 rounded-lg border bg-gray-50 text-gray-900 placeholder:text-gray-600 focus:outline-none focus:ring-2 focus:ring-red-500"
+              className="w-full mt-1 p-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-red-500"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
             />
           </div>
-
           <div>
-            <label className="text-sm text-gray-600">Senha</label>
+            <label className="text-sm text-gray-600 dark:text-gray-400">Senha</label>
             <input
               type="password"
               placeholder="••••••••"
-              className="w-full mt-1 p-3 rounded-lg border bg-gray-50 text-gray-900 placeholder:text-gray-600 focus:outline-none focus:ring-2 focus:ring-red-500"
+              className="w-full mt-1 p-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-red-500"
               value={senha}
               onChange={(e) => setSenha(e.target.value)}
               required
             />
           </div>
-
-          {erro && (
-            <p className="text-red-500 text-sm">{erro}</p>
-          )}
-
+          {erro && <p className="text-red-500 text-sm">{erro}</p>}
           <button
             type="submit"
             disabled={loading}
             className="w-full bg-red-600 text-white py-3 rounded-lg font-semibold hover:bg-red-700 transition disabled:opacity-50"
           >
-            {loading
-              ? "Carregando..."
-              : isCadastro
-              ? "Criar Conta"
-              : "Entrar"}
+            {loading ? "Carregando..." : isCadastro ? "Criar Conta" : "Entrar"}
           </button>
         </form>
 
         <p
-          onClick={() => {
-            setIsCadastro(!isCadastro);
-            setErro("");
-          }}
+          onClick={() => { setIsCadastro(!isCadastro); setErro(""); }}
           className="text-center text-sm text-red-600 mt-4 cursor-pointer hover:underline"
         >
-          {isCadastro
-            ? "Já tem conta? Fazer login"
-            : "Não tem conta? Criar agora"}
+          {isCadastro ? "Já tem conta? Fazer login" : "Não tem conta? Criar agora"}
         </p>
 
       </div>
