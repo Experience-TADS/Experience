@@ -41,8 +41,11 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             UserDetails userDetails = userDetailsService.loadUserByUsername(username);
             if (JwtUtil.validateToken(token)) {
                 // Extrai o role do claim e monta a authority para o Spring Security
+                // O token grava "ADMIN", o Spring Security espera "ROLE_ADMIN"
                 String role = JwtUtil.extractRole(token);
-                List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(role));
+                List<GrantedAuthority> authorities = List.of(
+                    new SimpleGrantedAuthority("ROLE_" + role)
+                );
 
                 UsernamePasswordAuthenticationToken authToken =
                         new UsernamePasswordAuthenticationToken(userDetails, null, authorities);

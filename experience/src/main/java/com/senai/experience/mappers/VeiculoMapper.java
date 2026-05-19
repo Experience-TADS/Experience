@@ -21,9 +21,19 @@ public class VeiculoMapper {
     public static VeiculoResponse toResponse(Veiculo v) {
         VeiculoResponse r = new VeiculoResponse();
         r.setId(v.getId());
-        r.setIdProduto(v.getProduto() != null ? v.getProduto().getIdProduto() : null);
         r.setChassi(v.getChassi());
         r.setStatusVeiculo(v.getStatusVeiculo());
+
+        if (v.getProduto() != null) {
+            VeiculoResponse.ProdutoInfo info = new VeiculoResponse.ProdutoInfo();
+            info.setId(v.getProduto().getIdProduto());
+            info.setModelo(v.getProduto().getModelo());
+            info.setCor(v.getProduto().getCor());
+            info.setVersao(v.getProduto().getVersao());
+            info.setAno(v.getProduto().getAno());
+            r.setProduto(info);
+        }
+
         return r;
     }
 }

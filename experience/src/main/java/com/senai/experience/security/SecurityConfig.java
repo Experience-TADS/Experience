@@ -1,5 +1,7 @@
 package com.senai.experience.security;
 
+import java.util.List;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -14,6 +16,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @EnableMethodSecurity
 @Configuration
@@ -35,26 +40,33 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .csrf(csrf -> csrf.disable())
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .headers(headers -> headers.frameOptions().disable())
             .authorizeHttpRequests(auth -> auth
                 // Rotas públicas
                 .requestMatchers("/h2-console/**").permitAll()
+                .requestMatchers("/error").permitAll()
+                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/usuario/login").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/usuario").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/pessoaFisica").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/pessoaJuridica").permitAll()
 
                 // IoT: apenas POST em endpoints de fabricação
                 .requestMatchers(HttpMethod.POST, "/api/fabricacao/**").hasRole("IOT")
+                
+                // Status de fabricação: leitura para autenticados, escrita apenas para IOT e ADMIN
+                .requestMatchers(HttpMethod.GET, "/api/veiculo/*/status").authenticated()
+                .requestMatchers(HttpMethod.POST, "/api/veiculo/*/status").hasAnyRole("IOT", "ADMIN")
 
                 // Admin: acesso total ao painel admin
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
 
-                // ATENÇÃO: regra específica ANTES da genérica
                 // Cliente: apenas os próprios pedidos
                 .requestMatchers("/api/pedido/meus-pedidos/**").hasAnyRole("CLIENTE", "VENDEDOR", "ADMIN")
                 // Vendedor e Admin: acesso a todos os pedidos
                 .requestMatchers("/api/pedido/**").hasAnyRole("VENDEDOR", "ADMIN")
 
-                // Produto: leitura autenticada, escrita restrita
                 .requestMatchers(HttpMethod.GET, "/api/produto/**").authenticated()
                 .requestMatchers(HttpMethod.POST, "/api/produto/**").hasAnyRole("ADMIN", "VENDEDOR")
                 .requestMatchers(HttpMethod.PUT, "/api/produto/**").hasAnyRole("ADMIN", "VENDEDOR")
@@ -66,6 +78,23 @@ public class SecurityConfig {
             .addFilterBefore(jwtAuthFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
+
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource(){
+        CorsConfiguration config = new CorsConfiguration();
+
+        //ordem: localhost, métodos, labels e retorno
+
+            config.setAllowedOrigins(List.of("http://localhost:3000", "http://localhost:5173"));
+            config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+            config.setAllowedHeaders(List.of("Authorization", "Content-type"));
+            config.setAllowCredentials(true);
+
+            UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+            source.registerCorsConfiguration("/**", config);
+            return source;
     }
 
     @Bean
