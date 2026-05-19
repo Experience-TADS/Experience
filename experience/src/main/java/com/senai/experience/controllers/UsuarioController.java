@@ -9,8 +9,9 @@ import com.senai.experience.mappers.UsuarioMapper;
 import com.senai.experience.security.JwtUtil;
 import com.senai.experience.services.UsuarioService;
 
-import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,11 +26,9 @@ public class UsuarioController {
     }
 
     @GetMapping
-    public List<UsuarioResponse> getAllUsuarios() {
-        return usuarioService.findAll()
-                .stream()
-                .map(UsuarioMapper::toResponse)
-                .toList();
+    public Page<UsuarioResponse> getAllUsuarios(Pageable pageable) {
+        return usuarioService.findAll(pageable)
+                .map(UsuarioMapper::toResponse);
     }
 
     @GetMapping("/{id}")

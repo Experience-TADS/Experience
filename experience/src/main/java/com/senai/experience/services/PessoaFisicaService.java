@@ -3,7 +3,9 @@ import com.senai.experience.entities.PessoaFisica;
 import com.senai.experience.repositories.PessoaFisicaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import java.util.List;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 
 @Service
@@ -12,8 +14,8 @@ public class PessoaFisicaService {
     private PessoaFisicaRepository repository;  
 
 
-    public List<PessoaFisica> findAll() {
-        return repository.findAll();
+    public Page<PessoaFisica> findAll(Pageable pageable) {
+        return repository.findAll(pageable);
     }
     
     public PessoaFisica findById(Long id) {

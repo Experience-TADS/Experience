@@ -1,7 +1,9 @@
 package com.senai.experience.controllers;
 
-import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.senai.experience.entities.Endereco;
@@ -15,8 +17,8 @@ public class EnderecoController {
     private EnderecoService enderecoService;
 
     @GetMapping
-    public ResponseEntity<List<Endereco>> getAllEnderecos() {
-        return ResponseEntity.ok(enderecoService.findAll());
+    public ResponseEntity<Page<Endereco>> getAllEnderecos(Pageable pageable) {
+        return ResponseEntity.ok(enderecoService.findAll(pageable));
     }
 
     @GetMapping("/{id}")

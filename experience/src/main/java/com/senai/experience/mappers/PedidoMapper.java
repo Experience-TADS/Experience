@@ -1,6 +1,5 @@
 package com.senai.experience.mappers;
 
-import com.senai.experience.DTO.request.PedidoRequest;
 import com.senai.experience.DTO.response.PedidoResponse;
 import com.senai.experience.entities.Pedido;
 

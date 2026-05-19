@@ -3,6 +3,8 @@ package com.senai.experience.controllers;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -31,11 +33,9 @@ public class PedidoController {
     private PedidoRepository pedidoRepository;
 
     @GetMapping
-    public List<PedidoResponse> getAllPedidos() {
-        return pedidoService.findAll()
-                .stream()
-                .map(PedidoMapper::toResponse)
-                .toList();
+    public Page<PedidoResponse> getAllPedidos(Pageable pageable) {
+        return pedidoService.findAll(pageable)
+                .map(PedidoMapper::toResponse);
     }
 
     @GetMapping("/{id}")
