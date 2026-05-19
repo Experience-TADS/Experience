@@ -6,6 +6,9 @@ import com.senai.experience.repositories.PessoaFisicaRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import java.util.List;
 
 @Service
@@ -19,8 +22,8 @@ public class PessoaFisicaService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    public List<PessoaFisica> findAll() {
-        return repository.findAll();
+    public Page<PessoaFisica> findAll(Pageable pageable) {
+        return repository.findAll(pageable);
     }
 
     public PessoaFisica findById(Long id) {

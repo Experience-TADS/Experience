@@ -1,8 +1,10 @@
 package com.senai.experience.services;
 
-import java.util.List;
+
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.senai.experience.DTO.request.PedidoRequest;
@@ -21,10 +23,8 @@ public class PedidoService {
     @Autowired
     private UsuarioRepository usuarioRepository;
 
-    public List<Pedido> findAll() {
-        List<Pedido> pedidos = pedidoRepository.findAll();
-        pedidos.forEach(p -> p.getItens().size());
-        return pedidos;
+    public Page<Pedido> findAll(Pageable pageable) {
+        return pedidoRepository.findAll(pageable);
     }
 
     public Pedido findById(Long id) {

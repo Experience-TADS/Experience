@@ -1,12 +1,11 @@
 package com.senai.experience.services;
 
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.senai.experience.entities.ItemPedido;
-import com.senai.experience.entities.Pedido;
-import com.senai.experience.entities.Produto;
 import com.senai.experience.repositories.ItemPedidoRepository;
 import com.senai.experience.repositories.PedidoRepository;
 import com.senai.experience.repositories.ProdutoRepository;
@@ -38,8 +37,8 @@ public class ItemPedidoService {
         return repository.save(item);
     }
 
-    public List<ItemPedido> listarTodos() {
-        return repository.findAll();
+    public Page<ItemPedido> listarTodos(Pageable pageable) {
+        return repository.findAll(pageable);
     }
 
     public ItemPedido findById(Long id) {
