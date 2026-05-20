@@ -1,6 +1,6 @@
 package com.senai.experience.exception;
 
-import java.nio.file.AccessDeniedException;
+import org.springframework.security.access.AccessDeniedException; 
 
 import org.springframework.http.HttpStatus;
 
@@ -20,7 +20,10 @@ public class GlobalHandlerException{
             "Cliente não encontrado",
             ex.getMessage()
          );
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e);
+         if(ex.getMessage() != null && ex.getMessage().toLowerCase().contains("transição inválida")){
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e);
+        }
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e);
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
