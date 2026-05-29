@@ -27,6 +27,9 @@ public class Veiculo {
     @Enumerated(EnumType.STRING)
     private StatusFabricacao statusVeiculo;
 
+    @Column(name = "id_pedido")
+    private Long idPedido;
+
     @OneToMany(mappedBy = "veiculo", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @com.fasterxml.jackson.annotation.JsonManagedReference
     private java.util.List<StatusHistorico> historico;

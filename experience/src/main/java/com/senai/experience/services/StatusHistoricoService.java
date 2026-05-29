@@ -28,6 +28,14 @@ public class StatusHistoricoService {
         Veiculo veiculo = veiculoRepository.findById(veiculoId)
                 .orElseThrow(() -> new RuntimeException("Veículo não encontrado: " + veiculoId));
 
+        // Ignora silenciosamente se o status já é o mesmo (evita erro em etapas repetidas do ESP32)
+        if (veiculo.getStatusVeiculo() == novoStatus) {
+            StatusHistorico ultimo = statusHistoricoRepository
+                    .findByVeiculoIdOrderByDataAlteracaoDesc(veiculoId)
+                    .stream().findFirst().orElse(null);
+            return ultimo != null ? ultimo : new StatusHistorico();
+        }
+
         validarTransicao(veiculo.getStatusVeiculo(), novoStatus);
 
         veiculo.setStatusVeiculo(novoStatus);

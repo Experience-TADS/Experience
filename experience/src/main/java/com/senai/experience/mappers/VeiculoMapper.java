@@ -15,6 +15,7 @@ public class VeiculoMapper {
         v.setProduto(produto);
         v.setChassi(dto.getChassi());
         v.setStatusVeiculo(dto.getStatusVeiculo());
+        v.setIdPedido(dto.getIdPedido());
         return v;
     }
 
@@ -23,6 +24,7 @@ public class VeiculoMapper {
         r.setId(v.getId());
         r.setChassi(v.getChassi());
         r.setStatusVeiculo(v.getStatusVeiculo());
+        r.setIdPedido(v.getIdPedido());
 
         if (v.getProduto() != null) {
             VeiculoResponse.ProdutoInfo info = new VeiculoResponse.ProdutoInfo();

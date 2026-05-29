@@ -9,6 +9,7 @@ public class VeiculoResponse {
     private ProdutoInfo produto;
     private int chassi;
     private StatusFabricacao statusVeiculo;
+    private Long idPedido;
 
     @Data
     public static class ProdutoInfo {
