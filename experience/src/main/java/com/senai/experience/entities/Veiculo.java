@@ -1,5 +1,7 @@
 package com.senai.experience.entities;
 
+import java.util.List;
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;   
 import lombok.Getter;
@@ -29,7 +31,7 @@ public class Veiculo {
 
     @OneToMany(mappedBy = "veiculo", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @com.fasterxml.jackson.annotation.JsonManagedReference
-    private java.util.List<StatusHistorico> historico;
+    private List<StatusHistorico> historico;
     
 
     //TO STRING
