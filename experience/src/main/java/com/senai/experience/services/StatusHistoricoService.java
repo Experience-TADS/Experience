@@ -52,12 +52,14 @@ public class StatusHistoricoService {
         if (atual == null) return;
 
         boolean valido = switch (atual) {
-            case AGUARDANDO         -> novo == StatusFabricacao.EM_FABRICACAO || novo == StatusFabricacao.CANCELADO;
-            case EM_FABRICACAO      -> novo == StatusFabricacao.PINTURA || novo == StatusFabricacao.CANCELADO;
-            case PINTURA            -> novo == StatusFabricacao.CONTROLE_QUALIDADE || novo == StatusFabricacao.CANCELADO;
-            case CONTROLE_QUALIDADE -> novo == StatusFabricacao.CONCLUIDO || novo == StatusFabricacao.CANCELADO;
-            case CONCLUIDO          -> novo == StatusFabricacao.ENTREGUE;
-            case ENTREGUE, CANCELADO -> false;
+            case AGUARDANDO            -> novo == StatusFabricacao.MONTAGEM_ESTRUTURAL || novo == StatusFabricacao.CANCELADO;
+            case MONTAGEM_ESTRUTURAL   -> novo == StatusFabricacao.PINTURA || novo == StatusFabricacao.CANCELADO;
+            case PINTURA               -> novo == StatusFabricacao.INSTALACAO_MOTOR || novo == StatusFabricacao.CANCELADO;
+            case INSTALACAO_MOTOR      -> novo == StatusFabricacao.ACABAMENTO_INTERNO || novo == StatusFabricacao.CANCELADO;
+            case ACABAMENTO_INTERNO    -> novo == StatusFabricacao.INSPECAO_FINAL || novo == StatusFabricacao.CANCELADO;
+            case INSPECAO_FINAL        -> novo == StatusFabricacao.LIBERACAO_TRANSPORTE || novo == StatusFabricacao.CANCELADO;
+            case LIBERACAO_TRANSPORTE  -> novo == StatusFabricacao.ENTREGUE;
+            case ENTREGUE, CANCELADO   -> false;
         };
 
         if (!valido) {

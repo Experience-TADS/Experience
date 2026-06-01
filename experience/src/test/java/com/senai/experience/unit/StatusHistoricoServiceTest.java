@@ -24,148 +24,167 @@ import static org.mockito.Mockito.when;
 class StatusHistoricoServiceTest {
 
     private Veiculo veiculo;
-    
+
     @BeforeEach
     void setUp() {
         veiculo = new Veiculo();
         veiculo.setId(1L);
     }
-    
+
     @Mock VeiculoRepository veiculoRepository;
     @Mock StatusHistoricoRepository statusHistoricoRepository;
     @InjectMocks StatusHistoricoService service;
 
+    // ── Transição inicial ─────────────────────────────────────────────────────
 
-@Test
-void aguardandoParaEmFabricacaoDeveSerPermitido() {
-    // prepara o veículo com status AGUARDANDO
-    veiculo.setStatusVeiculo(StatusFabricacao.AGUARDANDO);
+    @Test
+    void aguardandoParaMontagemEstruturalDeveSerPermitido() {
+        veiculo.setStatusVeiculo(StatusFabricacao.AGUARDANDO);
+        when(veiculoRepository.findById(1L)).thenReturn(Optional.of(veiculo));
+        when(veiculoRepository.save(any())).thenReturn(veiculo);
+        when(statusHistoricoRepository.save(any())).thenAnswer(i -> i.getArgument(0));
 
-    // configura os mocks para retornar o veículo e salvar o histórico
-    when(veiculoRepository.findById(1L)).thenReturn(Optional.of(veiculo));
-    when(veiculoRepository.save(any())).thenReturn(veiculo);
-    when(statusHistoricoRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+        StatusHistorico resultado = service.atualizarStatus(1L, StatusFabricacao.MONTAGEM_ESTRUTURAL);
 
-    // executa
-    StatusHistorico resultado = service.atualizarStatus(1L, StatusFabricacao.EM_FABRICACAO);
+        assertThat(resultado.getStatus()).isEqualTo(StatusFabricacao.MONTAGEM_ESTRUTURAL);
+    }
 
-    // verifica
-    assertThat(resultado.getStatus()).isEqualTo(StatusFabricacao.EM_FABRICACAO);
-}
+    // ── Transição inválida ────────────────────────────────────────────────────
 
-@Test
-void transicaoInvalidaDeveLancarExcecao() {
-    // AGUARDANDO não pode ir direto para PINTURA
-    veiculo.setStatusVeiculo(StatusFabricacao.AGUARDANDO);
+    @Test
+    void transicaoInvalidaDeveLancarExcecao() {
+        // AGUARDANDO não pode pular direto para PINTURA
+        veiculo.setStatusVeiculo(StatusFabricacao.AGUARDANDO);
+        when(veiculoRepository.findById(1L)).thenReturn(Optional.of(veiculo));
 
-    when(veiculoRepository.findById(1L)).thenReturn(Optional.of(veiculo));
+        assertThatThrownBy(() -> service.atualizarStatus(1L, StatusFabricacao.PINTURA))
+            .isInstanceOf(RuntimeException.class)
+            .hasMessageContaining("Transição inválida");
+    }
 
-    // verifica que lança exceção com a mensagem correta
-    assertThatThrownBy(() -> service.atualizarStatus(1L, StatusFabricacao.PINTURA))
-        .isInstanceOf(RuntimeException.class)
-        .hasMessageContaining("Transição inválida");
-}
+    @Test
+    void veiculoNaoEncontradoDeveLancarExcecao() {
+        when(veiculoRepository.findById(99L)).thenReturn(Optional.empty());
 
-@Test
-void veiculoNaoEncontradoDeveLancarExcecao() {
-    when(veiculoRepository.findById(99L)).thenReturn(Optional.empty());
+        assertThatThrownBy(() -> service.atualizarStatus(99L, StatusFabricacao.MONTAGEM_ESTRUTURAL))
+            .isInstanceOf(RuntimeException.class)
+            .hasMessageContaining("Veículo não encontrado");
+    }
 
-    assertThatThrownBy(() -> service.atualizarStatus(99L, StatusFabricacao.EM_FABRICACAO))
-        .isInstanceOf(RuntimeException.class)
-        .hasMessageContaining("Veículo não encontrado");
-}
+    @Test
+    void canceladoNaoPermiteNenhumaTransicao() {
+        veiculo.setStatusVeiculo(StatusFabricacao.CANCELADO);
+        when(veiculoRepository.findById(1L)).thenReturn(Optional.of(veiculo));
 
-@Test
-void canceladoNaoPermiteNenhumaTransicao() {
-    veiculo.setStatusVeiculo(StatusFabricacao.CANCELADO);
-    when(veiculoRepository.findById(1L)).thenReturn(Optional.of(veiculo));
+        assertThatThrownBy(() -> service.atualizarStatus(1L, StatusFabricacao.AGUARDANDO))
+            .isInstanceOf(RuntimeException.class)
+            .hasMessageContaining("Transição inválida");
+    }
 
-    assertThatThrownBy(() -> service.atualizarStatus(1L, StatusFabricacao.AGUARDANDO))
-        .isInstanceOf(RuntimeException.class)
-        .hasMessageContaining("Transição inválida");
-}
+    // ── Cadeia completa de transições válidas ─────────────────────────────────
 
-// ── Transições válidas restantes ──────────────────────────────────────────────
+    @Test
+    void montagemParaPinturaDeveSerPermitido() {
+        veiculo.setStatusVeiculo(StatusFabricacao.MONTAGEM_ESTRUTURAL);
+        when(veiculoRepository.findById(1L)).thenReturn(Optional.of(veiculo));
+        when(veiculoRepository.save(any())).thenReturn(veiculo);
+        when(statusHistoricoRepository.save(any())).thenAnswer(i -> i.getArgument(0));
 
-@Test
-void emFabricacaoParaPinturaDeveSerPermitido() {
-    veiculo.setStatusVeiculo(StatusFabricacao.EM_FABRICACAO);
-    when(veiculoRepository.findById(1L)).thenReturn(Optional.of(veiculo));
-    when(veiculoRepository.save(any())).thenReturn(veiculo);
-    when(statusHistoricoRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+        StatusHistorico resultado = service.atualizarStatus(1L, StatusFabricacao.PINTURA);
 
-    StatusHistorico resultado = service.atualizarStatus(1L, StatusFabricacao.PINTURA);
+        assertThat(resultado.getStatus()).isEqualTo(StatusFabricacao.PINTURA);
+    }
 
-    assertThat(resultado.getStatus()).isEqualTo(StatusFabricacao.PINTURA);
-}
+    @Test
+    void pinturaParaInstalacaoMotorDeveSerPermitido() {
+        veiculo.setStatusVeiculo(StatusFabricacao.PINTURA);
+        when(veiculoRepository.findById(1L)).thenReturn(Optional.of(veiculo));
+        when(veiculoRepository.save(any())).thenReturn(veiculo);
+        when(statusHistoricoRepository.save(any())).thenAnswer(i -> i.getArgument(0));
 
-@Test
-void pinturaParaControleQualidadeDeveSerPermitido() {
-    veiculo.setStatusVeiculo(StatusFabricacao.PINTURA);
-    when(veiculoRepository.findById(1L)).thenReturn(Optional.of(veiculo));
-    when(veiculoRepository.save(any())).thenReturn(veiculo);
-    when(statusHistoricoRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+        StatusHistorico resultado = service.atualizarStatus(1L, StatusFabricacao.INSTALACAO_MOTOR);
 
-    StatusHistorico resultado = service.atualizarStatus(1L, StatusFabricacao.CONTROLE_QUALIDADE);
+        assertThat(resultado.getStatus()).isEqualTo(StatusFabricacao.INSTALACAO_MOTOR);
+    }
 
-    assertThat(resultado.getStatus()).isEqualTo(StatusFabricacao.CONTROLE_QUALIDADE);
-}
+    @Test
+    void instalacaoMotorParaAcabamentoInternoDeveSerPermitido() {
+        veiculo.setStatusVeiculo(StatusFabricacao.INSTALACAO_MOTOR);
+        when(veiculoRepository.findById(1L)).thenReturn(Optional.of(veiculo));
+        when(veiculoRepository.save(any())).thenReturn(veiculo);
+        when(statusHistoricoRepository.save(any())).thenAnswer(i -> i.getArgument(0));
 
-@Test
-void controleQualidadeParaConcluidoDeveSerPermitido() {
-    veiculo.setStatusVeiculo(StatusFabricacao.CONTROLE_QUALIDADE);
-    when(veiculoRepository.findById(1L)).thenReturn(Optional.of(veiculo));
-    when(veiculoRepository.save(any())).thenReturn(veiculo);
-    when(statusHistoricoRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+        StatusHistorico resultado = service.atualizarStatus(1L, StatusFabricacao.ACABAMENTO_INTERNO);
 
-    StatusHistorico resultado = service.atualizarStatus(1L, StatusFabricacao.CONCLUIDO);
+        assertThat(resultado.getStatus()).isEqualTo(StatusFabricacao.ACABAMENTO_INTERNO);
+    }
 
-    assertThat(resultado.getStatus()).isEqualTo(StatusFabricacao.CONCLUIDO);
-}
+    @Test
+    void acabamentoInternoParaInspecaoFinalDeveSerPermitido() {
+        veiculo.setStatusVeiculo(StatusFabricacao.ACABAMENTO_INTERNO);
+        when(veiculoRepository.findById(1L)).thenReturn(Optional.of(veiculo));
+        when(veiculoRepository.save(any())).thenReturn(veiculo);
+        when(statusHistoricoRepository.save(any())).thenAnswer(i -> i.getArgument(0));
 
-@Test
-void concluidoParaEntregueDeveSerPermitido() {
-    veiculo.setStatusVeiculo(StatusFabricacao.CONCLUIDO);
-    when(veiculoRepository.findById(1L)).thenReturn(Optional.of(veiculo));
-    when(veiculoRepository.save(any())).thenReturn(veiculo);
-    when(statusHistoricoRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+        StatusHistorico resultado = service.atualizarStatus(1L, StatusFabricacao.INSPECAO_FINAL);
 
-    StatusHistorico resultado = service.atualizarStatus(1L, StatusFabricacao.ENTREGUE);
+        assertThat(resultado.getStatus()).isEqualTo(StatusFabricacao.INSPECAO_FINAL);
+    }
 
-    assertThat(resultado.getStatus()).isEqualTo(StatusFabricacao.ENTREGUE);
-}
+    @Test
+    void inspecaoFinalParaLiberacaoTransporteDeveSerPermitido() {
+        veiculo.setStatusVeiculo(StatusFabricacao.INSPECAO_FINAL);
+        when(veiculoRepository.findById(1L)).thenReturn(Optional.of(veiculo));
+        when(veiculoRepository.save(any())).thenReturn(veiculo);
+        when(statusHistoricoRepository.save(any())).thenAnswer(i -> i.getArgument(0));
 
-@Test
-void aguardandoParaCanceladoDeveSerPermitido() {
-    veiculo.setStatusVeiculo(StatusFabricacao.AGUARDANDO);
-    when(veiculoRepository.findById(1L)).thenReturn(Optional.of(veiculo));
-    when(veiculoRepository.save(any())).thenReturn(veiculo);
-    when(statusHistoricoRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+        StatusHistorico resultado = service.atualizarStatus(1L, StatusFabricacao.LIBERACAO_TRANSPORTE);
 
-    StatusHistorico resultado = service.atualizarStatus(1L, StatusFabricacao.CANCELADO);
+        assertThat(resultado.getStatus()).isEqualTo(StatusFabricacao.LIBERACAO_TRANSPORTE);
+    }
 
-    assertThat(resultado.getStatus()).isEqualTo(StatusFabricacao.CANCELADO);
-}
+    @Test
+    void liberacaoTransporteParaEntregueDeveSerPermitido() {
+        veiculo.setStatusVeiculo(StatusFabricacao.LIBERACAO_TRANSPORTE);
+        when(veiculoRepository.findById(1L)).thenReturn(Optional.of(veiculo));
+        when(veiculoRepository.save(any())).thenReturn(veiculo);
+        when(statusHistoricoRepository.save(any())).thenAnswer(i -> i.getArgument(0));
 
-@Test
-void entregueNaoPermiteNenhumaTransicao() {
-    veiculo.setStatusVeiculo(StatusFabricacao.ENTREGUE);
-    when(veiculoRepository.findById(1L)).thenReturn(Optional.of(veiculo));
+        StatusHistorico resultado = service.atualizarStatus(1L, StatusFabricacao.ENTREGUE);
 
-    assertThatThrownBy(() -> service.atualizarStatus(1L, StatusFabricacao.CONCLUIDO))
-        .isInstanceOf(RuntimeException.class)
-        .hasMessageContaining("Transição inválida");
-}
+        assertThat(resultado.getStatus()).isEqualTo(StatusFabricacao.ENTREGUE);
+    }
 
-@Test
-void concluidoNaoPodeCancelar() {
-    // CONCLUIDO só pode ir para ENTREGUE, não para CANCELADO
-    veiculo.setStatusVeiculo(StatusFabricacao.CONCLUIDO);
-    when(veiculoRepository.findById(1L)).thenReturn(Optional.of(veiculo));
+    @Test
+    void aguardandoParaCanceladoDeveSerPermitido() {
+        veiculo.setStatusVeiculo(StatusFabricacao.AGUARDANDO);
+        when(veiculoRepository.findById(1L)).thenReturn(Optional.of(veiculo));
+        when(veiculoRepository.save(any())).thenReturn(veiculo);
+        when(statusHistoricoRepository.save(any())).thenAnswer(i -> i.getArgument(0));
 
-    assertThatThrownBy(() -> service.atualizarStatus(1L, StatusFabricacao.CANCELADO))
-        .isInstanceOf(RuntimeException.class)
-        .hasMessageContaining("Transição inválida");
-}
+        StatusHistorico resultado = service.atualizarStatus(1L, StatusFabricacao.CANCELADO);
 
+        assertThat(resultado.getStatus()).isEqualTo(StatusFabricacao.CANCELADO);
+    }
+
+    @Test
+    void entregueNaoPermiteNenhumaTransicao() {
+        veiculo.setStatusVeiculo(StatusFabricacao.ENTREGUE);
+        when(veiculoRepository.findById(1L)).thenReturn(Optional.of(veiculo));
+
+        assertThatThrownBy(() -> service.atualizarStatus(1L, StatusFabricacao.LIBERACAO_TRANSPORTE))
+            .isInstanceOf(RuntimeException.class)
+            .hasMessageContaining("Transição inválida");
+    }
+
+    @Test
+    void liberacaoTransporteNaoPodeCancelar() {
+        // LIBERACAO_TRANSPORTE só pode ir para ENTREGUE
+        veiculo.setStatusVeiculo(StatusFabricacao.LIBERACAO_TRANSPORTE);
+        when(veiculoRepository.findById(1L)).thenReturn(Optional.of(veiculo));
+
+        assertThatThrownBy(() -> service.atualizarStatus(1L, StatusFabricacao.CANCELADO))
+            .isInstanceOf(RuntimeException.class)
+            .hasMessageContaining("Transição inválida");
+    }
 }

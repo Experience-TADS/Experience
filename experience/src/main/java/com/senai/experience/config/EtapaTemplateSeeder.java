@@ -8,8 +8,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * Popula a tb_etapa_template com os 6 status de fabricação na primeira execução.
- * Usa findByStatus para não duplicar registros em reinicializações.
+ * Popula a tb_etapa_template com os status de fabricação na primeira execução.
+ * Os nomes dos status espelham as etapas do ESP32.
  */
 @Configuration
 public class EtapaTemplateSeeder {
@@ -23,8 +23,8 @@ public class EtapaTemplateSeeder {
                     null,
                     "Cada veículo Toyota passa por mais de 300 pontos de inspeção antes de sair da fábrica.");
 
-            seed(repo, StatusFabricacao.EM_FABRICACAO,
-                    "Em Fabricação",
+            seed(repo, StatusFabricacao.MONTAGEM_ESTRUTURAL,
+                    "Montagem Estrutural",
                     "A estrutura do seu veículo está sendo montada com precisão milimétrica.",
                     null,
                     "A linha de montagem utiliza robôs de alta precisão para garantir a qualidade da solda.");
@@ -35,15 +35,27 @@ public class EtapaTemplateSeeder {
                     null,
                     "O processo de pintura envolve até 5 camadas, incluindo primer, base e verniz.");
 
-            seed(repo, StatusFabricacao.CONTROLE_QUALIDADE,
-                    "Controle de Qualidade",
+            seed(repo, StatusFabricacao.INSTALACAO_MOTOR,
+                    "Instalação do Motor",
+                    "O motor e os componentes mecânicos estão sendo instalados no seu veículo.",
+                    null,
+                    "O motor Toyota passa por testes de bancada antes de ser instalado no veículo.");
+
+            seed(repo, StatusFabricacao.ACABAMENTO_INTERNO,
+                    "Acabamento Interno",
+                    "O interior do seu veículo está sendo finalizado com todos os detalhes.",
+                    null,
+                    "Cada detalhe do acabamento interno é inspecionado manualmente por especialistas Toyota.");
+
+            seed(repo, StatusFabricacao.INSPECAO_FINAL,
+                    "Inspeção Final",
                     "Seu veículo está passando pela inspeção final para garantir os mais altos padrões Toyota.",
                     null,
                     "O controle de qualidade Toyota é baseado no conceito Kaizen — melhoria contínua.");
 
-            seed(repo, StatusFabricacao.CONCLUIDO,
-                    "Fabricação Concluída",
-                    "Seu veículo foi fabricado com sucesso e está pronto para entrega.",
+            seed(repo, StatusFabricacao.LIBERACAO_TRANSPORTE,
+                    "Liberado para Transporte",
+                    "Seu veículo foi aprovado em todas as etapas e está pronto para ser entregue.",
                     null,
                     "Parabéns! Seu veículo passou por todas as etapas de fabricação com aprovação total.");
 
