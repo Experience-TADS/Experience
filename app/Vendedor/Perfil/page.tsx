@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   LayoutDashboard,
@@ -14,14 +14,25 @@ import {
   Moon,
 } from "lucide-react";
 import { useTheme } from "@/app/contexts/ThemeContext";
+import api from "@/app/lib/api";
+
+type UsuarioResponse = {
+  id: number;
+  nome: string;
+  email: string;
+  dataNascimento: string;
+  role: string;
+  ativo: boolean;
+};
 
 export default function Perfil() {
   const { theme, toggleTheme } = useTheme();
 
+  const [usuario, setUsuario] = useState<UsuarioResponse | null>(null);
   const [form, setForm] = useState({
-    nome: "Ricardo Mendes",
-    email: "ricardo.mendes@toyota.com",
-    telefone: "(11) 99999-0000",
+    nome: "",
+    email: "",
+    telefone: "",
     concessionaria: "Toyota Central São Paulo",
   });
 
@@ -30,6 +41,29 @@ export default function Perfil() {
     smsNotif: false,
     promo: false,
   });
+
+  useEffect(() => {
+    api.get("/api/usuario/me")
+      .then(({ data }) => {
+        setUsuario(data);
+        setForm((prev) => ({ ...prev, nome: data.nome ?? "", email: data.email ?? "" }));
+      })
+      .catch(() => {});
+  }, []);
+
+  async function salvarAlteracoes() {
+    if (!usuario) return;
+    try {
+      await api.put(`/api/usuario/${usuario.id}`, {
+        nome: form.nome,
+        email: form.email,
+        role: usuario.role,
+      });
+      alert("Alterações salvas com sucesso!");
+    } catch {
+      alert("Erro ao salvar alterações.");
+    }
+  }
 
   function updatePref(key: string) {
     setPrefs((prev) => ({ ...prev, [key]: !prev[key as keyof typeof prev] }));
@@ -79,7 +113,11 @@ export default function Perfil() {
         </div>
 
         <div className="p-4 border-t border-gray-100 dark:border-gray-800">
-          <Link href="/Login" className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-red-600">
+          <Link href="/Login" onClick={() => {
+            localStorage.removeItem("token");
+            localStorage.removeItem("user");
+            localStorage.removeItem("userRole");
+          }} className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-red-600">
             <LogOut size={18} /> Sair
           </Link>
         </div>
@@ -94,22 +132,23 @@ export default function Perfil() {
             <div className="w-20 h-20 mx-auto rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
               <User className="text-red-600" size={40} />
             </div>
-            <p className="font-bold text-gray-900 dark:text-gray-100 mt-3">{form.nome}</p>
+            <p className="font-bold text-gray-900 dark:text-gray-100 mt-3">{form.nome || "—"}</p>
             <span className="inline-block mt-1 px-3 py-1 text-sm bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full">
-              Vendedor Sênior
+              {usuario?.role ?? "Vendedor"}
             </span>
           </div>
 
           <div className="space-y-4">
             {[
-              { field: "nome", value: form.nome },
-              { field: "email", value: form.email },
-              { field: "telefone", value: form.telefone },
-              { field: "concessionaria", value: form.concessionaria },
+              { field: "nome",           value: form.nome,           placeholder: "Nome" },
+              { field: "email",          value: form.email,          placeholder: "Email" },
+              { field: "telefone",       value: form.telefone,       placeholder: "Telefone" },
+              { field: "concessionaria", value: form.concessionaria, placeholder: "Concessionária" },
             ].map((item) => (
               <input
                 key={item.field}
                 value={item.value}
+                placeholder={item.placeholder}
                 onChange={(e) => setForm({ ...form, [item.field]: e.target.value })}
                 className="w-full border border-gray-200 dark:border-gray-700 p-3 rounded-lg text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-red-500"
               />
@@ -121,7 +160,7 @@ export default function Perfil() {
               <LogOut size={16} className="inline mr-1" />
               Sair
             </button>
-            <button className="flex-1 bg-red-600 text-white py-2 rounded-lg hover:bg-red-700 transition">
+            <button onClick={salvarAlteracoes} className="flex-1 bg-red-600 text-white py-2 rounded-lg hover:bg-red-700 transition">
               Salvar alterações
             </button>
           </div>
@@ -188,9 +227,9 @@ export default function Perfil() {
 
           <div className="space-y-3 text-sm">
             {[
-              { label: "Cargo",          value: "Vendedor Sênior",    className: "" },
-              { label: "Concessionária", value: "Toyota Central SP",  className: "" },
-              { label: "Total de vendas",value: "247 veículos",       className: "text-red-600 font-medium" },
+              { label: "Cargo",          value: usuario?.role ?? "—" },
+              { label: "Concessionária", value: "Toyota Central SP" },
+              { label: "Status",         value: usuario?.ativo ? "Ativo" : "Inativo", className: usuario?.ativo ? "text-green-600 font-medium" : "text-red-600 font-medium" },
             ].map((item) => (
               <div key={item.label} className="flex justify-between text-gray-900 dark:text-gray-100">
                 <span className="text-gray-600 dark:text-gray-400">{item.label}</span>
@@ -201,7 +240,11 @@ export default function Perfil() {
               <span className="text-gray-600 dark:text-gray-400">Membro desde</span>
               <div className="flex items-center gap-1 font-medium">
                 <Calendar size={14} />
-                <span>Mar 2023</span>
+                <span>
+                  {usuario?.dataNascimento
+                    ? new Date(usuario.dataNascimento).toLocaleDateString("pt-BR", { month: "short", year: "numeric" })
+                    : "—"}
+                </span>
               </div>
             </div>
           </div>

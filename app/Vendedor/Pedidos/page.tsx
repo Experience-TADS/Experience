@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { LayoutDashboard, Package, Users, User, LogOut, Search, Shield, Eye } from "lucide-react";
+import api from "@/app/lib/api";
 
 const navLinks = [
   { href: "/Vendedor/Dashbord",      label: "Dashboard",     icon: LayoutDashboard },
@@ -12,12 +13,14 @@ const navLinks = [
   { href: "/Vendedor/Administracao", label: "Administração", icon: Shield },
 ];
 
-const pedidosData = [
-  { id: "#4821", cliente: "Lauren Silva", email: "lauren@gmail.com", veiculo: "Corolla Cross",  status: "Em produção",      data: "05/03/2026" },
-  { id: "#4820", cliente: "Julia Harumi", email: "julia@gmail.com",  veiculo: "Hilux SRV 4x4",  status: "Pedido confirmado", data: "04/03/2026" },
-  { id: "#4819", cliente: "Bianca Nunes", email: "bia@gmail.com",    veiculo: "Yaris Sedan",    status: "Em produção",      data: "03/03/2026" },
-  { id: "#4818", cliente: "Paola Costa",  email: "paola@gmail.com",  veiculo: "Corolla",        status: "Em transporte",    data: "03/03/2026" },
-];
+type Pedido = {
+  id: number;
+  dataPedido: string;
+  valorTotal: number;
+  cliente: { id: number; nome: string; email: string };
+  vendedor: { id: number; nome: string };
+  itens: { id: number; quantidade: number; produto: { id: number; modelo: string; cor: string; versao: string; ano: number } }[];
+};
 
 function getStatusColor(s: string) {
   if (s === "Finalizado")        return "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400";
@@ -27,15 +30,32 @@ function getStatusColor(s: string) {
   return "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300";
 }
 
+function formatarData(iso: string) {
+  if (!iso) return "—";
+  return new Date(iso).toLocaleDateString("pt-BR");
+}
+
 export default function Pedidos() {
   const [busca, setBusca] = useState("");
-  const [pedidoSelecionado, setPedidoSelecionado] = useState<any>(null);
+  const [pedidos, setPedidos] = useState<Pedido[]>([]);
+  const [pedidoSelecionado, setPedidoSelecionado] = useState<Pedido | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const pedidosFiltrados = pedidosData.filter((p) =>
-    p.cliente.toLowerCase().includes(busca.toLowerCase()) ||
-    p.id.toLowerCase().includes(busca.toLowerCase()) ||
-    p.veiculo.toLowerCase().includes(busca.toLowerCase())
-  );
+  useEffect(() => {
+    api.get("/api/pedido?size=50&sort=dataPedido,desc")
+      .then(({ data }) => setPedidos(data.content ?? []))
+      .catch(() => setPedidos([]))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const pedidosFiltrados = pedidos.filter((p) => {
+    const termo = busca.toLowerCase();
+    return (
+      String(p.id).includes(termo) ||
+      p.cliente?.nome?.toLowerCase().includes(termo) ||
+      p.itens?.[0]?.produto?.modelo?.toLowerCase().includes(termo)
+    );
+  });
 
   return (
     <div className="flex min-h-screen bg-gray-100 dark:bg-gray-950">
@@ -82,16 +102,26 @@ export default function Pedidos() {
         <div className="mt-8 bg-white dark:bg-gray-900 rounded-2xl shadow border border-transparent dark:border-gray-700 overflow-hidden">
 
           <div className="grid grid-cols-6 px-8 py-4 text-gray-500 dark:text-gray-400 text-sm border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
-            <span>Pedido</span><span>Cliente</span><span>Veículo</span><span>Status</span><span>Data</span><span></span>
+            <span>Pedido</span><span>Cliente</span><span>Veículo</span><span>Valor</span><span>Data</span><span></span>
           </div>
+
+          {loading && (
+            <p className="px-8 py-6 text-sm text-gray-500 dark:text-gray-400">Carregando pedidos...</p>
+          )}
+
+          {!loading && pedidosFiltrados.length === 0 && (
+            <p className="px-8 py-6 text-sm text-gray-500 dark:text-gray-400">Nenhum pedido encontrado.</p>
+          )}
 
           {pedidosFiltrados.map((pedido) => (
             <div key={pedido.id} className="grid grid-cols-6 px-8 py-5 items-center border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition">
-              <span className="font-semibold text-gray-900 dark:text-gray-100">{pedido.id}</span>
-              <span className="text-gray-800 dark:text-gray-200">{pedido.cliente}</span>
-              <span className="text-gray-600 dark:text-gray-400">{pedido.veiculo}</span>
-              <span className={`px-3 py-1 rounded-full text-xs w-fit ${getStatusColor(pedido.status)}`}>{pedido.status}</span>
-              <span className="text-gray-500 dark:text-gray-400">{pedido.data}</span>
+              <span className="font-semibold text-gray-900 dark:text-gray-100">#{pedido.id}</span>
+              <span className="text-gray-800 dark:text-gray-200">{pedido.cliente?.nome ?? "—"}</span>
+              <span className="text-gray-600 dark:text-gray-400">{pedido.itens?.[0]?.produto?.modelo ?? "—"}</span>
+              <span className="text-gray-600 dark:text-gray-400">
+                {pedido.valorTotal != null ? `R$ ${Number(pedido.valorTotal).toLocaleString("pt-BR")}` : "—"}
+              </span>
+              <span className="text-gray-500 dark:text-gray-400">{formatarData(pedido.dataPedido)}</span>
               <Eye onClick={() => setPedidoSelecionado(pedido)} className="text-gray-400 dark:text-gray-500 cursor-pointer hover:text-red-600 dark:hover:text-red-500 transition" size={20} />
             </div>
           ))}
@@ -105,12 +135,15 @@ export default function Pedidos() {
           <div className="bg-white dark:bg-gray-900 border border-transparent dark:border-gray-700 rounded-2xl p-6 w-full max-w-md shadow-lg">
             <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">Detalhes do Pedido</h2>
             <div className="space-y-2 text-sm text-gray-800 dark:text-gray-200">
-              <p><strong>ID:</strong> {pedidoSelecionado.id}</p>
-              <p><strong>Cliente:</strong> {pedidoSelecionado.cliente}</p>
-              <p><strong>Email:</strong> {pedidoSelecionado.email}</p>
-              <p><strong>Veículo:</strong> {pedidoSelecionado.veiculo}</p>
-              <p><strong>Status:</strong> {pedidoSelecionado.status}</p>
-              <p><strong>Data:</strong> {pedidoSelecionado.data}</p>
+              <p><strong>ID:</strong> #{pedidoSelecionado.id}</p>
+              <p><strong>Cliente:</strong> {pedidoSelecionado.cliente?.nome ?? "—"}</p>
+              <p><strong>Email:</strong> {pedidoSelecionado.cliente?.email ?? "—"}</p>
+              <p><strong>Veículo:</strong> {pedidoSelecionado.itens?.[0]?.produto?.modelo ?? "—"}</p>
+              <p><strong>Cor:</strong> {pedidoSelecionado.itens?.[0]?.produto?.cor ?? "—"}</p>
+              <p><strong>Ano:</strong> {pedidoSelecionado.itens?.[0]?.produto?.ano ?? "—"}</p>
+              <p><strong>Valor Total:</strong> {pedidoSelecionado.valorTotal != null ? `R$ ${Number(pedidoSelecionado.valorTotal).toLocaleString("pt-BR")}` : "—"}</p>
+              <p><strong>Data:</strong> {formatarData(pedidoSelecionado.dataPedido)}</p>
+              <p><strong>Vendedor:</strong> {pedidoSelecionado.vendedor?.nome ?? "—"}</p>
             </div>
             <button onClick={() => setPedidoSelecionado(null)} className="mt-6 w-full bg-red-600 text-white py-2 rounded-lg hover:bg-red-700 transition">
               Fechar

@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { LayoutDashboard, Package, Users, User, LogOut, Search, Shield, Plus, Edit } from "lucide-react";
+import api from "@/app/lib/api";
 
 const navLinks = [
   { href: "/Vendedor/Dashbord",      label: "Dashboard",     icon: LayoutDashboard },
@@ -12,33 +13,74 @@ const navLinks = [
   { href: "/Vendedor/Administracao", label: "Administração", icon: Shield },
 ];
 
+type Cliente = {
+  id: number;
+  nome: string;
+  email: string;
+  role: string;
+  ativo: boolean;
+};
+
 export default function Clientes() {
   const [busca, setBusca] = useState("");
-  const [clientes, setClientes] = useState([
-    { id: 1, nome: "Lauren Silva", email: "lauren@gmail.com", telefone: "11 98888-1111", veiculo: "Corolla Cross", status: "Ativo" },
-    { id: 2, nome: "Julia Harumi", email: "julia@gmail.com",  telefone: "11 97777-2222", veiculo: "Hilux SRV",    status: "Inativo" },
-  ]);
-  const [clienteEditando, setClienteEditando] = useState<any>(null);
+  const [clientes, setClientes] = useState<Cliente[]>([]);
+  const [clienteEditando, setClienteEditando] = useState<Cliente | null>(null);
   const [modalEditar, setModalEditar] = useState(false);
-  const [novoCliente, setNovoCliente] = useState({ nome: "", email: "", telefone: "", veiculo: "", status: "Ativo" });
+  const [novoCliente, setNovoCliente] = useState({ nome: "", email: "", senha: "", dataNascimento: "", role: "CLIENTE" });
   const [modalCadastro, setModalCadastro] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  const clientesFiltrados = clientes.filter((c) => c.nome.toLowerCase().includes(busca.toLowerCase()));
+  useEffect(() => {
+    api.get("/api/usuario?size=100")
+      .then(({ data }) => {
+        const todos: Cliente[] = data.content ?? [];
+        setClientes(todos.filter((u) => u.role === "CLIENTE"));
+      })
+      .catch(() => setClientes([]))
+      .finally(() => setLoading(false));
+  }, []);
 
-  function getStatusColor(status: string) {
-    return status === "Ativo"
+  const clientesFiltrados = clientes.filter((c) =>
+    c.nome.toLowerCase().includes(busca.toLowerCase()) ||
+    c.email.toLowerCase().includes(busca.toLowerCase())
+  );
+
+  function getStatusColor(ativo: boolean) {
+    return ativo
       ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400"
       : "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400";
   }
 
-  function salvarEdicao() {
-    setClientes(clientes.map((c) => c.id === clienteEditando.id ? clienteEditando : c));
+  async function salvarEdicao() {
+    if (!clienteEditando) return;
+    try {
+      await api.put(`/api/usuario/${clienteEditando.id}`, {
+        nome: clienteEditando.nome,
+        email: clienteEditando.email,
+        role: clienteEditando.role,
+      });
+      setClientes(clientes.map((c) => c.id === clienteEditando.id ? clienteEditando : c));
+    } catch {
+      alert("Erro ao salvar alterações.");
+    }
     setModalEditar(false);
   }
 
-  function cadastrarCliente() {
-    setClientes([...clientes, { ...novoCliente, id: Date.now() }]);
-    setNovoCliente({ nome: "", email: "", telefone: "", veiculo: "", status: "Ativo" });
+  async function cadastrarCliente() {
+    if (!novoCliente.nome || !novoCliente.email || !novoCliente.senha) return;
+    try {
+      const { data } = await api.post("/api/usuario", {
+        nome: novoCliente.nome,
+        email: novoCliente.email,
+        senha: novoCliente.senha,
+        dataNascimento: novoCliente.dataNascimento || null,
+        role: "CLIENTE",
+      });
+      setClientes([...clientes, data]);
+      setNovoCliente({ nome: "", email: "", senha: "", dataNascimento: "", role: "CLIENTE" });
+    } catch {
+      alert("Erro ao cadastrar cliente.");
+    }
     setModalCadastro(false);
   }
 
@@ -92,16 +134,22 @@ export default function Clientes() {
         {/* TABELA */}
         <div className="mt-8 bg-white dark:bg-gray-900 rounded-2xl shadow border border-transparent dark:border-gray-700 overflow-x-auto">
           <div className="min-w-[700px]">
-            <div className="grid grid-cols-6 px-8 py-4 text-gray-500 dark:text-gray-400 text-sm border-b border-gray-100 dark:border-gray-700">
-              <span>Nome</span><span>Email</span><span>Telefone</span><span>Veículo</span><span>Status</span><span>Ações</span>
+            <div className="grid grid-cols-5 px-8 py-4 text-gray-500 dark:text-gray-400 text-sm border-b border-gray-100 dark:border-gray-700">
+              <span>Nome</span><span>Email</span><span>Perfil</span><span>Status</span><span>Ações</span>
             </div>
+
+            {loading && (
+              <p className="px-8 py-6 text-sm text-gray-500 dark:text-gray-400">Carregando clientes...</p>
+            )}
+
             {clientesFiltrados.map((cliente) => (
-              <div key={cliente.id} className="grid grid-cols-6 px-8 py-6 items-center border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition">
+              <div key={cliente.id} className="grid grid-cols-5 px-8 py-6 items-center border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition">
                 <span className="font-semibold text-gray-900 dark:text-gray-100">{cliente.nome}</span>
                 <span className="text-gray-700 dark:text-gray-300">{cliente.email}</span>
-                <span className="text-gray-700 dark:text-gray-300">{cliente.telefone}</span>
-                <span className="text-gray-700 dark:text-gray-300">{cliente.veiculo}</span>
-                <span className={`px-3 py-1 text-xs rounded-full w-fit ${getStatusColor(cliente.status)}`}>{cliente.status}</span>
+                <span className="text-gray-700 dark:text-gray-300">{cliente.role}</span>
+                <span className={`px-3 py-1 text-xs rounded-full w-fit ${getStatusColor(cliente.ativo)}`}>
+                  {cliente.ativo ? "Ativo" : "Inativo"}
+                </span>
                 <button onClick={() => { setClienteEditando({ ...cliente }); setModalEditar(true); }} className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">
                   <Edit size={18} />
                 </button>
@@ -117,11 +165,12 @@ export default function Clientes() {
           <div className="bg-white dark:bg-gray-900 border border-transparent dark:border-gray-700 rounded-2xl p-6 w-full max-w-md shadow-lg">
             <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">Editar Cliente</h2>
             <div className="space-y-3">
-              {["nome","email","telefone","veiculo"].map((f) => (
-                <input key={f} value={clienteEditando[f]} onChange={(e) => setClienteEditando({ ...clienteEditando, [f]: e.target.value })}
-                  placeholder={f.charAt(0).toUpperCase() + f.slice(1)}
-                  className="w-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500" />
-              ))}
+              <input value={clienteEditando.nome} onChange={(e) => setClienteEditando({ ...clienteEditando, nome: e.target.value })}
+                placeholder="Nome"
+                className="w-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500" />
+              <input value={clienteEditando.email} onChange={(e) => setClienteEditando({ ...clienteEditando, email: e.target.value })}
+                placeholder="Email"
+                className="w-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500" />
             </div>
             <div className="flex gap-3 mt-5">
               <button onClick={() => setModalEditar(false)} className="flex-1 border border-gray-200 dark:border-gray-700 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition">Cancelar</button>
@@ -137,11 +186,18 @@ export default function Clientes() {
           <div className="bg-white dark:bg-gray-900 border border-transparent dark:border-gray-700 rounded-2xl p-6 w-full max-w-md shadow-lg">
             <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">Cadastrar Cliente</h2>
             <div className="space-y-3">
-              {["nome","email","telefone","veiculo"].map((f) => (
-                <input key={f} value={novoCliente[f as keyof typeof novoCliente]} onChange={(e) => setNovoCliente({ ...novoCliente, [f]: e.target.value })}
-                  placeholder={f.charAt(0).toUpperCase() + f.slice(1)}
-                  className="w-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500" />
-              ))}
+              <input value={novoCliente.nome} onChange={(e) => setNovoCliente({ ...novoCliente, nome: e.target.value })}
+                placeholder="Nome"
+                className="w-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500" />
+              <input value={novoCliente.email} onChange={(e) => setNovoCliente({ ...novoCliente, email: e.target.value })}
+                placeholder="Email"
+                className="w-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500" />
+              <input type="password" value={novoCliente.senha} onChange={(e) => setNovoCliente({ ...novoCliente, senha: e.target.value })}
+                placeholder="Senha"
+                className="w-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500" />
+              <input type="date" value={novoCliente.dataNascimento} onChange={(e) => setNovoCliente({ ...novoCliente, dataNascimento: e.target.value })}
+                placeholder="Data de Nascimento"
+                className="w-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500" />
             </div>
             <div className="flex gap-3 mt-5">
               <button onClick={() => setModalCadastro(false)} className="flex-1 border border-gray-200 dark:border-gray-700 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition">Cancelar</button>

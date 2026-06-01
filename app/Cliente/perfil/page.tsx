@@ -5,20 +5,39 @@ import { useRouter } from "next/navigation";
 import { User, Mail, Phone, LogOut, Sun, Moon } from "lucide-react";
 import Sidebar from "@/app/componentes/SideBar";
 import { useTheme } from "@/app/contexts/ThemeContext";
+import api from "@/app/lib/api";
+
+type UsuarioResponse = {
+  id: number;
+  nome: string;
+  email: string;
+  dataNascimento: string;
+  role: string;
+  ativo: boolean;
+};
 
 export default function Perfil() {
   const router = useRouter();
   const { theme, toggleTheme } = useTheme();
 
-  const [email, setEmail] = useState("");
+  const [usuario, setUsuario] = useState<UsuarioResponse | null>(null);
   const [prefs, setPrefs] = useState({ emailNotif: false, smsNotif: true, promo: false });
 
   useEffect(() => {
-    const user = localStorage.getItem("user");
-    if (!user) router.push("/");
-    else setEmail(user);
+    const token = localStorage.getItem("token");
+    if (!token) {
+      router.push("/Login");
+      return;
+    }
+
     const savedPrefs = localStorage.getItem("prefs");
     if (savedPrefs) setPrefs(JSON.parse(savedPrefs));
+
+    api.get("/api/usuario/me")
+      .then(({ data }) => setUsuario(data))
+      .catch(() => {
+        router.push("/Login");
+      });
   }, [router]);
 
   function updatePref(key: string) {
@@ -28,7 +47,9 @@ export default function Perfil() {
   }
 
   function sair() {
+    localStorage.removeItem("token");
     localStorage.removeItem("user");
+    localStorage.removeItem("userRole");
     router.push("/Login");
   }
 
@@ -63,9 +84,9 @@ export default function Perfil() {
           {/* DADOS */}
           <div className="bg-white dark:bg-gray-900 rounded-3xl shadow-xl border border-gray-100 dark:border-gray-700 overflow-hidden mb-8">
             {[
-              { icon: <User className="text-gray-600 dark:text-gray-400 w-5 h-5" />, label: "Nome", value: "Lauren" },
-              { icon: <Mail className="text-gray-600 dark:text-gray-400 w-5 h-5" />, label: "Email", value: email },
-              { icon: <Phone className="text-gray-600 dark:text-gray-400 w-5 h-5" />, label: "Telefone", value: "—" },
+              { icon: <User className="text-gray-600 dark:text-gray-400 w-5 h-5" />, label: "Nome",     value: usuario?.nome ?? "—" },
+              { icon: <Mail className="text-gray-600 dark:text-gray-400 w-5 h-5" />, label: "Email",    value: usuario?.email ?? "—" },
+              { icon: <Phone className="text-gray-600 dark:text-gray-400 w-5 h-5" />, label: "Perfil",  value: usuario?.role ?? "—" },
             ].map((item, i, arr) => (
               <div key={item.label} className={`flex items-center gap-4 p-5 ${i < arr.length - 1 ? "border-b border-gray-100 dark:border-gray-700" : ""}`}>
                 <div className="bg-gray-100 dark:bg-gray-800 p-3 rounded-xl">{item.icon}</div>
@@ -85,7 +106,6 @@ export default function Perfil() {
 
           <div className="bg-white dark:bg-gray-900 rounded-3xl shadow-xl border border-gray-100 dark:border-gray-700 overflow-hidden mb-8">
 
-            {/* Notificações */}
             {[
               { key: "emailNotif", label: "Notificações por Email", sub: "Receber atualizações por email" },
               { key: "smsNotif",   label: "Notificações por SMS",   sub: "Alertas diretos no celular" },
@@ -104,7 +124,7 @@ export default function Perfil() {
               </div>
             ))}
 
-            {/* Toggle de tema — integrado nas preferências */}
+            {/* Toggle de tema */}
             <div
               onClick={toggleTheme}
               className="flex items-center justify-between p-5 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition"
@@ -125,7 +145,6 @@ export default function Perfil() {
                   </p>
                 </div>
               </div>
-              {/* Switch visual mostrando estado atual */}
               <div className={`w-12 h-6 flex items-center rounded-full p-1 transition-all duration-300 ${theme === "dark" ? "bg-red-500" : "bg-gray-300 dark:bg-gray-600"}`}>
                 <div className={`bg-white w-5 h-5 rounded-full shadow-md transform transition-all duration-300 ${theme === "dark" ? "translate-x-6" : ""}`} />
               </div>
