@@ -55,9 +55,12 @@ public class SecurityConfig {
                 // IoT: apenas POST em endpoints de fabricação
                 .requestMatchers(HttpMethod.POST, "/api/fabricacao/**").hasRole("IOT")
                 
+                // Node-RED: endpoint público para receber eventos do ESP32 via MQTT
+                .requestMatchers(HttpMethod.POST, "/api/veiculo/nodered/evento").permitAll()
+
                 // Status de fabricação: leitura para autenticados, escrita apenas para IOT e ADMIN
                 .requestMatchers(HttpMethod.GET, "/api/veiculo/*/status").authenticated()
-                .requestMatchers(HttpMethod.POST, "/api/veiculo/*/status").hasAnyRole("IOT", "ADMIN")
+                .requestMatchers(HttpMethod.POST, "/api/veiculo/*/status").permitAll()
 
                 // Admin: acesso total ao painel admin
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")

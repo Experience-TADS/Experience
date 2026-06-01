@@ -2,10 +2,12 @@ package com.senai.experience.entities;
 
 public enum StatusFabricacao {
     AGUARDANDO,
-    EM_FABRICACAO,
+    MONTAGEM_ESTRUTURAL,
     PINTURA,
-    CONTROLE_QUALIDADE,
-    CONCLUIDO,
+    INSTALACAO_MOTOR,
+    ACABAMENTO_INTERNO,
+    INSPECAO_FINAL,
+    LIBERACAO_TRANSPORTE,
     ENTREGUE,
     CANCELADO
 }

@@ -150,9 +150,9 @@ class VeiculoControllerTest extends PostgresTestContainer {
         mockMvc.perform(post("/api/veiculo/" + id + "/status")
                         .header("Authorization", "Bearer " + tokenAdmin)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("\"EM_FABRICACAO\""))
+                        .content("\"MONTAGEM_ESTRUTURAL\""))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("EM_FABRICACAO"));
+                .andExpect(jsonPath("$.status").value("MONTAGEM_ESTRUTURAL"));
     }
 
     @Test
@@ -162,7 +162,7 @@ class VeiculoControllerTest extends PostgresTestContainer {
         mockMvc.perform(post("/api/veiculo/" + id + "/status")
                         .header("Authorization", "Bearer " + tokenCliente)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("\"EM_FABRICACAO\""))
+                        .content("\"MONTAGEM_ESTRUTURAL\""))
                 .andExpect(status().isForbidden());
     }
 
