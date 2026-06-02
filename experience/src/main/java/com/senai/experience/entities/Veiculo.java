@@ -3,22 +3,22 @@ package com.senai.experience.entities;
 import java.util.List;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;   
+import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;    
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Getter //getter para todos os atributos
-@Setter //setter para todos os atributos
-@AllArgsConstructor //construtor com todos os argumentos  
-@NoArgsConstructor //construtor sem argumentos
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
 @Entity
 @Table(name = "tb_veiculo")
 public class Veiculo {
-    //ATRIBUTOS
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // use Long for JPA primary key
+    private Long id;
 
     @ManyToOne
     @JoinColumn(name = "id_produto")
@@ -29,13 +29,14 @@ public class Veiculo {
     @Enumerated(EnumType.STRING)
     private StatusFabricacao statusVeiculo;
 
+    @Column(name = "id_pedido")
+    private Long idPedido;
+
     @OneToMany(mappedBy = "veiculo", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @com.fasterxml.jackson.annotation.JsonManagedReference
     private List<StatusHistorico> historico;
-    
 
-    //TO STRING
-    @Override   
+    @Override
     public String toString() {
         return "Veiculo{" +
                 "id=" + id +

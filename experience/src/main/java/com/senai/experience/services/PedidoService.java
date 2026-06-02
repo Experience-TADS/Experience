@@ -3,7 +3,10 @@ package com.senai.experience.services;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.senai.experience.DTO.request.PedidoRequest;
 import com.senai.experience.entities.Pedido;
@@ -21,12 +24,21 @@ public class PedidoService {
     @Autowired
     private UsuarioRepository usuarioRepository;
 
-    public List<Pedido> findAll() {
-        return pedidoRepository.findAll();
+    @Transactional(readOnly = true)
+    public Page<Pedido> findAll(Pageable pageable) {
+        Page<Pedido> page = pedidoRepository.findAll(pageable);
+        // Força carregamento dos itens (lazy) dentro da transação
+        page.forEach(p -> p.getItens().size());
+        return page;
     }
 
+    @Transactional(readOnly = true)
     public Pedido findById(Long id) {
-        return pedidoRepository.findById(id).orElse(null);
+        Pedido pedido = pedidoRepository.findById(id).orElse(null);
+        if (pedido != null) {
+            pedido.getItens().size();
+        }
+        return pedido;
     }
 
     public Pedido save(PedidoRequest request) {
@@ -63,16 +75,22 @@ public class PedidoService {
         pedidoRepository.deleteById(id);
     }
 
+    @Transactional(readOnly = true)
     public List<Pedido> findMeusPedidos(String email) {
         Usuario usuario = usuarioRepository.findByEmail(email);
         if (usuario == null || usuario.getRole() == null) return List.of();
 
+        List<Pedido> pedidos;
         if (usuario.getRole() == UserRole.ADMIN) {
-            return pedidoRepository.findAll();
+            pedidos = pedidoRepository.findAll();
         } else if (usuario.getRole() == UserRole.VENDEDOR) {
-            return pedidoRepository.findByIdVendedor(usuario);
+            pedidos = pedidoRepository.findByIdVendedor(usuario);
         } else {
-            return pedidoRepository.findByIdCliente(usuario);
+            pedidos = pedidoRepository.findByIdCliente(usuario);
         }
+
+        // Força carregamento dos itens dentro da transação
+        pedidos.forEach(p -> p.getItens().size());
+        return pedidos;
     }
 }

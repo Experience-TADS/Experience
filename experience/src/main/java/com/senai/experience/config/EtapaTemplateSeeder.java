@@ -4,63 +4,79 @@ import com.senai.experience.entities.EtapaTemplate;
 import com.senai.experience.entities.StatusFabricacao;
 import com.senai.experience.repositories.EtapaTemplateRepository;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * Popula a tb_etapa_template com os status de fabricação na primeira execução.
+ * Os nomes dos status espelham as etapas do ESP32.
+ */
 @Configuration
-public class EtapaTemplateSeeder implements CommandLineRunner {
+public class EtapaTemplateSeeder {
 
-    private final EtapaTemplateRepository repo;
+    @Bean
+    CommandLineRunner seedEtapaTemplates(EtapaTemplateRepository repo) {
+        return args -> {
+            seed(repo, StatusFabricacao.AGUARDANDO,
+                    "Aguardando Fabricação",
+                    "Seu veículo está na fila de produção e em breve iniciará a fabricação.",
+                    null,
+                    "Cada veículo Toyota passa por mais de 300 pontos de inspeção antes de sair da fábrica.");
 
-    public EtapaTemplateSeeder(EtapaTemplateRepository repo) {
-        this.repo = repo;
+            seed(repo, StatusFabricacao.MONTAGEM_ESTRUTURAL,
+                    "Montagem Estrutural",
+                    "A estrutura do seu veículo está sendo montada com precisão milimétrica.",
+                    null,
+                    "A linha de montagem utiliza robôs de alta precisão para garantir a qualidade da solda.");
+
+            seed(repo, StatusFabricacao.PINTURA,
+                    "Pintura",
+                    "Seu veículo está recebendo a pintura. São aplicadas múltiplas camadas para durabilidade e brilho.",
+                    null,
+                    "O processo de pintura envolve até 5 camadas, incluindo primer, base e verniz.");
+
+            seed(repo, StatusFabricacao.INSTALACAO_MOTOR,
+                    "Instalação do Motor",
+                    "O motor e os componentes mecânicos estão sendo instalados no seu veículo.",
+                    null,
+                    "O motor Toyota passa por testes de bancada antes de ser instalado no veículo.");
+
+            seed(repo, StatusFabricacao.ACABAMENTO_INTERNO,
+                    "Acabamento Interno",
+                    "O interior do seu veículo está sendo finalizado com todos os detalhes.",
+                    null,
+                    "Cada detalhe do acabamento interno é inspecionado manualmente por especialistas Toyota.");
+
+            seed(repo, StatusFabricacao.INSPECAO_FINAL,
+                    "Inspeção Final",
+                    "Seu veículo está passando pela inspeção final para garantir os mais altos padrões Toyota.",
+                    null,
+                    "O controle de qualidade Toyota é baseado no conceito Kaizen — melhoria contínua.");
+
+            seed(repo, StatusFabricacao.LIBERACAO_TRANSPORTE,
+                    "Liberado para Transporte",
+                    "Seu veículo foi aprovado em todas as etapas e está pronto para ser entregue.",
+                    null,
+                    "Parabéns! Seu veículo passou por todas as etapas de fabricação com aprovação total.");
+
+            seed(repo, StatusFabricacao.ENTREGUE,
+                    "Entregue",
+                    "Seu veículo foi entregue. Boas viagens!",
+                    null,
+                    "A Toyota oferece suporte completo pós-venda. Agende sua primeira revisão em 1.000 km.");
+        };
     }
 
-    @Override
-    public void run(String... args) {
-        if (repo.count() > 0) return;
-
-        repo.save(new EtapaTemplate(null, StatusFabricacao.AGUARDANDO,
-                "Pedido Recebido",
-                "Seu pedido foi recebido e está aguardando o início da produção.",
-                "https://example.com/fotos/aguardando.jpg",
-                "Cada Toyota passa por mais de 2.000 inspeções durante a fabricação."));
-
-        repo.save(new EtapaTemplate(null, StatusFabricacao.EM_FABRICACAO,
-                "Em Fabricação",
-                "Seu veículo está sendo montado na linha de produção.",
-                "https://example.com/fotos/em_fabricacao.jpg",
-                "A soldagem da carroceria utiliza mais de 3.000 pontos de solda."));
-
-        repo.save(new EtapaTemplate(null, StatusFabricacao.PINTURA,
-                "Pintura",
-                "Seu veículo está recebendo as camadas de pintura e acabamento.",
-                "https://example.com/fotos/pintura.jpg",
-                "São aplicadas até 4 camadas de tinta para garantir durabilidade."));
-
-        repo.save(new EtapaTemplate(null, StatusFabricacao.CONTROLE_QUALIDADE,
-                "Controle de Qualidade",
-                "Seu veículo está passando pelas inspeções finais de qualidade.",
-                "https://example.com/fotos/controle_qualidade.jpg",
-                "O controle de qualidade Toyota segue o padrão Jidoka."));
-
-        repo.save(new EtapaTemplate(null, StatusFabricacao.CONCLUIDO,
-                "Concluído",
-                "A fabricação do seu veículo foi concluída com sucesso!",
-                "https://example.com/fotos/concluido.jpg",
-                "Seu veículo está pronto e aguardando o transporte."));
-
-        repo.save(new EtapaTemplate(null, StatusFabricacao.ENTREGUE,
-                "Entregue",
-                "Seu veículo foi entregue. Aproveite a experiência Toyota!",
-                "https://example.com/fotos/entregue.jpg",
-                "A Toyota é a maior montadora do mundo em volume de produção."));
-
-        repo.save(new EtapaTemplate(null, StatusFabricacao.CANCELADO,
-                "Cancelado",
-                "O pedido foi cancelado.",
-                null,
-                null));
-
-        System.out.println("Templates de etapa criados com sucesso.");
+    private void seed(EtapaTemplateRepository repo, StatusFabricacao status,
+                      String titulo, String mensagem, String fotoUrl, String curiosidade) {
+        if (repo.findByStatus(status).isEmpty()) {
+            EtapaTemplate etapa = new EtapaTemplate();
+            etapa.setStatus(status);
+            etapa.setTitulo(titulo);
+            etapa.setMensagem(mensagem);
+            etapa.setFotoUrl(fotoUrl);
+            etapa.setCuriosidade(curiosidade);
+            repo.save(etapa);
+        }
     }
 }

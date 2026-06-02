@@ -8,4 +8,5 @@ public class VeiculoRequest {
     private Long idProduto;
     private int chassi;
     private StatusFabricacao statusVeiculo;
+    private Long idPedido; // opcional — vincula o veículo a um pedido
 }

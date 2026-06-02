@@ -1,7 +1,9 @@
 package com.senai.experience.controllers;
 
-import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,20 +14,15 @@ import com.senai.experience.mappers.TelefoneMapper;
 import com.senai.experience.services.TelefoneService;
 
 @RestController
-@RequestMapping("/api/telefones")   // rota base
+@RequestMapping("/api/telefones")
 public class TelefoneController {
 
     @Autowired
     private TelefoneService telefoneService;
 
     @GetMapping
-    public ResponseEntity<List<TelefoneResponse>> getAllTelefones() {
-        return ResponseEntity.ok(
-            telefoneService.findAll()
-                .stream()
-                .map(TelefoneMapper::toResponse)
-                .toList()
-        );
+    public ResponseEntity<Page<Telefone>> getAllTelefones(Pageable pageable) {
+        return ResponseEntity.ok(telefoneService.findAll(pageable));
     }
 
     @GetMapping("/{id}")

@@ -1,6 +1,8 @@
 package com.senai.experience.controllers;
 
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -20,11 +22,9 @@ public class ItemPedidoController {
     private ItemPedidoService service;
 
     @GetMapping
-    public List<ItemPedidoResponse> getAllItemPedidos() {
-        return service.listarTodos()
-                .stream()
-                .map(ItemPedidoMapper::toResponse)
-                .toList();
+    public Page<ItemPedidoResponse> getAllItemPedidos(Pageable pageable) {
+        return service.listarTodos(pageable)
+                .map(ItemPedidoMapper::toResponse);
     }
 
     @GetMapping("/{id}")

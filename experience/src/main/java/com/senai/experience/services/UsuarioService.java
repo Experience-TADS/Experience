@@ -3,8 +3,8 @@ package com.senai.experience.services;
 import com.senai.experience.entities.Usuario;
 import com.senai.experience.repositories.UsuarioRepository;
 
-import java.util.List;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -41,8 +41,8 @@ public class UsuarioService {
         return usuarioRepository.save(usuario);
     }
 
-    public List<Usuario> findAll() {
-        return usuarioRepository.findAll();
+    public Page<Usuario> findAll(Pageable pageable) {
+        return usuarioRepository.findAll(pageable);
     }
 
     public Usuario findByEmail(String email) {
@@ -53,8 +53,22 @@ public class UsuarioService {
     public Usuario login(String email, String senha) {
         Usuario usuario = usuarioRepository.findByEmail(email);
         if (usuario != null && passwordEncoder.matches(senha, usuario.getSenhaHash())) {
+            if(!usuario.isAtivo()) return null;
             return usuario;
         }
         return null;
     }
+    public Usuario ativar(Long id){
+        Usuario usuario = usuarioRepository.findById(id).orElse(null);
+        if(usuario == null) return null;
+        usuario.setAtivo(true);
+        return usuarioRepository.save(usuario);
+       }
+
+        public Usuario desativar(Long id){
+        Usuario usuario = usuarioRepository.findById(id).orElse(null);
+        if(usuario == null) return null;
+        usuario.setAtivo(false);
+        return usuarioRepository.save(usuario);
+       }
 }

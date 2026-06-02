@@ -11,4 +11,5 @@ public class UsuarioResponse {
     private String email;       
     private LocalDate dataNascimento;
     private UserRole role;
+    private boolean ativo;
 }

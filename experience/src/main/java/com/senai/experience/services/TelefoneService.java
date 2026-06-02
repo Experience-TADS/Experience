@@ -1,7 +1,8 @@
 package com.senai.experience.services;
 
-import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import com.senai.experience.entities.Telefone;
 import com.senai.experience.repositories.TelefoneRepository;
@@ -12,8 +13,8 @@ public class TelefoneService {
     @Autowired
     private TelefoneRepository telefoneRepository;
 
-    public List<Telefone> findAll() {
-        return telefoneRepository.findAll();
+    public Page<Telefone> findAll(Pageable pageable) {
+        return telefoneRepository.findAll(pageable);
     }
 
     public Telefone findById(Long id) {
