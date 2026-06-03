@@ -9,11 +9,14 @@ import com.senai.experience.mappers.UsuarioMapper;
 import com.senai.experience.security.JwtUtil;
 import com.senai.experience.services.UsuarioService;
 
+import java.util.Map;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -106,5 +109,13 @@ public class UsuarioController {
         Usuario usuario = usuarioService.desativar(id);
         if (usuario == null) return ResponseEntity.notFound().build();
         return ResponseEntity.ok(UsuarioMapper.toResponse(usuario));
+    }
+
+    @PatchMapping("/fcm-token")
+    public ResponseEntity<Void> registrarFcmToken(
+            @RequestBody Map<String, String> body,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        usuarioService.salvarFcmToken(userDetails.getUsername(), body.get("token"));
+        return ResponseEntity.ok().build();
     }
 }

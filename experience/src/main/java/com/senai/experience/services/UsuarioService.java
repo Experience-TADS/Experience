@@ -65,10 +65,18 @@ public class UsuarioService {
         return usuarioRepository.save(usuario);
        }
 
-        public Usuario desativar(Long id){
+    public Usuario desativar(Long id){
         Usuario usuario = usuarioRepository.findById(id).orElse(null);
         if(usuario == null) return null;
         usuario.setAtivo(false);
         return usuarioRepository.save(usuario);
-       }
+    }
+
+    public void salvarFcmToken(String email, String token) {
+        Usuario usuario = usuarioRepository.findByEmail(email);
+        if (usuario != null) {
+            usuario.setFcmToken(token);
+            usuarioRepository.save(usuario);
+        }
+    }
 }

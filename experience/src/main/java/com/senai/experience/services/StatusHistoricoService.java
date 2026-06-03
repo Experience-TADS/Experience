@@ -5,20 +5,19 @@ import com.senai.experience.entities.StatusHistorico;
 import com.senai.experience.entities.Veiculo;
 import com.senai.experience.repositories.StatusHistoricoRepository;
 import com.senai.experience.repositories.VeiculoRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class StatusHistoricoService {
 
-    @Autowired
-    private StatusHistoricoRepository statusHistoricoRepository;
-
-    @Autowired
-    private VeiculoRepository veiculoRepository;
+    private final StatusHistoricoRepository statusHistoricoRepository;
+    private final VeiculoRepository veiculoRepository;
+    private final NotificacaoService notificacaoService;
 
     public List<StatusHistorico> findByVeiculo(Long veiculoId) {
         return statusHistoricoRepository.findByVeiculoIdOrderByDataAlteracaoDesc(veiculoId);
@@ -45,7 +44,12 @@ public class StatusHistoricoService {
         historico.setVeiculo(veiculo);
         historico.setStatus(novoStatus);
         historico.setDataAlteracao(LocalDateTime.now());
-        return statusHistoricoRepository.save(historico);
+        StatusHistorico salvo = statusHistoricoRepository.save(historico);
+
+        // Dispara notificação push via Expo — falha silenciosa para não bloquear o fluxo
+        notificacaoService.notificarMudancaEtapa(veiculo, novoStatus);
+
+        return salvo;
     }
 
     private void validarTransicao(StatusFabricacao atual, StatusFabricacao novo) {
