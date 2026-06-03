@@ -56,6 +56,8 @@ public class Usuario {
 
     private boolean ativo = true;
 
+    private String fcmToken;
+
     // Construtor usado pelas subclasses PessoaFisica e PessoaJuridica (sem role)
     public Usuario(String nome, String email, String senhaHash, LocalDate dataNascimento) {
         this.nome = nome;
