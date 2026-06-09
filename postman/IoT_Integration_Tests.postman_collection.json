@@ -1,0 +1,480 @@
+{
+  "info": {
+    "name": "IoT Integration - Experience API",
+    "description": "Coleção de testes para integração IoT ESP32 → MQTT → Node-RED → Backend",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Veículos",
+      "item": [
+        {
+          "name": "Listar Todos os Veículos",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/veiculo?page=0&size=20",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "veiculo"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Buscar Veículo por ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/veiculo/1",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "veiculo", "1"]
+            }
+          }
+        },
+        {
+          "name": "Buscar Veículo por Chassi",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/veiculo/chassi/10001",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "veiculo", "chassi", "10001"]
+            }
+          }
+        },
+        {
+          "name": "Criar Veículo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"chassi\": 10001,\n  \"statusVeiculo\": \"AGUARDANDO\",\n  \"idProduto\": 1\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/veiculo",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "veiculo"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Status Histórico",
+      "item": [
+        {
+          "name": "Listar Histórico de Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/veiculo/1/status",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "veiculo", "1", "status"]
+            }
+          }
+        },
+        {
+          "name": "Atualizar Status (Método Direto)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "\"MONTAGEM_ESTRUTURAL\""
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/veiculo/1/status",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "veiculo", "1", "status"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "IoT Integration (Node-RED)",
+      "item": [
+        {
+          "name": "Evento Node-RED - MONTAGEM_ESTRUTURAL Iniciado",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"chassi\": \"CHASSI_00001\",\n  \"etapa\": \"MONTAGEM_ESTRUTURAL\",\n  \"status\": \"Iniciado\",\n  \"timestamp\": 1234567890\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/veiculo/nodered/evento",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "veiculo", "nodered", "evento"]
+            }
+          }
+        },
+        {
+          "name": "Evento Node-RED - PINTURA Iniciado",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"chassi\": \"CHASSI_00001\",\n  \"etapa\": \"PINTURA\",\n  \"status\": \"Iniciado\",\n  \"timestamp\": 1234567895\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/veiculo/nodered/evento",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "veiculo", "nodered", "evento"]
+            }
+          }
+        },
+        {
+          "name": "Evento Node-RED - INSTALACAO_MOTOR Iniciado",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"chassi\": \"CHASSI_00001\",\n  \"etapa\": \"INSTALACAO_MOTOR\",\n  \"status\": \"Iniciado\",\n  \"timestamp\": 1234567900\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/veiculo/nodered/evento",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "veiculo", "nodered", "evento"]
+            }
+          }
+        },
+        {
+          "name": "Evento Node-RED - ACABAMENTO_INTERNO Iniciado",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"chassi\": \"CHASSI_00001\",\n  \"etapa\": \"ACABAMENTO_INTERNO\",\n  \"status\": \"Iniciado\",\n  \"timestamp\": 1234567905\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/veiculo/nodered/evento",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "veiculo", "nodered", "evento"]
+            }
+          }
+        },
+        {
+          "name": "Evento Node-RED - INSPECAO_FINAL Iniciado",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"chassi\": \"CHASSI_00001\",\n  \"etapa\": \"INSPECAO_FINAL\",\n  \"status\": \"Iniciado\",\n  \"timestamp\": 1234567910\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/veiculo/nodered/evento",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "veiculo", "nodered", "evento"]
+            }
+          }
+        },
+        {
+          "name": "Evento Node-RED - LIBERACAO_TRANSPORTE Finalizado",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"chassi\": \"CHASSI_00001\",\n  \"etapa\": \"LIBERACAO_TRANSPORTE\",\n  \"status\": \"Finalizado\",\n  \"timestamp\": 1234567915\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/veiculo/nodered/evento",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "veiculo", "nodered", "evento"]
+            }
+          }
+        },
+        {
+          "name": "Teste de Erro - Chassi Inválido",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"chassi\": \"INVALID_FORMAT\",\n  \"etapa\": \"PINTURA\",\n  \"status\": \"Iniciado\",\n  \"timestamp\": 1234567890\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/veiculo/nodered/evento",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "veiculo", "nodered", "evento"]
+            }
+          }
+        },
+        {
+          "name": "Teste de Erro - Veículo Não Existe",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"chassi\": \"CHASSI_99999\",\n  \"etapa\": \"PINTURA\",\n  \"status\": \"Iniciado\",\n  \"timestamp\": 1234567890\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/veiculo/nodered/evento",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "veiculo", "nodered", "evento"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Workflow Completo - Chassi 10002",
+      "item": [
+        {
+          "name": "1. Criar Veículo 10002",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code é 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test(\"Veículo criado com status AGUARDANDO\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.statusVeiculo).to.eql(\"AGUARDANDO\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"chassi\": 10002,\n  \"statusVeiculo\": \"AGUARDANDO\",\n  \"idProduto\": 1\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/veiculo",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "veiculo"]
+            }
+          }
+        },
+        {
+          "name": "2. MONTAGEM_ESTRUTURAL",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code é 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Status atualizado para MONTAGEM_ESTRUTURAL\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.statusVeiculo).to.eql(\"MONTAGEM_ESTRUTURAL\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"chassi\": \"CHASSI_00002\",\n  \"etapa\": \"MONTAGEM_ESTRUTURAL\",\n  \"status\": \"Iniciado\",\n  \"timestamp\": 1234567890\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/veiculo/nodered/evento",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "veiculo", "nodered", "evento"]
+            }
+          }
+        },
+        {
+          "name": "3. PINTURA",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code é 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Status atualizado para PINTURA\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.statusVeiculo).to.eql(\"PINTURA\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"chassi\": \"CHASSI_00002\",\n  \"etapa\": \"PINTURA\",\n  \"status\": \"Iniciado\",\n  \"timestamp\": 1234567895\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/veiculo/nodered/evento",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "veiculo", "nodered", "evento"]
+            }
+          }
+        },
+        {
+          "name": "4. Verificar Histórico",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code é 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Histórico contém 2 entradas\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.length).to.be.at.least(2);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/veiculo/chassi/10002",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "8080",
+              "path": ["api", "veiculo", "chassi", "10002"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
