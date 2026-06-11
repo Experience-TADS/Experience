@@ -1,0 +1,170 @@
+{
+  "__inputs": [{
+    "name": "DS_INFLUXDB", "label": "InfluxDB", "description": "",
+    "type": "datasource", "pluginId": "influxdb", "pluginName": "InfluxDB"
+  }],
+  "__requires": [
+    { "type": "grafana",    "id": "grafana",    "name": "Grafana",    "version": "9.0.0" },
+    { "type": "datasource", "id": "influxdb",   "name": "InfluxDB",   "version": "1.0.0" },
+    { "type": "panel", "id": "stat",       "name": "Stat",       "version": "" },
+    { "type": "panel", "id": "table",      "name": "Table",      "version": "" },
+    { "type": "panel", "id": "bargauge",   "name": "Bar gauge",  "version": "" },
+    { "type": "panel", "id": "timeseries", "name": "Time series","version": "" }
+  ],
+  "annotations": { "list": [] },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "liveNow": true,
+  "panels": [
+
+    { "collapsed": false, "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 }, "id": 20, "title": "VISÃO GERAL", "type": "row" },
+
+    {
+      "datasource": { "type": "influxdb", "uid": "${DS_INFLUXDB}" },
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "thresholds": { "mode": "absolute", "steps": [{ "color": "blue", "value": null }] }, "unit": "short" }, "overrides": [] },
+      "gridPos": { "h": 4, "w": 4, "x": 0, "y": 1 }, "id": 1,
+      "options": { "colorMode": "background", "graphMode": "none", "justifyMode": "center", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "auto" },
+      "title": "Carros Gerados", "type": "stat",
+      "targets": [{ "datasource": { "type": "influxdb", "uid": "${DS_INFLUXDB}" },
+        "query": "from(bucket: \"linha_producao\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"sensor\" and r._field == \"etapa\")\n  |> filter(fn: (r) => r._value == \"MONTAGEM_ESTRUTURAL\")\n  |> group()\n  |> count()\n  |> yield(name: \"gerados\")",
+        "refId": "A" }]
+    },
+
+    {
+      "datasource": { "type": "influxdb", "uid": "${DS_INFLUXDB}" },
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] }, "unit": "short" }, "overrides": [] },
+      "gridPos": { "h": 4, "w": 4, "x": 4, "y": 1 }, "id": 2,
+      "options": { "colorMode": "background", "graphMode": "none", "justifyMode": "center", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "auto" },
+      "title": "Carros Finalizados", "type": "stat",
+      "targets": [{ "datasource": { "type": "influxdb", "uid": "${DS_INFLUXDB}" },
+        "query": "from(bucket: \"linha_producao\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"sensor\" and r._field == \"etapa\")\n  |> filter(fn: (r) => r._value == \"LIBERACAO_TRANSPORTE\")\n  |> group()\n  |> count()\n  |> map(fn: (r) => ({r with _value: r._value / 2}))\n  |> yield(name: \"finalizados\")",
+        "refId": "A" }]
+    },
+
+    {
+      "datasource": { "type": "influxdb", "uid": "${DS_INFLUXDB}" },
+      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "thresholds": { "mode": "absolute", "steps": [{ "color": "orange", "value": null }] }, "unit": "short" }, "overrides": [] },
+      "gridPos": { "h": 4, "w": 4, "x": 8, "y": 1 }, "id": 4,
+      "options": { "colorMode": "background", "graphMode": "none", "justifyMode": "center", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "auto" },
+      "title": "Total de Eventos", "type": "stat",
+      "targets": [{ "datasource": { "type": "influxdb", "uid": "${DS_INFLUXDB}" },
+        "query": "from(bucket: \"linha_producao\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"sensor\" and r._field == \"valor\")\n  |> group()\n  |> count()\n  |> yield(name: \"total\")",
+        "refId": "A" }]
+    },
+
+    { "collapsed": false, "gridPos": { "h": 1, "w": 24, "x": 0, "y": 5 }, "id": 21, "title": "STATUS POR ETAPA", "type": "row" },
+
+    {
+      "datasource": { "type": "influxdb", "uid": "${DS_INFLUXDB}" },
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "custom": { "fillOpacity": 80, "lineWidth": 1 }, "unit": "short" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 6 }, "id": 5,
+      "options": { "barRadius": 0.1, "barWidth": 0.6, "groupWidth": 0.7, "legend": { "calcs": [], "displayMode": "list", "placement": "bottom", "showLegend": true }, "orientation": "horizontal", "showValue": "always", "stacking": "none", "tooltip": { "mode": "multi", "sort": "none" } },
+      "title": "Iniciados por Etapa", "type": "bargauge",
+      "targets": [{ "datasource": { "type": "influxdb", "uid": "${DS_INFLUXDB}" },
+        "query": "from(bucket: \"linha_producao\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"sensor\" and r._field == \"status\")\n  |> filter(fn: (r) => r._value == \"Iniciado\")\n  |> group(columns: [\"_measurement\"])\n  |> count()\n  |> yield(name: \"iniciados\")",
+        "refId": "A" }]
+    },
+
+    {
+      "datasource": { "type": "influxdb", "uid": "${DS_INFLUXDB}" },
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "custom": { "fillOpacity": 80, "lineWidth": 1 }, "unit": "short" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 6 }, "id": 6,
+      "options": { "barRadius": 0.1, "barWidth": 0.6, "groupWidth": 0.7, "legend": { "calcs": [], "displayMode": "list", "placement": "bottom", "showLegend": true }, "orientation": "horizontal", "showValue": "always", "stacking": "none", "tooltip": { "mode": "multi", "sort": "none" } },
+      "title": "Finalizados por Etapa", "type": "bargauge",
+      "targets": [{ "datasource": { "type": "influxdb", "uid": "${DS_INFLUXDB}" },
+        "query": "from(bucket: \"linha_producao\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"sensor\" and r._field == \"status\")\n  |> filter(fn: (r) => r._value == \"Finalizado\")\n  |> group(columns: [\"_measurement\"])\n  |> count()\n  |> yield(name: \"finalizados\")",
+        "refId": "A" }]
+    },
+
+    {
+      "datasource": { "type": "influxdb", "uid": "${DS_INFLUXDB}" },
+      "fieldConfig": {
+        "defaults": { "custom": { "align": "center", "cellOptions": { "type": "auto" }, "inspect": false, "minWidth": 120 }, "mappings": [], "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] } },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "Iniciados" }, "properties": [{ "id": "custom.cellOptions", "value": { "type": "color-background", "mode": "basic" } }, { "id": "thresholds", "value": { "mode": "absolute", "steps": [{ "color": "blue", "value": null }] } }] },
+          { "matcher": { "id": "byName", "options": "Finalizados" }, "properties": [{ "id": "custom.cellOptions", "value": { "type": "color-background", "mode": "basic" } }, { "id": "thresholds", "value": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] } }] },
+          { "matcher": { "id": "byName", "options": "Etapa" }, "properties": [{ "id": "custom.width", "value": 260 }] }
+        ]
+      },
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 14 }, "id": 15,
+      "options": { "cellHeight": "md", "footer": { "countRows": false, "show": false }, "showHeader": true, "sortBy": [] },
+      "title": "Resumo por Etapa — Iniciados vs Finalizados", "type": "table",
+      "targets": [
+        { "datasource": { "type": "influxdb", "uid": "${DS_INFLUXDB}" },
+          "query": "from(bucket: \"linha_producao\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"sensor\")\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> group(columns: [\"etapa\", \"status\"])\n  |> count(column: \"valor\")\n  |> group()\n  |> pivot(rowKey: [\"etapa\"], columnKey: [\"status\"], valueColumn: \"valor\")\n  |> rename(columns: {etapa: \"Etapa\"})\n  |> keep(columns: [\"Etapa\", \"Iniciado\", \"Finalizado\"])\n  |> rename(columns: {Iniciado: \"Iniciados\", Finalizado: \"Finalizados\"})\n  |> sort(columns: [\"Etapa\"])\n  |> yield(name: \"resumo\")",
+          "refId": "A" }
+      ]
+    },
+
+    { "collapsed": false, "gridPos": { "h": 1, "w": 24, "x": 0, "y": 24 }, "id": 22, "title": "RASTREAMENTO POR CHASSI", "type": "row" },
+
+    {
+      "datasource": { "type": "influxdb", "uid": "${DS_INFLUXDB}" },
+      "fieldConfig": {
+        "defaults": { "custom": { "align": "center", "cellOptions": { "type": "auto" }, "inspect": false, "minWidth": 100 }, "mappings": [], "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] } },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "status" }, "properties": [{ "id": "custom.cellOptions", "value": { "type": "color-background", "mode": "basic" } }, { "id": "mappings", "value": [{ "type": "value", "options": { "Iniciado": { "color": "blue", "index": 0, "text": "▶ Iniciado" } } }, { "type": "value", "options": { "Finalizado": { "color": "green", "index": 1, "text": "✔ Finalizado" } } }] }] },
+          { "matcher": { "id": "byName", "options": "etapa"  }, "properties": [{ "id": "custom.width", "value": 220 }] },
+          { "matcher": { "id": "byName", "options": "chassi" }, "properties": [{ "id": "custom.width", "value": 140 }] },
+          { "matcher": { "id": "byName", "options": "_time"  }, "properties": [{ "id": "displayName", "value": "Horário" }, { "id": "custom.width", "value": 200 }] }
+        ]
+      },
+      "gridPos": { "h": 12, "w": 24, "x": 0, "y": 25 }, "id": 7,
+      "options": { "cellHeight": "sm", "footer": { "countRows": true, "fields": "", "reducer": ["count"], "show": true, "enablePagination": true }, "showHeader": true, "sortBy": [{ "desc": false, "displayName": "chassi" }] },
+      "title": "Último Status de Cada Chassi por Etapa", "type": "table",
+      "targets": [{ "datasource": { "type": "influxdb", "uid": "${DS_INFLUXDB}" },
+        "query": "from(bucket: \"linha_producao\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"sensor\")\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> group(columns: [\"chassi\", \"etapa\"])\n  |> last(column: \"_time\")\n  |> group()\n  |> keep(columns: [\"_time\", \"chassi\", \"etapa\", \"status\"])\n  |> sort(columns: [\"chassi\", \"etapa\"])\n  |> yield(name: \"rastreamento\")",
+        "refId": "A" }]
+    },
+
+    { "collapsed": false, "gridPos": { "h": 1, "w": 24, "x": 0, "y": 37 }, "id": 23, "title": "LINHA DO TEMPO", "type": "row" },
+
+    {
+      "datasource": { "type": "influxdb", "uid": "${DS_INFLUXDB}" },
+      "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "custom": { "drawStyle": "bars", "fillOpacity": 60, "lineWidth": 1, "pointSize": 5, "showPoints": "never", "stacking": { "group": "A", "mode": "normal" } }, "unit": "short" }, "overrides": [] },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 38 }, "id": 8,
+      "options": { "legend": { "calcs": ["sum"], "displayMode": "table", "placement": "right", "showLegend": true }, "tooltip": { "mode": "multi", "sort": "desc" } },
+      "title": "Eventos ao Longo do Tempo por Etapa", "type": "timeseries",
+      "targets": [{ "datasource": { "type": "influxdb", "uid": "${DS_INFLUXDB}" },
+        "query": "from(bucket: \"linha_producao\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"sensor\" and r._field == \"valor\")\n  |> aggregateWindow(every: 10s, fn: count, createEmpty: false)\n  |> yield(name: \"timeline\")",
+        "refId": "A" }]
+    },
+
+    { "collapsed": false, "gridPos": { "h": 1, "w": 24, "x": 0, "y": 46 }, "id": 24, "title": "LOG COMPLETO", "type": "row" },
+
+    {
+      "datasource": { "type": "influxdb", "uid": "${DS_INFLUXDB}" },
+      "fieldConfig": {
+        "defaults": { "custom": { "align": "auto", "cellOptions": { "type": "auto" }, "inspect": false }, "mappings": [], "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] } },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "status" }, "properties": [{ "id": "custom.cellOptions", "value": { "type": "color-background", "mode": "basic" } }, { "id": "mappings", "value": [{ "type": "value", "options": { "Iniciado": { "color": "blue", "index": 0, "text": "▶ Iniciado" } } }, { "type": "value", "options": { "Finalizado": { "color": "green", "index": 1, "text": "✔ Finalizado" } } }] }] },
+          { "matcher": { "id": "byName", "options": "_time"  }, "properties": [{ "id": "displayName", "value": "Horário" }, { "id": "custom.width", "value": 200 }] },
+          { "matcher": { "id": "byName", "options": "chassi" }, "properties": [{ "id": "custom.width", "value": 140 }] },
+          { "matcher": { "id": "byName", "options": "etapa"  }, "properties": [{ "id": "custom.width", "value": 220 }] },
+          { "matcher": { "id": "byName", "options": "status" }, "properties": [{ "id": "custom.width", "value": 160 }] }
+        ]
+      },
+      "gridPos": { "h": 12, "w": 24, "x": 0, "y": 47 }, "id": 9,
+      "options": { "cellHeight": "sm", "footer": { "countRows": true, "fields": "", "reducer": ["count"], "show": true, "enablePagination": true }, "showHeader": true, "sortBy": [{ "desc": true, "displayName": "Horário" }] },
+      "title": "Log de Todos os Eventos", "type": "table",
+      "targets": [{ "datasource": { "type": "influxdb", "uid": "${DS_INFLUXDB}" },
+        "query": "from(bucket: \"linha_producao\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"sensor\")\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\n  |> keep(columns: [\"_time\", \"chassi\", \"etapa\", \"status\"])\n  |> sort(columns: [\"_time\"], desc: true)\n  |> yield(name: \"log\")",
+        "refId": "A" }]
+    }
+
+  ],
+  "refresh": "5s",
+  "schemaVersion": 38,
+  "style": "dark",
+  "tags": ["linha-producao", "mqtt", "senai"],
+  "templating": { "list": [] },
+  "time": { "from": "now-1h", "to": "now" },
+  "timepicker": {},
+  "timezone": "America/Sao_Paulo",
+  "title": "Linha de Produção",
+  "uid": "linha-producao-senai",
+  "version": 7
+}
