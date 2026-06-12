@@ -2,140 +2,97 @@
 
 import { useState } from "react";
 import Sidebar from "@/app/componentes/SideBar";
-import { Car, Plus, ChevronDown, ChevronUp, Loader2, CheckCircle2, AlertCircle, Info } from "lucide-react";
-import Link from "next/link";
+import {
+  Car,
+  Plus,
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react";
+import { useRouter } from "next/navigation";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://54.91.247.129";
-
-const STATUS_LABELS: Record<string, string> = {
-  AGUARDANDO: "Aguardando início",
-  MONTAGEM_ESTRUTURAL: "Montagem estrutural",
-  PINTURA: "Pintura",
-  INSTALACAO_MOTOR: "Instalação do motor",
-  ACABAMENTO_INTERNO: "Acabamento interno",
-  INSPECAO_FINAL: "Inspeção final",
-  LIBERACAO_TRANSPORTE: "Liberação para transporte",
-  ENTREGUE: "Entregue",
-  CANCELADO: "Cancelado",
-};
-
-const STATUS_DESC: Record<string, string> = {
-  AGUARDANDO: "Seu pedido foi confirmado e está na fila para iniciar a produção.",
-  MONTAGEM_ESTRUTURAL: "O chassi e a carroceria do seu veículo estão sendo soldados e montados.",
-  PINTURA: "Seu veículo está recebendo as camadas de primer, base e verniz.",
-  INSTALACAO_MOTOR: "Motor, câmbio e suspensão estão sendo instalados.",
-  ACABAMENTO_INTERNO: "Interior, sistema elétrico e eletrônico estão sendo montados.",
-  INSPECAO_FINAL: "Seu veículo está passando pela verificação final de qualidade.",
-  LIBERACAO_TRANSPORTE: "Aprovado na inspeção! Seu veículo está a caminho da concessionária.",
-  ENTREGUE: "Seu veículo foi entregue. Boas estradas!",
-  CANCELADO: "Este pedido foi cancelado.",
-};
-
-const ETAPAS_ORDEM = [
-  "AGUARDANDO",
-  "MONTAGEM_ESTRUTURAL",
-  "PINTURA",
-  "INSTALACAO_MOTOR",
-  "ACABAMENTO_INTERNO",
-  "INSPECAO_FINAL",
-  "LIBERACAO_TRANSPORTE",
-  "ENTREGUE",
+const etapas = [
+  "Compra realizada",
+  "Pedido encaminhado",
+  "Início de produção",
+  "Qualidade",
+  "Vistoria",
+  "Pedido pronto",
 ];
 
-type Pedido = {
-  id: string | number;
-  modelo: string;
-  cor: string;
-  ano: string;
-  statusAtual: string;
-  chassi?: number;
-};
+const horarios = [
+  "08:00","09:00","10:00","11:00",
+  "13:00","14:00","15:00","16:00",
+];
 
-function getStatusIndex(status: string) {
-  const idx = ETAPAS_ORDEM.indexOf(status);
-  return idx === -1 ? 0 : idx;
-}
+export default function Veiculo() {
+  const router = useRouter();
 
-export default function Acompanhamento() {
-  const [pedidos, setPedidos] = useState<Pedido[]>([
-    { id: "1", modelo: "Hilux", cor: "Prata Nívea", ano: "2026", statusAtual: "MONTAGEM_ESTRUTURAL", chassi: 10001 },
+  const [pedidos, setPedidos] = useState([
+    {
+      id: "1",
+      modelo: "Hilux",
+      cor: "Prata Nívea",
+      ano: "2026",
+      status: 3,
+      imagem: "/toyota_yaris.jpg",
+    },
   ]);
 
   const [expandido, setExpandido] = useState<string | null>(null);
   const [modalAdd, setModalAdd] = useState(false);
   const [codigo, setCodigo] = useState("");
-  const [buscandoCodigo, setBuscandoCodigo] = useState(false);
-  const [erroCodigo, setErroCodigo] = useState("");
-  const [sucessoCodigo, setSucessoCodigo] = useState("");
 
-  async function adicionarPedido(e: React.FormEvent) {
-    e.preventDefault();
-    setErroCodigo("");
-    setSucessoCodigo("");
+  const [modalAgendar, setModalAgendar] = useState(false);
+  const [data, setData] = useState("");
+  const [hora, setHora] = useState("");
 
-    const chassiNum = parseInt(codigo.replace(/\D/g, ""));
-    if (!codigo.trim() || isNaN(chassiNum)) {
-      setErroCodigo("Informe um código de chassi válido (somente números).");
-      return;
-    }
+  function adicionarPedido(e?: any) {
+    if (e) e.preventDefault();
+    if (!codigo) return;
 
-    setBuscandoCodigo(true);
-
-    try {
-      const res = await fetch(`${API_BASE_URL}/api/veiculo/chassi/${chassiNum}`, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-      });
-
-      if (res.status === 404) {
-        setErroCodigo("Veículo não encontrado. Verifique o código informado.");
-        return;
-      }
-      if (!res.ok) {
-        setErroCodigo("Erro ao buscar veículo. Tente novamente.");
-        return;
-      }
-
-      const veiculo = await res.json();
-      const jaAdicionado = pedidos.some((p) => String(p.chassi) === String(chassiNum));
-      if (jaAdicionado) {
-        setErroCodigo("Este veículo já está na sua lista.");
-        return;
-      }
-
-      setPedidos([...pedidos, {
+    setPedidos([
+      ...pedidos,
+      {
         id: Date.now().toString(),
-        modelo: veiculo.produto?.modelo || "Veículo Toyota",
-        cor: veiculo.produto?.cor || "—",
-        ano: String(veiculo.produto?.ano || "—"),
-        statusAtual: veiculo.statusVeiculo || "AGUARDANDO",
-        chassi: chassiNum,
-      }]);
+        modelo: "Novo Veículo",
+        cor: "Preto",
+        ano: "2025",
+        status: 1,
+        imagem: "/toyota_yaris.jpg",
+      },
+    ]);
 
-      setSucessoCodigo("Veículo adicionado com sucesso!");
-      setCodigo("");
-      setTimeout(() => { setModalAdd(false); setSucessoCodigo(""); }, 1500);
-    } catch {
-      setErroCodigo("Não foi possível conectar ao servidor.");
-    } finally {
-      setBuscandoCodigo(false);
-    }
+    setCodigo("");
+    setModalAdd(false);
+  }
+
+  function confirmarAgendamento() {
+    if (!data || !hora) return;
+    alert(`Retirada agendada para ${data} às ${hora}`);
+    setModalAgendar(false);
   }
 
   return (
     <div className="flex min-h-screen bg-gray-100">
+
       <Sidebar />
 
-      <div className="flex-1 flex flex-col items-center px-5 md:px-12 py-8 md:ml-20 pb-24 md:pb-8">
+      <div className="flex-1 flex flex-col items-center px-5 md:px-12 py-8 md:ml-20">
 
         {/* HEADER */}
         <div className="w-full max-w-3xl sticky top-0 z-20 bg-gray-100 pb-5 mb-8">
           <div className="flex justify-between items-center pt-4">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Seus Veículos</h1>
-              <p className="text-sm text-gray-600 mt-1">{pedidos.length} pedido(s)</p>
+              <h1 className="text-2xl font-bold text-gray-900">
+                Seus Veículos
+              </h1>
+              <p className="text-sm text-gray-600 mt-1">
+                {pedidos.length} pedidos
+              </p>
             </div>
+
             <button
-              onClick={() => { setModalAdd(true); setErroCodigo(""); setSucessoCodigo(""); }}
+              onClick={() => setModalAdd(true)}
               className="bg-red-600 hover:bg-red-700 transition text-white px-5 py-2.5 rounded-xl flex items-center gap-2 shadow-md"
             >
               <Plus size={18} />
@@ -146,106 +103,121 @@ export default function Acompanhamento() {
 
         {/* LISTA */}
         {pedidos.map((p) => {
-          const aberto = expandido === String(p.id);
-          const statusIdx = getStatusIndex(p.statusAtual);
-          const isCancelado = p.statusAtual === "CANCELADO";
+          const aberto = expandido === p.id;
 
           return (
             <div key={p.id} className="w-full max-w-3xl mb-8">
 
               {/* CARD */}
               <div
-                onClick={() => setExpandido(aberto ? null : String(p.id))}
+                onClick={() => setExpandido(aberto ? null : p.id)}
                 className="bg-white p-7 rounded-3xl shadow-md hover:shadow-xl transition duration-300 cursor-pointer border border-gray-100"
               >
                 <div className="flex justify-between items-center gap-6">
+
                   <div>
-                    <p className="text-xs text-gray-500">Pedido #{p.chassi || p.id}</p>
-                    <h2 className="text-2xl font-bold text-gray-900 mt-1">{p.modelo}</h2>
-                    <p className="text-sm text-gray-600 mt-1">{p.cor} • {p.ano}</p>
-                    <span className={`mt-4 inline-block text-xs font-semibold px-4 py-1.5 rounded-full ${
-                      isCancelado ? "bg-red-100 text-red-700"
-                      : p.statusAtual === "ENTREGUE" ? "bg-green-100 text-green-700"
-                      : "bg-yellow-100 text-yellow-700"
-                    }`}>
-                      {STATUS_LABELS[p.statusAtual] || p.statusAtual}
+                    <p className="text-xs text-gray-500">
+                      Pedido #{p.id}
+                    </p>
+
+                    <h2 className="text-2xl font-bold text-gray-900 mt-1">
+                      {p.modelo}
+                    </h2>
+
+                    <p className="text-sm text-gray-600 mt-1">
+                      {p.cor} • {p.ano}
+                    </p>
+
+                    <span className="mt-4 inline-block text-xs font-semibold text-red-700 bg-red-100 px-4 py-1.5 rounded-full">
+                      {etapas[p.status]}
                     </span>
                   </div>
+
                   <div className="flex items-center gap-4">
                     <div className="w-14 h-14 rounded-2xl bg-red-100 flex items-center justify-center">
                       <Car className="w-7 h-7 text-red-600" />
                     </div>
-                    {aberto ? <ChevronUp size={22} /> : <ChevronDown size={22} />}
+
+                    {aberto ? <ChevronUp size={22}/> : <ChevronDown size={22}/>}
                   </div>
+
                 </div>
               </div>
 
-              {/* TIMELINE */}
+              {/* DETALHES */}
               {aberto && (
-                <div className="mt-6">
+                <div className="mt-6 space-y-6">
+
+                  {/* IMAGEM */}
+                  <div className="w-full h-64 rounded-3xl overflow-hidden shadow">
+                    <img
+                      src={p.imagem}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+
+                  {/* TIMELINE */}
                   <div className="bg-white p-7 rounded-3xl shadow-md border border-gray-100">
-                    <h3 className="text-xl font-bold text-gray-900 mb-7">Acompanhamento</h3>
+
+                    <h3 className="text-xl font-bold text-gray-900 mb-7">
+                      Acompanhamento
+                    </h3>
 
                     <div className="relative">
-                      <div className="absolute left-[14px] top-0 bottom-0 w-[2px] bg-gray-200" />
+                      <div className="absolute left-[14px] top-0 bottom-0 w-[2px] bg-red-500" />
 
-                      {ETAPAS_ORDEM.map((etapa, i) => {
-                        const concluida = !isCancelado && i <= statusIdx;
-                        const atual = etapa === p.statusAtual;
+                      {etapas.map((etapa, i) => {
+                        const concluida = i <= p.status;
 
                         return (
-                          <div key={etapa} className="flex items-start gap-5 mb-8">
-                            <div className="z-10 flex-shrink-0">
-                              <div className={`w-8 h-8 flex items-center justify-center rounded-full border-2 transition ${
-                                atual ? "bg-red-600 border-red-600"
-                                : concluida ? "bg-green-500 border-green-500"
-                                : "bg-white border-gray-300"
-                              }`}>
-                                {concluida && !atual && <span className="text-white text-xs">✓</span>}
-                                {atual && <span className="text-white text-xs font-bold">●</span>}
+                          <div key={i} className="flex items-start gap-5 mb-10">
+
+                            <div className="z-10">
+                              <div
+                                className={`w-8 h-8 flex items-center justify-center rounded-full
+                                ${concluida ? "bg-red-600" : "bg-gray-300"}`}
+                              >
+                                {concluida && (
+                                  <span className="text-white text-xs">✓</span>
+                                )}
                               </div>
                             </div>
 
-                            <div className="flex-1">
-                              <p className={`text-sm font-semibold ${atual ? "text-red-600" : concluida ? "text-gray-900" : "text-gray-400"}`}>
-                                {STATUS_LABELS[etapa]}
+                            <div>
+                              <p className="text-sm font-semibold text-gray-900">
+                                {etapa}
                               </p>
 
-                              {/* Descrição da etapa atual */}
-                              {atual && STATUS_DESC[etapa] && (
-                                <p className="text-xs text-gray-500 mt-1 leading-relaxed">
-                                  {STATUS_DESC[etapa]}
-                                </p>
-                              )}
+                              <p className="text-xs text-gray-400 mt-1">
+                                15 de jan.
+                              </p>
 
-                              {/* Link "Mais detalhes" abre a página SaibaMais */}
-                              <Link
-                                href="/Cliente/SaibaMais"
-                                onClick={(e) => e.stopPropagation()}
-                                className="inline-flex items-center gap-1 text-xs text-gray-400 mt-1.5 hover:text-red-600 transition"
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  router.push("/Cliente/SaibaMais");
+                                }}
+                                className="text-xs text-gray-500 mt-2 hover:text-red-600 transition"
                               >
-                                <Info size={12} />
-                                Ver detalhes do processo
-                              </Link>
+                                ⓘ Mais detalhes
+                              </button>
                             </div>
+
                           </div>
                         );
                       })}
-
-                      {isCancelado && (
-                        <div className="flex items-start gap-5 mb-8">
-                          <div className="z-10">
-                            <div className="w-8 h-8 flex items-center justify-center rounded-full bg-red-600 border-2 border-red-600">
-                              <span className="text-white text-xs">✕</span>
-                            </div>
-                          </div>
-                          <div>
-                            <p className="text-sm font-semibold text-red-600">Cancelado</p>
-                            <p className="text-xs text-red-400 mt-1">Pedido encerrado. Entre em contato com a concessionária.</p>
-                          </div>
-                        </div>
-                      )}
                     </div>
+
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setModalAgendar(true);
+                      }}
+                      className="mt-6 w-full bg-red-600 text-white py-3.5 rounded-xl font-semibold hover:bg-red-700 transition shadow"
+                    >
+                      Agendar retirada
+                    </button>
+
                   </div>
                 </div>
               )}
@@ -255,51 +227,118 @@ export default function Acompanhamento() {
 
       </div>
 
-      {/* MODAL ADICIONAR VEÍCULO */}
+      {/* MODAL ADD */}
       {modalAdd && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-white p-7 rounded-3xl w-[90%] max-w-sm shadow-2xl relative">
-            <button onClick={() => setModalAdd(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 transition">✕</button>
+
+          <div className="bg-white p-7 rounded-3xl w-[90%] max-w-sm shadow-2xl relative animate-in fade-in zoom-in-95 duration-200">
+
+            <button
+              onClick={() => setModalAdd(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 transition"
+            >
+              ✕
+            </button>
 
             <div className="mb-5">
-              <h2 className="text-xl font-bold text-gray-900">Adicionar veículo</h2>
-              <p className="text-sm text-gray-500 mt-1">Insira o número do chassi do seu veículo</p>
+              <h2 className="text-xl font-bold text-gray-900">
+                Adicionar veículo
+              </h2>
+              <p className="text-sm text-gray-500 mt-1">
+                Insira o código do seu pedido
+              </p>
             </div>
 
-            <form onSubmit={adicionarPedido}>
-              <div className="mb-4">
-                <label className="text-sm text-gray-600">Número do chassi</label>
-                <input
-                  value={codigo}
-                  onChange={(e) => { setCodigo(e.target.value); setErroCodigo(""); }}
-                  placeholder="Ex: 10001"
-                  className="w-full border border-gray-200 p-3 mt-1 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 text-gray-900"
-                />
-              </div>
+            <div className="mb-5">
+              <label className="text-sm text-gray-600">
+                Código do veículo
+              </label>
+              <input
+                value={codigo}
+                onChange={(e) => setCodigo(e.target.value)}
+                placeholder="Ex: 123ABC"
+                className="w-full border border-gray-200 p-3 mt-1 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500"
+              />
+            </div>
 
-              {erroCodigo && (
-                <div className="flex items-center gap-2 text-red-500 text-sm mb-3">
-                  <AlertCircle size={16} /> {erroCodigo}
-                </div>
-              )}
-              {sucessoCodigo && (
-                <div className="flex items-center gap-2 text-green-600 text-sm mb-3">
-                  <CheckCircle2 size={16} /> {sucessoCodigo}
-                </div>
-              )}
+            <button
+              onClick={adicionarPedido}
+              className="w-full bg-red-600 text-white py-3 rounded-xl font-semibold hover:bg-red-700 transition shadow-md"
+            >
+              Adicionar veículo
+            </button>
 
-              <button
-                type="submit"
-                disabled={buscandoCodigo}
-                className="w-full bg-red-600 text-white py-3 rounded-xl font-semibold hover:bg-red-700 transition shadow-md disabled:opacity-50 flex items-center justify-center gap-2"
-              >
-                {buscandoCodigo && <Loader2 className="animate-spin" size={16} />}
-                {buscandoCodigo ? "Buscando..." : "Adicionar veículo"}
-              </button>
-            </form>
           </div>
         </div>
       )}
+
+      {/* MODAL AGENDAR */}
+      {modalAgendar && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
+
+          <div className="bg-white p-7 rounded-3xl w-[90%] max-w-sm shadow-2xl relative animate-in fade-in zoom-in-95 duration-200">
+
+            <button
+              onClick={() => setModalAgendar(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 transition"
+            >
+              ✕
+            </button>
+
+            <div className="mb-5">
+              <h2 className="text-xl font-bold text-gray-900">
+                Agendar retirada
+              </h2>
+              <p className="text-sm text-gray-500 mt-1">
+                Escolha a data e o horário disponível
+              </p>
+            </div>
+
+            <div className="mb-4">
+              <label className="text-sm text-gray-600">Data</label>
+              <input
+                type="date"
+                className="w-full border border-gray-200 p-3 mt-1 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500"
+                value={data}
+                onChange={(e) => setData(e.target.value)}
+              />
+            </div>
+
+            <div className="mb-5">
+              <label className="text-sm text-gray-600 mb-2 block">
+                Horário
+              </label>
+
+              <div className="grid grid-cols-3 gap-3">
+                {horarios.map((h) => (
+                  <button
+                    key={h}
+                    onClick={() => setHora(h)}
+                    className={`py-2.5 rounded-xl text-sm font-medium border transition
+                      ${
+                        hora === h
+                          ? "bg-red-600 text-white border-red-600 shadow-md"
+                          : "bg-white text-gray-700 border-gray-200 hover:bg-gray-100"
+                      }
+                    `}
+                  >
+                    {h}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <button
+              onClick={confirmarAgendamento}
+              className="w-full bg-red-600 text-white py-3 rounded-xl font-semibold hover:bg-red-700 transition shadow-md"
+            >
+              Confirmar agendamento
+            </button>
+
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

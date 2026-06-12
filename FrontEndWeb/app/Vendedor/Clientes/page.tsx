@@ -1,185 +1,84 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import {
-  LayoutDashboard, Package, Users, User, LogOut,
-  Search, Shield, Plus, Edit, Trash2, Loader2, ChevronLeft, ChevronRight,
-} from "lucide-react";
+import { api } from "@/app/lib/api";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://54.91.247.129";
-const PAGE_SIZE = 10;
+import {
+  LayoutDashboard,
+  Package,
+  Users,
+  User,
+  LogOut,
+  Search,
+  Shield,
+  Plus,
+  Edit,
+  Trash2,
+  Loader2,
+} from "lucide-react";
 
 type Cliente = {
   id: number;
   nome: string;
   email: string;
-  role?: string;
-  ativo?: boolean;
+  senha?: string;
 };
 
-// ── COMPONENTE DE PAGINAÇÃO ────────────────────────────────────────────────────
-function Paginacao({
-  pagina,
-  total,
-  onChange,
-}: {
-  pagina: number;
-  total: number;
-  onChange: (p: number) => void;
-}) {
-  if (total <= 1) return null;
-
-  // Gera os números visíveis com reticências
-  function getPages(): (number | "...")[] {
-    if (total <= 7) return Array.from({ length: total }, (_, i) => i);
-
-    const pages: (number | "...")[] = [];
-    pages.push(0);
-
-    if (pagina > 3) pages.push("...");
-
-    const start = Math.max(1, pagina - 1);
-    const end = Math.min(total - 2, pagina + 1);
-    for (let i = start; i <= end; i++) pages.push(i);
-
-    if (pagina < total - 4) pages.push("...");
-    pages.push(total - 1);
-
-    return pages;
-  }
-
-  return (
-    <div className="flex items-center justify-center gap-1 mt-6 flex-wrap">
-      {/* PREV */}
-      <button
-        onClick={() => onChange(pagina - 1)}
-        disabled={pagina === 0}
-        className="flex items-center gap-1 px-3 py-2 rounded-xl border bg-white text-gray-600 text-sm font-medium hover:bg-gray-50 disabled:opacity-40 transition"
-      >
-        <ChevronLeft size={15} /> PREV
-      </button>
-
-      {/* NÚMEROS */}
-      {getPages().map((p, i) =>
-        p === "..." ? (
-          <span key={`dots-${i}`} className="px-2 py-2 text-gray-400 text-sm select-none">
-            ...
-          </span>
-        ) : (
-          <button
-            key={p}
-            onClick={() => onChange(p as number)}
-            className={`w-9 h-9 rounded-xl text-sm font-semibold border transition ${
-              p === pagina
-                ? "bg-red-600 text-white border-red-600 shadow"
-                : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
-            }`}
-          >
-            {(p as number) + 1}
-          </button>
-        )
-      )}
-
-      {/* NEXT */}
-      <button
-        onClick={() => onChange(pagina + 1)}
-        disabled={pagina >= total - 1}
-        className="flex items-center gap-1 px-3 py-2 rounded-xl border bg-white text-gray-600 text-sm font-medium hover:bg-gray-50 disabled:opacity-40 transition"
-      >
-        NEXT <ChevronRight size={15} />
-      </button>
-    </div>
-  );
-}
-
-// ── PÁGINA PRINCIPAL ──────────────────────────────────────────────────────────
 export default function Clientes() {
   const [busca, setBusca] = useState("");
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState("");
-  const [pagina, setPagina] = useState(0);
-  const [totalPaginas, setTotalPaginas] = useState(1);
-  const [totalItens, setTotalItens] = useState(0);
 
   const [modalCadastro, setModalCadastro] = useState(false);
   const [modalEditar, setModalEditar] = useState(false);
   const [clienteEditando, setClienteEditando] = useState<Cliente | null>(null);
   const [salvando, setSalvando] = useState(false);
-  const [erroModal, setErroModal] = useState("");
 
-  const [novoCliente, setNovoCliente] = useState({ nome: "", email: "", senha: "" });
+  const [novoCliente, setNovoCliente] = useState({
+    nome: "",
+    email: "",
+    senha: "",
+  });
 
-  const carregarClientes = useCallback(async (page: number, termo: string) => {
+  // Busca clientes do backend na AWS
+  useEffect(() => {
+    carregarClientes();
+  }, []);
+
+  async function carregarClientes() {
     setLoading(true);
     setErro("");
     try {
-      const token = localStorage.getItem("token");
-      const url = `${API_BASE_URL}/api/usuario?page=${page}&size=${PAGE_SIZE}&sort=id,desc`;
-      const res = await fetch(url, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) throw new Error();
-      const data = await res.json();
-
-      // Suporte a resposta paginada Spring Boot { content, totalPages, totalElements }
-      const lista: Cliente[] = data.content ?? (Array.isArray(data) ? data : []);
-
-      // Filtra localmente se houver busca (quando paginado no servidor, filtra na página atual)
-      const filtrados = termo
-        ? lista.filter(
-            (c) =>
-              c.nome?.toLowerCase().includes(termo.toLowerCase()) ||
-              c.email?.toLowerCase().includes(termo.toLowerCase())
-          )
-        : lista;
-
-      setClientes(filtrados);
-      setTotalPaginas(data.totalPages ?? 1);
-      setTotalItens(data.totalElements ?? filtrados.length);
+      const data = await api.getUsuarios();
+      setClientes(data);
     } catch {
-      setErro("Não foi possível conectar ao servidor AWS.");
+      setErro("Não foi possível conectar ao servidor. Verifique a conexão com a AWS.");
     } finally {
       setLoading(false);
     }
-  }, []);
+  }
 
-  useEffect(() => {
-    carregarClientes(pagina, busca);
-  }, [pagina, carregarClientes]);
-
-  // Busca com debounce — volta pra página 0 ao buscar
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setPagina(0);
-      carregarClientes(0, busca);
-    }, 400);
-    return () => clearTimeout(timer);
-  }, [busca]);
+  const clientesFiltrados = clientes.filter((c) =>
+    c.nome?.toLowerCase().includes(busca.toLowerCase()) ||
+    c.email?.toLowerCase().includes(busca.toLowerCase())
+  );
 
   function abrirEditar(cliente: Cliente) {
     setClienteEditando({ ...cliente });
-    setErroModal("");
     setModalEditar(true);
   }
 
   async function salvarEdicao() {
     if (!clienteEditando) return;
     setSalvando(true);
-    setErroModal("");
     try {
-      const token = localStorage.getItem("token");
-      const res = await fetch(`${API_BASE_URL}/api/usuario/${clienteEditando.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify(clienteEditando),
-      });
-      if (!res.ok) throw new Error();
-      await carregarClientes(pagina, busca);
+      await api.updateUsuario(clienteEditando.id, clienteEditando);
+      await carregarClientes();
       setModalEditar(false);
     } catch {
-      setErroModal("Erro ao atualizar cliente. Tente novamente.");
+      alert("Erro ao atualizar cliente.");
     } finally {
       setSalvando(false);
     }
@@ -187,33 +86,17 @@ export default function Clientes() {
 
   async function cadastrarCliente() {
     if (!novoCliente.nome || !novoCliente.email || !novoCliente.senha) {
-      setErroModal("Preencha todos os campos.");
+      alert("Preencha todos os campos.");
       return;
     }
     setSalvando(true);
-    setErroModal("");
     try {
-      const token = localStorage.getItem("token");
-      const res = await fetch(`${API_BASE_URL}/api/usuario`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify(novoCliente),
-      });
-      if (!res.ok) {
-        const body = await res.json().catch(() => null);
-        const msg = body?.message || "";
-        if (msg.toLowerCase().includes("email")) {
-          setErroModal("E-mail já cadastrado.");
-        } else {
-          setErroModal("Erro ao cadastrar. Verifique os dados.");
-        }
-        return;
-      }
-      await carregarClientes(pagina, busca);
+      await api.createUsuario(novoCliente);
+      await carregarClientes();
       setNovoCliente({ nome: "", email: "", senha: "" });
       setModalCadastro(false);
     } catch {
-      setErroModal("Erro de conexão. Tente novamente.");
+      alert("Erro ao cadastrar cliente.");
     } finally {
       setSalvando(false);
     }
@@ -222,12 +105,8 @@ export default function Clientes() {
   async function deletarCliente(id: number) {
     if (!confirm("Deseja remover este cliente?")) return;
     try {
-      const token = localStorage.getItem("token");
-      await fetch(`${API_BASE_URL}/api/usuario/${id}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      await carregarClientes(pagina, busca);
+      await api.deleteUsuario(id);
+      await carregarClientes();
     } catch {
       alert("Erro ao deletar cliente.");
     }
@@ -240,32 +119,36 @@ export default function Clientes() {
       <div className="hidden md:flex w-64 bg-white border-r flex-col justify-between">
         <div>
           <div className="flex items-center gap-3 p-6">
-            <div className="bg-red-600 text-white p-3 rounded-lg"><Package size={20} /></div>
+            <div className="bg-red-600 text-white p-3 rounded-lg">
+              <Package size={20} />
+            </div>
             <div>
               <p className="font-bold text-black">Toyota</p>
-              <p className="text-sm text-gray-500">Painel do Vendedor</p>
+              <p className="text-sm text-black">Painel do Vendedor</p>
             </div>
           </div>
+
           <nav className="flex flex-col gap-2 px-4">
-            <Link href="/Vendedor/Dashbord" className="flex items-center gap-3 text-gray-600 p-3 rounded-xl hover:bg-gray-100">
+            <Link href="/Vendedor/Dashbord" className="flex items-center gap-3 text-black p-3 rounded-xl hover:bg-gray-100">
               <LayoutDashboard size={18} /> Dashboard
             </Link>
-            <Link href="/Vendedor/Pedidos" className="flex items-center gap-3 text-gray-600 p-3 rounded-xl hover:bg-gray-100">
+            <Link href="/Vendedor/Pedidos" className="flex items-center gap-3 text-black p-3 rounded-xl hover:bg-gray-100">
               <Package size={18} /> Pedidos
             </Link>
             <Link href="/Vendedor/Clientes" className="flex items-center gap-3 bg-red-600 text-white p-3 rounded-xl">
               <Users size={18} /> Clientes
             </Link>
-            <Link href="/Vendedor/Perfil" className="flex items-center gap-3 text-gray-600 p-3 rounded-xl hover:bg-gray-100">
+            <Link href="/Vendedor/Perfil" className="flex items-center gap-3 text-black p-3 rounded-xl hover:bg-gray-100">
               <User size={18} /> Perfil
             </Link>
-            <Link href="/Vendedor/Administracao" className="flex items-center gap-3 text-gray-600 p-3 rounded-xl hover:bg-gray-100">
+            <Link href="/Vendedor/Administracao" className="flex items-center gap-3 text-black p-3 rounded-xl hover:bg-gray-100">
               <Shield size={18} /> Administração
             </Link>
           </nav>
         </div>
+
         <div className="p-4 border-t">
-          <Link href="/Login" className="flex items-center gap-2 text-gray-600 hover:text-red-600">
+          <Link href="/Login" className="flex items-center gap-2 text-black hover:text-red-600">
             <LogOut size={18} /> Sair
           </Link>
         </div>
@@ -274,14 +157,13 @@ export default function Clientes() {
       {/* CONTEÚDO */}
       <div className="flex-1 p-5 md:p-10">
 
-        {/* HEADER */}
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl md:text-3xl font-bold text-black">Clientes</h1>
-            <p className="text-gray-500 mt-1">
-              {totalItens > 0 ? `${totalItens} clientes cadastrados` : "Dados sincronizados com a AWS"}
-            </p>
+            <p className="text-gray-500 mt-1">Dados sincronizados com o servidor AWS</p>
           </div>
+
+          {/* STATUS DE CONEXÃO */}
           <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm ${erro ? "bg-red-100 text-red-600" : "bg-green-100 text-green-600"}`}>
             <div className={`w-2 h-2 rounded-full ${erro ? "bg-red-500" : "bg-green-500"}`} />
             {erro ? "Sem conexão" : "AWS conectada"}
@@ -294,62 +176,59 @@ export default function Clientes() {
             <Search className="absolute left-4 top-3 text-gray-400" size={18} />
             <input
               type="text"
-              placeholder="Buscar por nome ou email..."
+              placeholder="Buscar cliente..."
               value={busca}
               onChange={(e) => setBusca(e.target.value)}
               className="w-full pl-10 pr-4 py-3 rounded-xl border bg-white text-black outline-none focus:ring-2 focus:ring-red-500"
             />
           </div>
+
           <button
-            onClick={() => { setErroModal(""); setModalCadastro(true); }}
-            className="ml-4 flex items-center gap-2 bg-red-600 text-white px-5 py-3 rounded-xl hover:bg-red-700 whitespace-nowrap"
+            onClick={() => setModalCadastro(true)}
+            className="ml-4 flex items-center gap-2 bg-red-600 text-white px-5 py-3 rounded-xl hover:bg-red-700"
           >
-            <Plus size={18} /> Cadastrar
+            <Plus size={18} /> Cadastrar Cliente
           </button>
         </div>
 
         {/* TABELA */}
-        <div className="mt-6 bg-white rounded-2xl shadow border overflow-x-auto">
+        <div className="mt-8 bg-white rounded-2xl shadow border overflow-x-auto">
           {loading ? (
             <div className="flex items-center justify-center py-16 gap-3 text-gray-500">
-              <Loader2 className="animate-spin" size={20} /> Buscando dados na AWS...
+              <Loader2 className="animate-spin" size={20} />
+              Buscando dados na AWS...
             </div>
           ) : erro ? (
             <div className="text-center py-16">
               <p className="text-red-500 mb-3">{erro}</p>
-              <button onClick={() => carregarClientes(pagina, busca)} className="text-sm text-red-600 underline">
+              <button onClick={carregarClientes} className="text-sm text-red-600 underline">
                 Tentar novamente
               </button>
             </div>
-          ) : clientes.length === 0 ? (
-            <div className="text-center py-16 text-gray-400">Nenhum cliente encontrado.</div>
+          ) : clientesFiltrados.length === 0 ? (
+            <div className="text-center py-16 text-gray-400">
+              Nenhum cliente encontrado.
+            </div>
           ) : (
             <div className="min-w-[600px]">
-              <div className="grid grid-cols-5 px-8 py-4 text-gray-400 text-xs font-semibold uppercase tracking-wider border-b bg-gray-50">
-                <span>#</span>
-                <span className="col-span-2">Nome</span>
+              <div className="grid grid-cols-4 px-8 py-4 text-gray-500 text-sm border-b">
+                <span>ID</span>
+                <span>Nome</span>
                 <span>Email</span>
-                <span className="text-right">Ações</span>
+                <span>Ações</span>
               </div>
-              {clientes.map((cliente) => (
-                <div key={cliente.id} className="grid grid-cols-5 px-8 py-4 items-center border-b hover:bg-gray-50 transition">
+
+              {clientesFiltrados.map((cliente) => (
+                <div key={cliente.id} className="grid grid-cols-4 px-8 py-5 items-center border-b hover:bg-gray-50">
                   <span className="text-gray-400 text-sm">#{cliente.id}</span>
-                  <span className="col-span-2 font-semibold text-black">{cliente.nome || "—"}</span>
-                  <span className="text-gray-600 text-sm truncate pr-4">{cliente.email || "—"}</span>
-                  <div className="flex gap-3 justify-end">
-                    <button
-                      onClick={() => abrirEditar(cliente)}
-                      title="Editar"
-                      className="text-blue-500 hover:text-blue-700 transition"
-                    >
-                      <Edit size={17} />
+                  <span className="font-semibold text-black">{cliente.nome}</span>
+                  <span className="text-gray-600">{cliente.email}</span>
+                  <div className="flex gap-3">
+                    <button onClick={() => abrirEditar(cliente)} className="text-blue-600 hover:text-blue-800">
+                      <Edit size={18} />
                     </button>
-                    <button
-                      onClick={() => deletarCliente(cliente.id)}
-                      title="Remover"
-                      className="text-red-400 hover:text-red-600 transition"
-                    >
-                      <Trash2 size={17} />
+                    <button onClick={() => deletarCliente(cliente.id)} className="text-red-500 hover:text-red-700">
+                      <Trash2 size={18} />
                     </button>
                   </div>
                 </div>
@@ -357,12 +236,6 @@ export default function Clientes() {
             </div>
           )}
         </div>
-
-        {/* PAGINAÇÃO */}
-        {!loading && !erro && (
-          <Paginacao pagina={pagina} total={totalPaginas} onChange={setPagina} />
-        )}
-
       </div>
 
       {/* MODAL CADASTRO */}
@@ -370,6 +243,7 @@ export default function Clientes() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded-2xl p-8 w-full max-w-md shadow-xl">
             <h2 className="text-xl font-bold text-black mb-6">Novo Cliente</h2>
+
             <div className="space-y-4">
               <input
                 type="text"
@@ -393,9 +267,12 @@ export default function Clientes() {
                 className="w-full p-3 rounded-xl border text-black outline-none focus:ring-2 focus:ring-red-500"
               />
             </div>
-            {erroModal && <p className="text-red-500 text-sm mt-3">{erroModal}</p>}
+
             <div className="flex gap-3 mt-6">
-              <button onClick={() => setModalCadastro(false)} className="flex-1 py-3 rounded-xl border text-black hover:bg-gray-50">
+              <button
+                onClick={() => setModalCadastro(false)}
+                className="flex-1 py-3 rounded-xl border text-black hover:bg-gray-50"
+              >
                 Cancelar
               </button>
               <button
@@ -416,6 +293,7 @@ export default function Clientes() {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded-2xl p-8 w-full max-w-md shadow-xl">
             <h2 className="text-xl font-bold text-black mb-6">Editar Cliente</h2>
+
             <div className="space-y-4">
               <input
                 type="text"
@@ -432,9 +310,12 @@ export default function Clientes() {
                 className="w-full p-3 rounded-xl border text-black outline-none focus:ring-2 focus:ring-red-500"
               />
             </div>
-            {erroModal && <p className="text-red-500 text-sm mt-3">{erroModal}</p>}
+
             <div className="flex gap-3 mt-6">
-              <button onClick={() => setModalEditar(false)} className="flex-1 py-3 rounded-xl border text-black hover:bg-gray-50">
+              <button
+                onClick={() => setModalEditar(false)}
+                className="flex-1 py-3 rounded-xl border text-black hover:bg-gray-50"
+              >
                 Cancelar
               </button>
               <button
