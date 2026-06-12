@@ -222,7 +222,7 @@ export default function Veiculo() {
                   {/* Imagem do veículo */}
                   <div className="w-full h-56 rounded-3xl overflow-hidden shadow">
                     <img
-                      src={p._demo ? "/carro1.png" : "/carro1.png"}
+                      src={p._demo ? "/corolla-cross.jpg" : "/carro1.png"}
                       alt={modelo}
                       className="w-full h-full object-cover"
                     />

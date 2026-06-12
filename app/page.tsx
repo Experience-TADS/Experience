@@ -18,7 +18,7 @@ export default function Home() {
 
   const newsList: News[] = [
     {
-      image: ["/toyota_yaris.jpg"],
+      image: ["/Toyota_yaris.jpg"],
       title: "Toyota lança novo carro híbrido Yaris Cross 2026.",
       summary: "O Toyota Yaris Cross 2026 — o novo SUV compacto da marca com versões flex e híbridas — já começou a ser lançado no Brasil.",
       content: "O modelo está sendo apresentado em diversas cidades brasileiras, marcando a chegada oficial às concessionárias em 2026. Com design moderno, tecnologia embarcada e foco em eficiência energética, o Yaris Cross reforça a estratégia da Toyota em ampliar sua linha de veículos eletrificados no Brasil.",
