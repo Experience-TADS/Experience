@@ -1,9 +1,7 @@
 package com.senai.experience.security;
 
-import java.util.Arrays;
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -29,10 +27,6 @@ public class SecurityConfig {
 
     private final UserDetailsService userDetailsService;
 
-    // Origens permitidas — lidas do application.properties / variável de ambiente AWS
-    @Value("${cors.allowed.origins:http://localhost:3000,http://localhost:5173,http://localhost:8081}")
-    private String corsAllowedOrigins;
-
     public SecurityConfig(UserDetailsService userDetailsService) {
         this.userDetailsService = userDetailsService;
     }
@@ -49,41 +43,39 @@ public class SecurityConfig {
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .headers(headers -> headers.frameOptions().disable())
             .authorizeHttpRequests(auth -> auth
-                // Rotas públicas
                 .requestMatchers("/h2-console/**").permitAll()
                 .requestMatchers("/error").permitAll()
                 .requestMatchers("/health").permitAll()
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
+
+                // Auth
                 .requestMatchers(HttpMethod.POST, "/api/usuario/login").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/usuario").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/pessoaFisica").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/pessoaJuridica").permitAll()
 
-                // IoT: apenas POST em endpoints de fabricação
-                .requestMatchers(HttpMethod.POST, "/api/fabricacao/**").hasRole("IOT")
-                
-                // Node-RED: endpoint público para receber eventos do ESP32 via MQTT
+                // IoT
                 .requestMatchers(HttpMethod.POST, "/api/veiculo/nodered/evento").permitAll()
-
-                // Status de fabricação: leitura para autenticados, escrita apenas para IOT e ADMIN
-                .requestMatchers(HttpMethod.GET, "/api/veiculo/*/status").authenticated()
                 .requestMatchers(HttpMethod.POST, "/api/veiculo/*/status").permitAll()
 
-                // Admin: acesso total ao painel admin
-                .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                // Pedidos — GET aberto para qualquer um (cliente acessa pelo ID do pedido)
+                .requestMatchers(HttpMethod.GET, "/api/pedido/**").permitAll()
 
-                // Dashboard do app mobile: apenas para clientes autenticados
-                .requestMatchers(HttpMethod.GET, "/api/dashboard").hasAnyRole("CLIENTE", "VENDEDOR", "ADMIN")
+                // Pedidos — escrita só para vendedor/admin
+                .requestMatchers(HttpMethod.POST, "/api/pedido/**").hasAnyRole("VENDEDOR", "ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/pedido/**").hasAnyRole("VENDEDOR", "ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/pedido/**").hasAnyRole("VENDEDOR", "ADMIN")
 
-                // Cliente: apenas os próprios pedidos
-                .requestMatchers("/api/pedido/meus-pedidos/**").hasAnyRole("CLIENTE", "VENDEDOR", "ADMIN")
-                // Vendedor e Admin: acesso a todos os pedidos
-                .requestMatchers("/api/pedido/**").hasAnyRole("VENDEDOR", "ADMIN")
-
+                // Produto
                 .requestMatchers(HttpMethod.GET, "/api/produto/**").authenticated()
                 .requestMatchers(HttpMethod.POST, "/api/produto/**").hasAnyRole("ADMIN", "VENDEDOR")
                 .requestMatchers(HttpMethod.PUT, "/api/produto/**").hasAnyRole("ADMIN", "VENDEDOR")
                 .requestMatchers(HttpMethod.DELETE, "/api/produto/**").hasRole("ADMIN")
+
+                // Admin
+                .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PATCH, "/api/usuario/*/ativar").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PATCH, "/api/usuario/*/desativar").hasRole("ADMIN")
 
                 .anyRequest().authenticated()
             )
@@ -93,22 +85,13 @@ public class SecurityConfig {
         return http.build();
     }
 
-
     @Bean
-    public CorsConfigurationSource corsConfigurationSource(){
+    public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-
-        // Origens lidas do application.properties — suporta localhost (dev) e AWS Amplify (produção)
-        // Em produção: CORS_ALLOWED_ORIGINS=https://app.experience.com,https://main.d1xyz.amplifyapp.com
-        List<String> origins = Arrays.stream(corsAllowedOrigins.split(","))
-                .map(String::trim)
-                .filter(s -> !s.isBlank())
-                .toList();
-        config.setAllowedOrigins(origins);
+        config.setAllowedOriginPatterns(List.of("*"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
-        config.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept"));
+        config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
-        config.setMaxAge(3600L); // cache do preflight por 1 hora
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);

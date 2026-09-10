@@ -1,244 +1,124 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
-import {
-  LayoutDashboard,
-  Package,
-  Users,
-  User,
-  LogOut,
-  Search,
-  Eye,
-  Shield,
-} from "lucide-react";
+import { useState, useEffect } from "react";
+import { Search, Eye, Loader2 } from "lucide-react";
+import { api, type PedidoResponse } from "@/app/lib/api";
+import VendedorSidebar from "@/app/Vendedor/componentes/VendedorSidebar";
 
-const pedidosData = [
-  {
-    id: "#4821",
-    cliente: "Lauren Silva",
-    email: "lauren@gmail.com",
-    veiculo: "Corolla Cross",
-    status: "Em produção",
-    data: "05/03/2026",
-  },
-  {
-    id: "#4820",
-    cliente: "Julia Harumi",
-    email: "julia@gmail.com",
-    veiculo: "Hilux SRV 4x4",
-    status: "Pedido confirmado",
-    data: "04/03/2026",
-  },
-  {
-    id: "#4819",
-    cliente: "Bianca Nunes",
-    email: "bia@gmail.com",
-    veiculo: "Yaris Sedan",
-    status: "Em produção",
-    data: "03/03/2026",
-  },
-  {
-    id: "#4818",
-    cliente: "Paola Costa",
-    email: "paola@gmail.com",
-    veiculo: "Corolla",
-    status: "Em transporte",
-    data: "03/03/2026",
-  },
-];
+function formatarData(dataPedido: any): string {
+  if (!dataPedido) return "—";
+  try {
+    if (Array.isArray(dataPedido)) {
+      const [ano, mes, dia] = dataPedido;
+      return new Date(ano, mes - 1, dia).toLocaleDateString("pt-BR");
+    }
+    return new Date(dataPedido).toLocaleDateString("pt-BR");
+  } catch { return "—"; }
+}
 
 export default function Pedidos() {
   const [busca, setBusca] = useState("");
-  const [pedidoSelecionado, setPedidoSelecionado] = useState<any>(null);
+  const [pedidos, setPedidos] = useState<PedidoResponse[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [erro, setErro] = useState("");
+  const [pedidoSelecionado, setPedidoSelecionado] = useState<PedidoResponse | null>(null);
 
-  function getStatusColor(status: string) {
-    if (status === "Finalizado") return "bg-green-100 text-green-700";
-    if (status === "Em produção") return "bg-yellow-100 text-yellow-700";
-    if (status === "Em transporte") return "bg-purple-100 text-purple-700";
-    if (status === "Pedido confirmado") return "bg-green-100 text-green-700";
-    return "bg-gray-100 text-gray-600";
+  useEffect(() => { carregarPedidos(); }, []);
+
+  async function carregarPedidos() {
+    setLoading(true); setErro("");
+    try {
+      const data = await api.getPedidos();
+      setPedidos(data.content);
+    } catch { setErro("Não foi possível carregar os pedidos."); }
+    finally { setLoading(false); }
   }
 
-  const pedidosFiltrados = pedidosData.filter((pedido) =>
-    pedido.cliente.toLowerCase().includes(busca.toLowerCase()) ||
-    pedido.id.toLowerCase().includes(busca.toLowerCase()) ||
-    pedido.veiculo.toLowerCase().includes(busca.toLowerCase())
-  );
+  const filtrados = pedidos.filter((p) => {
+    const t = busca.toLowerCase();
+    return String(p.id).includes(t) || p.cliente?.nome?.toLowerCase().includes(t) || p.itens?.[0]?.produto?.modelo?.toLowerCase().includes(t);
+  });
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
+    <div className="flex min-h-screen bg-gray-100 dark:bg-gray-950">
+      <VendedorSidebar />
 
-      {/* SIDEBAR */}
-      <div className="hidden md:flex w-64 bg-white border-r flex-col justify-between">
-
-        <div>
-
-          <div className="flex items-center gap-3 p-6">
-            <div className="bg-red-600 text-white p-3 rounded-lg">
-              <Package size={20} />
-            </div>
-
-            <div>
-              <p className="font-bold text-black">Toyota</p>
-              <p className="text-sm text-gray-500">Painel do Vendedor</p>
-            </div>
-          </div>
-
-          <nav className="flex flex-col gap-2 px-4">
-
-            {/* ✅ DASHBOARD (corrigido nome) */}
-            <Link
-              href="/Vendedor/Dashbord"
-              className="flex items-center gap-3 text-gray-600 p-3 rounded-xl hover:bg-gray-100"
-            >
-              <LayoutDashboard size={18} />
-              Dashboard
-            </Link>
-
-            {/* ✅ PEDIDOS */}
-            <Link
-              href="/Vendedor/Pedidos"
-              className="flex items-center gap-3 bg-red-600 text-white p-3 rounded-xl"
-            >
-              <Package size={18} />
-              Pedidos
-            </Link>
-
-            {/* ✅ CLIENTES (corrigido) */}
-            <Link
-              href="/Vendedor/Clientes"
-              className="flex items-center gap-3 text-gray-600 p-3 rounded-xl hover:bg-gray-100"
-            >
-              <Users size={18} />
-              Clientes
-            </Link>
-
-            {/* ✅ PERFIL (corrigido) */}
-            <Link
-              href="/Vendedor/Perfil"
-              className="flex items-center gap-3 text-gray-600 p-3 rounded-xl hover:bg-gray-100"
-            >
-              <User size={18} />
-              Perfil
-            </Link>
- <Link
-              href="/Vendedor/Administracao"
-              className="flex items-center gap-3 text-gray-600 p-3 rounded-xl hover:bg-gray-100"
-            >
-              <User size={18} />
-              Administração
-            </Link>
-          </nav>
-
-        </div>
-
-        <div className="p-4 border-t">
-          <Link
-            href="/Login"
-            className="flex items-center gap-2 text-gray-600 hover:text-red-600"
-          >
-            <LogOut size={18} />
-            Sair
-          </Link>
-        </div>
-
-      </div>
-
-      {/* CONTEÚDO */}
       <div className="flex-1 p-6 md:p-10">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Pedidos</h1>
+            <p className="text-gray-500 mt-1">Gerencie os pedidos dos clientes</p>
+          </div>
+          <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm ${erro ? "bg-red-100 text-red-600" : "bg-green-100 text-green-700"}`}>
+            <div className={`w-2 h-2 rounded-full ${erro ? "bg-red-500" : "bg-green-500"}`} />
+            {erro ? "Sem conexão" : "Conectado"}
+          </div>
+        </div>
 
-        <h1 className="text-3xl font-bold text-black">
-          Pedidos
-        </h1>
-
-        <p className="text-gray-500 mt-1">
-          Gerencie os pedidos dos seus clientes
-        </p>
-
-        {/* BUSCA */}
-        <div className="mt-6 relative max-w-lg">
+        <div className="relative max-w-lg mb-8">
           <Search className="absolute left-4 top-3 text-gray-400" size={18} />
-
           <input
             type="text"
             placeholder="Buscar por cliente, pedido ou veículo..."
             value={busca}
             onChange={(e) => setBusca(e.target.value)}
-            className="w-full pl-10 pr-4 py-3 rounded-xl border bg-white outline-none focus:ring-2 focus:ring-red-500 text-black"
+            className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-red-500"
           />
         </div>
 
-        {/* TABELA */}
-        <div className="mt-8 bg-white rounded-2xl shadow border overflow-hidden">
-
-          <div className="grid grid-cols-6 px-8 py-4 text-gray-500 text-sm border-b bg-gray-50">
-            <span>Pedido</span>
-            <span>Cliente</span>
-            <span>Veículo</span>
-            <span>Status</span>
-            <span>Data</span>
-            <span></span>
-          </div>
-
-          {pedidosFiltrados.map((pedido) => (
-            <div
-              key={pedido.id}
-              className="grid grid-cols-6 px-8 py-5 items-center border-b hover:bg-gray-50 transition"
-            >
-              <span className="font-semibold text-black">{pedido.id}</span>
-              <span className="text-black">{pedido.cliente}</span>
-              <span className="text-gray-600">{pedido.veiculo}</span>
-
-              <span className={`px-3 py-1 rounded-full text-xs w-fit ${getStatusColor(pedido.status)}`}>
-                {pedido.status}
-              </span>
-
-              <span className="text-gray-500">{pedido.data}</span>
-
-              <Eye
-                onClick={() => setPedidoSelecionado(pedido)}
-                className="text-gray-400 cursor-pointer hover:text-red-600 transition"
-                size={20}
-              />
+        <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow overflow-hidden">
+          {loading ? (
+            <div className="flex items-center justify-center py-16 gap-3 text-gray-500">
+              <Loader2 className="animate-spin" size={20} /> Carregando...
             </div>
-          ))}
-
+          ) : erro ? (
+            <div className="text-center py-16">
+              <p className="text-red-500 mb-3">{erro}</p>
+              <button onClick={carregarPedidos} className="text-sm text-red-600 underline">Tentar novamente</button>
+            </div>
+          ) : filtrados.length === 0 ? (
+            <p className="text-center text-gray-400 py-16">Nenhum pedido encontrado.</p>
+          ) : (
+            <>
+              <div className="grid grid-cols-6 px-8 py-4 text-gray-400 text-sm border-b border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800/50">
+                <span>Pedido</span><span>Cliente</span><span>Veículo</span><span>Valor</span><span>Data</span><span />
+              </div>
+              {filtrados.map((p) => (
+                <div key={p.id} className="grid grid-cols-6 px-8 py-5 items-center border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 transition">
+                  <span className="font-semibold text-gray-900 dark:text-white">#{p.id}</span>
+                  <span className="text-gray-700 dark:text-gray-300">{p.cliente?.nome ?? "—"}</span>
+                  <span className="text-gray-500">{p.itens?.[0]?.produto?.modelo ?? "—"}</span>
+                  <span className="text-gray-500">
+                    {p.valorTotal != null ? `R$ ${Number(p.valorTotal).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}` : "—"}
+                  </span>
+                  <span className="text-gray-400">{formatarData(p.dataPedido)}</span>
+                  <Eye onClick={() => setPedidoSelecionado(p)} className="text-gray-400 cursor-pointer hover:text-red-600 transition" size={20} />
+                </div>
+              ))}
+            </>
+          )}
         </div>
-
       </div>
 
-      {/* MODAL */}
       {pedidoSelecionado && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-
-          <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-lg">
-
-            <h2 className="text-xl font-bold text-black mb-4">
-              Detalhes do Pedido
-            </h2>
-
-            <div className="space-y-2 text-sm text-black">
-              <p><strong>ID:</strong> {pedidoSelecionado.id}</p>
-              <p><strong>Cliente:</strong> {pedidoSelecionado.cliente}</p>
-              <p><strong>Email:</strong> {pedidoSelecionado.email}</p>
-              <p><strong>Veículo:</strong> {pedidoSelecionado.veiculo}</p>
-              <p><strong>Status:</strong> {pedidoSelecionado.status}</p>
-              <p><strong>Data:</strong> {pedidoSelecionado.data}</p>
+          <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 w-full max-w-md shadow-lg border border-gray-100 dark:border-gray-800">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">Detalhes do Pedido</h2>
+            <div className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
+              <p><strong className="text-gray-900 dark:text-white">ID:</strong> #{pedidoSelecionado.id}</p>
+              <p><strong className="text-gray-900 dark:text-white">Cliente:</strong> {pedidoSelecionado.cliente?.nome ?? "—"}</p>
+              <p><strong className="text-gray-900 dark:text-white">Email:</strong> {pedidoSelecionado.cliente?.email ?? "—"}</p>
+              <p><strong className="text-gray-900 dark:text-white">Vendedor:</strong> {pedidoSelecionado.vendedor?.nome ?? "—"}</p>
+              <p><strong className="text-gray-900 dark:text-white">Veículo:</strong> {pedidoSelecionado.itens?.[0]?.produto?.modelo ?? "—"}</p>
+              <p><strong className="text-gray-900 dark:text-white">Cor:</strong> {pedidoSelecionado.itens?.[0]?.produto?.cor ?? "—"}</p>
+              <p><strong className="text-gray-900 dark:text-white">Ano:</strong> {pedidoSelecionado.itens?.[0]?.produto?.ano ?? "—"}</p>
+              <p><strong className="text-gray-900 dark:text-white">Valor:</strong> {pedidoSelecionado.valorTotal != null ? `R$ ${Number(pedidoSelecionado.valorTotal).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}` : "—"}</p>
+              <p><strong className="text-gray-900 dark:text-white">Data:</strong> {formatarData(pedidoSelecionado.dataPedido)}</p>
             </div>
-
-            <button
-              onClick={() => setPedidoSelecionado(null)}
-              className="mt-6 w-full bg-red-600 text-white py-2 rounded-lg hover:bg-red-700 transition"
-            >
-              Fechar
-            </button>
-
+            <button onClick={() => setPedidoSelecionado(null)} className="mt-6 w-full bg-red-600 text-white py-2 rounded-lg hover:bg-red-700 transition">Fechar</button>
           </div>
-
         </div>
       )}
-
     </div>
   );
 }

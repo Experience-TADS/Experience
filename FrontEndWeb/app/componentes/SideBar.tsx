@@ -2,14 +2,8 @@
 
 import NextLink from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  Home,
-  User,
-  Car,
-  Store,
-  Smartphone,
-  LogOut,
-} from "lucide-react";
+import { Home, User, Car, Store, Smartphone, LogOut, MessageCircle } from "lucide-react";
+import { removeToken } from "@/app/lib/api";
 
 export default function Sidebar() {
   const pathname = usePathname();
@@ -19,109 +13,54 @@ export default function Sidebar() {
   }
 
   function getItemStyle(path: string) {
-    return `
-      p-3 rounded-xl cursor-pointer transition
-      ${
-        isActive(path)
-          ? "bg-red-500 text-white"
-          : "text-gray-400 hover:bg-gray-100"
-      }
-    `;
+    return `p-3 rounded-xl cursor-pointer transition ${
+      isActive(path)
+        ? "bg-red-500 text-white"
+        : "text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
+    }`;
   }
 
   function logout() {
-    localStorage.removeItem("user");
+    removeToken();
     window.location.href = "/Login";
   }
+
+  const links = [
+    { href: "/", icon: <Home size={22} /> },
+    { href: "/Cliente/Acompanhamento", icon: <Car size={22} /> },
+    { href: "/Cliente/Loja", icon: <Store size={22} /> },
+    { href: "/Cliente/Apps", icon: <Smartphone size={22} /> },
+    { href: "/Cliente/Chat", icon: <MessageCircle size={22} /> },
+    { href: "/Cliente/perfil", icon: <User size={22} /> },
+  ];
 
   return (
     <>
       {/* MOBILE */}
-      <div className="fixed bottom-0 left-0 w-full bg-white shadow-md flex justify-around items-center py-3 md:hidden z-50">
-
-        <NextLink href="/">
-          <div className={getItemStyle("/")}>
-            <Home size={22} />
-          </div>
-        </NextLink>
-
-        <NextLink href="/Cliente/Acompanhamento">
-          <div className={getItemStyle("/Cliente/Acompanhamento")}>
-            <Car size={22} />
-          </div>
-        </NextLink>
-
-        <NextLink href="/Cliente/Loja">
-          <div className={getItemStyle("/Cliente/Loja")}>
-            <Store size={22} />
-          </div>
-        </NextLink>
-
-        <NextLink href="/Cliente/Apps">
-          <div className={getItemStyle("/Cliente/Apps")}>
-            <Smartphone size={22} />
-          </div>
-        </NextLink>
-
-        <NextLink href="/Cliente/perfil">
-          <div className={getItemStyle("/Cliente/perfil")}>
-            <User size={22} />
-          </div>
-        </NextLink>
-
+      <div className="fixed bottom-0 left-0 w-full bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 shadow-md flex justify-around items-center py-3 md:hidden z-50">
+        {links.map((l) => (
+          <NextLink key={l.href} href={l.href}>
+            <div className={getItemStyle(l.href)}>{l.icon}</div>
+          </NextLink>
+        ))}
       </div>
 
       {/* DESKTOP */}
-      <div className="hidden md:flex fixed top-0 left-0 h-screen w-20 bg-white shadow-md flex-col justify-between items-center py-6 z-40">
-
-        {/* TOPO */}
+      <div className="hidden md:flex fixed top-0 left-0 h-screen w-20 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 shadow-md flex-col justify-between items-center py-6 z-40">
         <div className="flex flex-col items-center gap-6">
-
-          <NextLink href="/">
-            <div className={getItemStyle("/")}>
-              <Home size={22} />
-            </div>
-          </NextLink>
-
-          <NextLink href="/Cliente/Acompanhamento">
-            <div className={getItemStyle("/Cliente/Acompanhamento")}>
-              <Car size={22} />
-            </div>
-          </NextLink>
-
-          <NextLink href="/Cliente/Loja">
-            <div className={getItemStyle("/Cliente/Loja")}>
-              <Store size={22} />
-            </div>
-          </NextLink>
-
-          <NextLink href="/Cliente/Apps">
-            <div className={getItemStyle("/Cliente/Apps")}>
-              <Smartphone size={22} />
-            </div>
-          </NextLink>
-
-          <NextLink href="/Cliente/perfil">
-            <div className={getItemStyle("/Cliente/perfil")}>
-              <User size={22} />
-            </div>
-          </NextLink>
-
+          {links.map((l) => (
+            <NextLink key={l.href} href={l.href}>
+              <div className={getItemStyle(l.href)}>{l.icon}</div>
+            </NextLink>
+          ))}
         </div>
 
-        {/* LOGOUT EMBAIXO */}
-        <div>
-          <div
-            onClick={logout}
-            className="
-              p-3 rounded-xl cursor-pointer transition
-              text-gray-400 hover:bg-red-100 hover:text-red-600
-            "
-          >
-            <LogOut size={22} />
-          </div>
+        <div
+          onClick={logout}
+          className="p-3 rounded-xl cursor-pointer transition text-gray-400 hover:bg-red-100 dark:hover:bg-red-900/30 hover:text-red-600"
+        >
+          <LogOut size={22} />
         </div>
-
       </div>
     </>
   );

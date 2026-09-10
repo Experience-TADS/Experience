@@ -43,37 +43,39 @@ public class SecurityConfig {
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .headers(headers -> headers.frameOptions().disable())
             .authorizeHttpRequests(auth -> auth
-                // Rotas públicas
                 .requestMatchers("/h2-console/**").permitAll()
                 .requestMatchers("/error").permitAll()
+                .requestMatchers("/health").permitAll()
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
+
+                // Auth
                 .requestMatchers(HttpMethod.POST, "/api/usuario/login").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/usuario").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/pessoaFisica").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/pessoaJuridica").permitAll()
 
-                // IoT: apenas POST em endpoints de fabricação
-                .requestMatchers(HttpMethod.POST, "/api/fabricacao/**").hasRole("IOT")
-                
-                // Node-RED: endpoint público para receber eventos do ESP32 via MQTT
+                // IoT
                 .requestMatchers(HttpMethod.POST, "/api/veiculo/nodered/evento").permitAll()
-
-                // Status de fabricação: leitura para autenticados, escrita apenas para IOT e ADMIN
-                .requestMatchers(HttpMethod.GET, "/api/veiculo/*/status").authenticated()
                 .requestMatchers(HttpMethod.POST, "/api/veiculo/*/status").permitAll()
 
-                // Admin: acesso total ao painel admin
-                .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                // Pedidos — GET aberto para qualquer um (com ou sem token)
+                .requestMatchers(HttpMethod.GET, "/api/pedido/**").permitAll()
 
-                // Cliente: apenas os próprios pedidos
-                .requestMatchers("/api/pedido/meus-pedidos/**").hasAnyRole("CLIENTE", "VENDEDOR", "ADMIN")
-                // Vendedor e Admin: acesso a todos os pedidos
-                .requestMatchers("/api/pedido/**").hasAnyRole("VENDEDOR", "ADMIN")
+                // Pedidos — escrita só para vendedor/admin
+                .requestMatchers(HttpMethod.POST, "/api/pedido/**").hasAnyRole("VENDEDOR", "ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/pedido/**").hasAnyRole("VENDEDOR", "ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/pedido/**").hasAnyRole("VENDEDOR", "ADMIN")
 
+                // Produto — leitura autenticada, escrita vendedor/admin
                 .requestMatchers(HttpMethod.GET, "/api/produto/**").authenticated()
                 .requestMatchers(HttpMethod.POST, "/api/produto/**").hasAnyRole("ADMIN", "VENDEDOR")
                 .requestMatchers(HttpMethod.PUT, "/api/produto/**").hasAnyRole("ADMIN", "VENDEDOR")
                 .requestMatchers(HttpMethod.DELETE, "/api/produto/**").hasRole("ADMIN")
+
+                // Admin
+                .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PATCH, "/api/usuario/*/ativar").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PATCH, "/api/usuario/*/desativar").hasRole("ADMIN")
 
                 .anyRequest().authenticated()
             )
@@ -83,21 +85,17 @@ public class SecurityConfig {
         return http.build();
     }
 
-
     @Bean
-    public CorsConfigurationSource corsConfigurationSource(){
+    public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
+        config.setAllowedOriginPatterns(List.of("*"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
+        config.setAllowedHeaders(List.of("*"));
+        config.setAllowCredentials(true);
 
-        //ordem: localhost, métodos, labels e retorno
-
-            config.setAllowedOrigins(List.of("http://localhost:3000", "http://localhost:5173"));
-            config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-            config.setAllowedHeaders(List.of("Authorization", "Content-type"));
-            config.setAllowCredentials(true);
-
-            UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-            source.registerCorsConfiguration("/**", config);
-            return source;
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
     }
 
     @Bean

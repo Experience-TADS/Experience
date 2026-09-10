@@ -36,7 +36,7 @@ services:
       dockerfile: Dockerfile
     container_name: experience-api
     ports:
-      - "8080:8080"
+      - "8081:8080"
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/db_experience
       SPRING_DATASOURCE_USERNAME: postgres
