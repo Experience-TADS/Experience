@@ -83,6 +83,26 @@ public class VeiculoService {
     }
 
     /**
+     * Confirma a chegada do veículo na concessionária, definindo o status NA_CONCESSIONARIA.
+     */
+    @Transactional
+    public Veiculo confirmarChegada(Long id) {
+        Veiculo veiculo = veiculoRepository.findById(id).orElse(null);
+        if (veiculo == null) return null;
+
+        veiculo.setStatusVeiculo(StatusFabricacao.NA_CONCESSIONARIA);
+        veiculoRepository.save(veiculo);
+
+        StatusHistorico historico = new StatusHistorico();
+        historico.setVeiculo(veiculo);
+        historico.setStatus(StatusFabricacao.NA_CONCESSIONARIA);
+        historico.setDataAlteracao(LocalDateTime.now());
+        statusHistoricoRepository.save(historico);
+
+        return veiculo;
+    }
+
+    /**
      * Mapeia a etapa e status do ESP32 para StatusFabricacao do backend.
      * Agora 1:1 — cada etapa do ESP32 tem seu próprio status.
      *

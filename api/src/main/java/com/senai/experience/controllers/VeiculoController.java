@@ -129,10 +129,19 @@ public class VeiculoController {
 
     @lombok.Data
     static class NodeRedEventoRequest {
-        private String chassi;
+        private String chassi;asss
         private String etapa;
         private String status;
         private Long timestamp;
+    }
+
+    @PostMapping("/{id}/confirmacao-chegada")
+    public ResponseEntity<VeiculoResponse> confirmarChegada(@PathVariable Long id) {
+        Veiculo veiculo = veiculoService.confirmarChegada(id);
+        if (veiculo == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(VeiculoMapper.toResponse(veiculo));
     }
 
 }
