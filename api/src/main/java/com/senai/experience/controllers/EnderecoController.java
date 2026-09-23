@@ -1,7 +1,6 @@
 package com.senai.experience.controllers;
 
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -12,13 +11,14 @@ import com.senai.experience.DTO.response.EnderecoResponse;
 import com.senai.experience.mappers.EnderecoMapper;
 import com.senai.experience.entities.Endereco;
 import com.senai.experience.services.EnderecoService;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/endereco")
 public class EnderecoController {
 
-    @Autowired
-    private EnderecoService enderecoService;
+    private final EnderecoService enderecoService;
 
     @GetMapping
     public ResponseEntity<Page<Endereco>> getAllEnderecos(Pageable pageable) {

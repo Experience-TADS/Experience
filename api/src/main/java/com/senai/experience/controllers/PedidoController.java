@@ -2,7 +2,6 @@ package com.senai.experience.controllers;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -15,13 +14,14 @@ import com.senai.experience.DTO.response.PedidoResponse;
 import com.senai.experience.entities.Pedido;
 import com.senai.experience.mappers.PedidoMapper;
 import com.senai.experience.services.PedidoService;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/pedido")
 public class PedidoController {
 
-    @Autowired
-    private PedidoService pedidoService;
+    private final PedidoService pedidoService;
 
     @GetMapping
     public Page<PedidoResponse> getAllPedidos(Pageable pageable) {

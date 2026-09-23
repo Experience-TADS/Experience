@@ -1,7 +1,6 @@
 package com.senai.experience.controllers;
 
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -12,13 +11,14 @@ import com.senai.experience.DTO.response.TelefoneResponse;
 import com.senai.experience.entities.Telefone;
 import com.senai.experience.mappers.TelefoneMapper;
 import com.senai.experience.services.TelefoneService;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/telefones")
 public class TelefoneController {
 
-    @Autowired
-    private TelefoneService telefoneService;
+    private final TelefoneService telefoneService;
 
     @GetMapping
     public ResponseEntity<Page<Telefone>> getAllTelefones(Pageable pageable) {

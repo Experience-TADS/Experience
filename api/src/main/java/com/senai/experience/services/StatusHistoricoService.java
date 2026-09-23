@@ -5,20 +5,19 @@ import com.senai.experience.entities.StatusHistorico;
 import com.senai.experience.entities.Veiculo;
 import com.senai.experience.repositories.StatusHistoricoRepository;
 import com.senai.experience.repositories.VeiculoRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
+@RequiredArgsConstructor
 @Service
 public class StatusHistoricoService {
 
-    @Autowired
-    private StatusHistoricoRepository statusHistoricoRepository;
+    private final StatusHistoricoRepository statusHistoricoRepository;
 
-    @Autowired
-    private VeiculoRepository veiculoRepository;
+    private final VeiculoRepository veiculoRepository;
 
     public List<StatusHistorico> findByVeiculo(Long veiculoId) {
         return statusHistoricoRepository.findByVeiculoIdOrderByDataAlteracaoDesc(veiculoId);

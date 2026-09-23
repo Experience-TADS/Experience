@@ -4,7 +4,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,13 +12,14 @@ import com.senai.experience.DTO.response.ItemPedidoResponse;
 import com.senai.experience.entities.ItemPedido;
 import com.senai.experience.mappers.ItemPedidoMapper;
 import com.senai.experience.services.ItemPedidoService;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/itens-pedido")
 public class ItemPedidoController {
 
-    @Autowired
-    private ItemPedidoService service;
+    private final ItemPedidoService service;
 
     @GetMapping
     public Page<ItemPedidoResponse> getAllItemPedidos(Pageable pageable) {
