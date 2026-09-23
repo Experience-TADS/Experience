@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <!-- Configuração padrão do Spring Boot (console colorido) -->
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+    <include resource="org/springframework/boot/logging/logback/console-appender.xml"/>
+
+    <!--
+        Appender dedicado para auditoria de segurança — S-010
+        Critério: logs armazenados em arquivo separado (audit.log)
+        Rotação diária, histórico de 30 dias
+    -->
+    <appender name="AUDIT_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/audit.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>logs/audit.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <!-- S-010: logs NÃO contêm dados sensíveis (sem senha/token no padrão) -->
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [AUDIT] %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Logger exclusivo para auditoria: só grava no arquivo, não no console -->
+    <logger name="AUDIT" level="INFO" additivity="false">
+        <appender-ref ref="AUDIT_FILE"/>
+    </logger>
+
+    <!-- Logger raiz: apenas console -->
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+    </root>
+
+</configuration>
