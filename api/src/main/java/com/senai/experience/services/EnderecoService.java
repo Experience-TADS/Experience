@@ -1,18 +1,18 @@
 package com.senai.experience.services;
 
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import com.senai.experience.entities.Endereco;
 import com.senai.experience.repositories.EnderecoRepository;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 @Service
 public class EnderecoService {
 
-    @Autowired
-    private EnderecoRepository enderecoRepository;
+    private final EnderecoRepository enderecoRepository;
 
     public Page<Endereco> findAll(Pageable pageable) { 
         return enderecoRepository.findAll(pageable);

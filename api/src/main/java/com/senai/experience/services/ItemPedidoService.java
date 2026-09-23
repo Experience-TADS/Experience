@@ -3,7 +3,6 @@ package com.senai.experience.services;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.senai.experience.entities.ItemPedido;
 import com.senai.experience.entities.Pedido;
@@ -11,17 +10,14 @@ import com.senai.experience.entities.Produto;
 import com.senai.experience.repositories.ItemPedidoRepository;
 import com.senai.experience.repositories.PedidoRepository;
 import com.senai.experience.repositories.ProdutoRepository;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 @Service
 public class ItemPedidoService {
-    @Autowired
-    private ItemPedidoRepository repository;
-    
-    @Autowired
-    private PedidoRepository pedidoRepository;
-    
-    @Autowired
-    private ProdutoRepository produtoRepository;
+    private final ItemPedidoRepository repository;
+    private final PedidoRepository pedidoRepository;
+    private final ProdutoRepository produtoRepository;
 
     public ItemPedido save(ItemPedido item) {
         if (item.getPedido() != null && item.getPedido().getId() != null) {

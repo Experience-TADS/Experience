@@ -3,7 +3,6 @@ package com.senai.experience.controllers;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,13 +11,14 @@ import com.senai.experience.DTO.response.VeiculoResponse;
 import com.senai.experience.entities.Veiculo;
 import com.senai.experience.mappers.VeiculoMapper;
 import com.senai.experience.services.VeiculoService;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/veiculo")
 public class VeiculoController {
 
-    @Autowired
-    private VeiculoService veiculoService;
+    private final VeiculoService veiculoService;
 
     @GetMapping
     public Page<VeiculoResponse> getAllVeiculos(Pageable pageable) {

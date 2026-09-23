@@ -2,7 +2,6 @@ package com.senai.experience.services;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -14,15 +13,15 @@ import com.senai.experience.entities.Usuario;
 import com.senai.experience.entities.role.UserRole;
 import com.senai.experience.repositories.PedidoRepository;
 import com.senai.experience.repositories.UsuarioRepository;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 @Service
 public class PedidoService {
 
-    @Autowired
-    private PedidoRepository pedidoRepository;
+    private final PedidoRepository pedidoRepository;
 
-    @Autowired
-    private UsuarioRepository usuarioRepository;
+    private final UsuarioRepository usuarioRepository;
 
     @Transactional(readOnly = true)
     public Page<Pedido> findAll(Pageable pageable) {

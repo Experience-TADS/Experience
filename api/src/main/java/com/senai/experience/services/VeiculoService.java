@@ -3,7 +3,6 @@ package com.senai.experience.services;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,19 +13,18 @@ import com.senai.experience.entities.Veiculo;
 import com.senai.experience.repositories.ProdutoRepository;
 import com.senai.experience.repositories.StatusHistoricoRepository;
 import com.senai.experience.repositories.VeiculoRepository;
+import lombok.RequiredArgsConstructor;
 
 import java.time.LocalDateTime;
 
+@RequiredArgsConstructor
 @Service
 public class VeiculoService {
-    @Autowired
-    private VeiculoRepository veiculoRepository;
+    private final VeiculoRepository veiculoRepository;
 
-    @Autowired
-    private ProdutoRepository produtoRepository;
+    private final ProdutoRepository produtoRepository;
 
-    @Autowired
-    private StatusHistoricoRepository statusHistoricoRepository;
+    private final StatusHistoricoRepository statusHistoricoRepository;
 
     public Page<Veiculo> findAll(Pageable pageable) { 
         return veiculoRepository.findAll(pageable);
