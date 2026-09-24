@@ -23,6 +23,11 @@ public class JwtUtil {
         key = Keys.hmacShaKeyFor(Decoders.BASE64.decode(secret));
     }
 
+    // Expõe a chave de assinatura para validação de tokens em outras classes
+    public static Key getKey() {
+        return key;
+    }
+
     // Gera token com email no subject e role como claim separado
     public static String generateToken(String email, String role) {
         return Jwts.builder()

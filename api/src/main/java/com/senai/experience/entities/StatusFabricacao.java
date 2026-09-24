@@ -9,7 +9,6 @@ public enum StatusFabricacao {
     INSPECAO_FINAL,
     LIBERACAO_TRANSPORTE,
     NA_CONCESSIONARIA,
-    ENTREGUE,SIONARIA,
     ENTREGUE,
     CANCELADO
 }

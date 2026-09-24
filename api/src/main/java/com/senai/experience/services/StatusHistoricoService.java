@@ -58,6 +58,7 @@ public class StatusHistoricoService {
             case ACABAMENTO_INTERNO    -> novo == StatusFabricacao.INSPECAO_FINAL || novo == StatusFabricacao.CANCELADO;
             case INSPECAO_FINAL        -> novo == StatusFabricacao.LIBERACAO_TRANSPORTE || novo == StatusFabricacao.CANCELADO;
             case LIBERACAO_TRANSPORTE  -> novo == StatusFabricacao.ENTREGUE;
+            case NA_CONCESSIONARIA     -> novo == StatusFabricacao.ENTREGUE;
             case ENTREGUE, CANCELADO   -> false;
         };
 

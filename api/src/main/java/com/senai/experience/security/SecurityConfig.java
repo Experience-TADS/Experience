@@ -59,7 +59,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/veiculo/nodered/evento").permitAll()
 
                 // Veiculo
-                .requestMatchers(HttpMethod.POST, "api/veiculo/**/confirmacao-chegada").hasAnyRole("VENDEDOR", "ADMIN")
+                .requestMatchers(HttpMethod.POST, "/api/veiculo/*/confirmacao-chegada").hasAnyRole("VENDEDOR", "ADMIN")
 
                 // Status de fabricação: leitura para autenticados, escrita apenas para IOT e ADMIN
                 .requestMatchers(HttpMethod.GET, "/api/veiculo/*/status").authenticated()

@@ -129,7 +129,7 @@ public class VeiculoController {
 
     @lombok.Data
     static class NodeRedEventoRequest {
-        private String chassi;asss
+        private String chassi;
         private String etapa;
         private String status;
         private Long timestamp;
