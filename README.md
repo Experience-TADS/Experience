@@ -150,6 +150,28 @@ mvn test
 
 A suíte de integração usa H2 em memória e o perfil `test`, sem necessidade de banco externo.
 
+### Cobertura de código (JaCoCo)
+
+O projeto usa o JaCoCo para medir a cobertura de testes. O relatório é gerado automaticamente durante o `mvn verify`:
+
+```bash
+mvn verify
+```
+
+O relatório HTML fica disponível em:
+
+```
+api/target/site/jacoco/index.html
+```
+
+O build falha automaticamente se a cobertura de linhas cair abaixo de **60%**. Pacotes excluídos da verificação (sem lógica de negócio testável): `config`, `entities`, `DTO` e a classe principal `ExperienceApplication`.
+
+Para gerar apenas o relatório sem rodar a verificação de meta:
+
+```bash
+mvn jacoco:report
+```
+
 ### Docker
 
 O `Dockerfile` (em `api/`) usa build multi-stage: compila com Maven/Temurin 17 e roda em uma imagem JRE mínima com usuário não-root e health check. Para construir e executar:
