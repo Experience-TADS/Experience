@@ -65,6 +65,9 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/veiculo/*/status").authenticated()
                 .requestMatchers(HttpMethod.POST, "/api/veiculo/*/status").permitAll()
 
+                .requestMatchers(HttpMethod.POST, "/api/analytics/sessao").authenticated()
+                .requestMatchers(HttpMethod.GET, "/api/analytics/sessao/resumo").hasRole("ADMIN")
+
                 // Admin: acesso total ao painel admin
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
 
