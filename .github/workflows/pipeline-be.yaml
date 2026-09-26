@@ -43,7 +43,9 @@ jobs:
 
       # segurança e validação de dependências
       - name: Run OWASP Dependency-Check
-        run: mvn dependency-check:check -B
+        env:
+          NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
+        run: mvn org.owasp:dependency-check-maven:check
 
       # rodar testes unitários e cobertura de código utilizando JaCoCo
       - name: Run Unit Tests & Verify Coverage Threshold

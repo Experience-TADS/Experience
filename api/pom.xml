@@ -213,7 +213,7 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/x
                 <version>12.1.0</version>
                 <configuration>
                     <!-- Falha o build se encontrar CVE com CVSS >= 7 (High/Critical) -->
-                    <failBuildOnCVSS>7</failBuildOnCVSS>
+                    <failBuildOnCVSS>7.0</failBuildOnCVSS>
                     <!-- Ignora dependências de escopo 'test', focando no código de produção -->
                     <skipTestScope>true</skipTestScope>
                     <!-- Formatos de relatório gerados em target/ -->
@@ -221,6 +221,8 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/x
                         <format>HTML</format>
                         <format>JSON</format>
                     </formats>
+                    <!-- Lê a chave da variável de ambiente NVD_API_KEY -->
+                    <nvdApiKey>${env.NVD_API_KEY}</nvdApiKey>
                     <!-- Arquivo opcional para suprimir falsos positivos -->
                     <!-- <suppressionFiles>
                         <suppressionFile>owasp-suppressions.xml</suppressionFile>
