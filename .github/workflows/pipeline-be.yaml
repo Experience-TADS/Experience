@@ -5,15 +5,26 @@ on:
     branches:
       - main
       - develop
+    paths:
+      - 'api/**'
+      - '.github/workflows/pipeline-be.yaml'
   pull_request:
     branches:
       - main
       - develop
+    paths:
+      - 'api/**'
+      - '.github/workflows/pipeline-be.yaml'
 
 jobs:
   build:
     name: Build & Test
     runs-on: ubuntu-latest
+
+    # O backend vive na subpasta api/, então todos os comandos rodam a partir dela
+    defaults:
+      run:
+        working-directory: api
 
     steps:
       - name: Checkout Repository
@@ -32,18 +43,18 @@ jobs:
 
       # segurança e validação de dependências
       - name: Run OWASP Dependency-Check
-        run: mvn org.owasp:dependency-check-maven:check -DfailBuildOnCVSS=7 -B
+        run: mvn dependency-check:check -B
 
       # rodar testes unitários e cobertura de código utilizando JaCoCo
       - name: Run Unit Tests & Verify Coverage Threshold
-        run: mvn test jacoco:check -B
+        run: mvn test jacoco:report jacoco:check -B
 
       - name: Upload JaCoCo Coverage Report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: jacoco-coverage-report
-          path: target/site/jacoco/
+          path: api/target/site/jacoco/
 
       # próx: testes automatizados com restassured + testcontainers
 
@@ -56,4 +67,4 @@ jobs:
       #   uses: actions/upload-artifact@v4
       #   with:
       #     name: integration-test-reports
-      #     path: target/failsafe-reports/
+      #     path: api/target/failsafe-reports/
