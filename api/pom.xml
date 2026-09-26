@@ -26,11 +26,11 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/x
 
     <dependencies>
 
-        <!-- H2 para testes (substitui Testcontainers) -->
+        <!-- H2 — disponível em runtime para o perfil "h2" (banco em memória) e nos testes -->
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
-            <scope>test</scope>
+            <scope>runtime</scope>
         </dependency>
 
         <!-- Spring -->
@@ -134,20 +134,10 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/x
             <artifactId>json-path</artifactId>
             <scope>test</scope>
         </dependency>
-
-        <!-- JWT Auth0 — removido: duplicado, não utilizado no projeto -->
-        <!--
-        <dependency>
-            <groupId>com.auth0</groupId>
-            <artifactId>java-jwt</artifactId>
-            <version>4.5.0</version>
-        </dependency>
-        -->
     </dependencies>
 
     <build>
         <plugins>
-
             <!-- Compiler -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -212,6 +202,35 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/x
                                 </rule>
                             </rules>
                         </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- OWASP Dependency-Check — análise de vulnerabilidades (SCA) -->
+            <plugin>
+                <groupId>org.owasp</groupId>
+                <artifactId>dependency-check-maven</artifactId>
+                <version>12.1.0</version>
+                <configuration>
+                    <!-- Falha o build se encontrar CVE com CVSS >= 7 (High/Critical) -->
+                    <failBuildOnCVSS>7</failBuildOnCVSS>
+                    <!-- Ignora dependências de escopo 'test', focando no código de produção -->
+                    <skipTestScope>true</skipTestScope>
+                    <!-- Formatos de relatório gerados em target/ -->
+                    <formats>
+                        <format>HTML</format>
+                        <format>JSON</format>
+                    </formats>
+                    <!-- Arquivo opcional para suprimir falsos positivos -->
+                    <!-- <suppressionFiles>
+                        <suppressionFile>owasp-suppressions.xml</suppressionFile>
+                    </suppressionFiles> -->
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
                     </execution>
                 </executions>
             </plugin>

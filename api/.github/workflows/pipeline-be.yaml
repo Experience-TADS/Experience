@@ -1,0 +1,59 @@
+name: Pipeline Backend
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
+
+jobs:
+  build:
+    name: Build & Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+
+      # Compilar código com mvn
+      - name: Compile Application
+        run: mvn clean compile -B
+
+      # segurança e validação de dependências
+      - name: Run OWASP Dependency-Check
+        run: mvn org.owasp:dependency-check-maven:check -DfailBuildOnCVSS=7 -B
+
+      # rodar testes unitários e cobertura de código utilizando JaCoCo
+      - name: Run Unit Tests & Verify Coverage Threshold
+        run: mvn test jacoco:check -B
+
+      - name: Upload JaCoCo Coverage Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-coverage-report
+          path: target/site/jacoco/
+
+      # próx: testes automatizados com restassured + testcontainers
+
+      # - name: Run Integration Tests (Failsafe Plugin)
+      #   # Executa as classes de teste que terminam em *IT.java (ex: UsuarioControllerIT.java)
+      #   run: mvn verify -Dskip.unit.tests=true -B
+
+      # - name: Upload Integration Test Reports
+      #   if: always()
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: integration-test-reports
+      #     path: target/failsafe-reports/

@@ -1,0 +1,388 @@
+{
+  "info": {
+    "name": "Experience API (Toyota)",
+    "description": "Collection de teste da Experience API. Sobe com o perfil H2 (banco em memoria) ou Postgres.\n\nComo usar:\n1. Rode a aplicacao: .\\mvnw.cmd spring-boot:run -Dspring-boot.run.profiles=h2\n2. Execute o request 'Login (Admin)' primeiro — ele salva o token automaticamente na variavel de colecao {{token}}.\n3. Os demais requests ja usam Authorization: Bearer {{token}}.\n\nCredenciais criadas pelo DataSeeder:\n- admin@experience.com / admin123 (ADMIN)\n- vendedor.toyota@experience.com / vendedor123 (VENDEDOR)\n- ana.souza@email.com ... joao.pereira@email.com / cliente123 (CLIENTE)\n\nVeiculos criados: chassi 10001 a 10010.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080", "type": "string" },
+    { "key": "token", "value": "", "type": "string" }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }]
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login (Admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const json = pm.response.json();",
+                  "  pm.collectionVariables.set('token', json.token);",
+                  "  console.log('Token salvo:', json.token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/usuario/login", "host": ["{{baseUrl}}"], "path": ["api", "usuario", "login"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@experience.com\",\n  \"senha\": \"admin123\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login (Vendedor)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  pm.collectionVariables.set('token', pm.response.json().token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/usuario/login", "host": ["{{baseUrl}}"], "path": ["api", "usuario", "login"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"vendedor.toyota@experience.com\",\n  \"senha\": \"vendedor123\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Me (usuario logado)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/usuario/me", "host": ["{{baseUrl}}"], "path": ["api", "usuario", "me"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Usuario",
+      "item": [
+        {
+          "name": "Criar Usuario (publico)",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/usuario", "host": ["{{baseUrl}}"], "path": ["api", "usuario"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Novo Vendedor\",\n  \"email\": \"novo.vendedor@experience.com\",\n  \"senha\": \"Senha@123\",\n  \"dataNascimento\": \"1990-05-20\",\n  \"role\": \"VENDEDOR\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Listar Usuarios",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/usuario?page=0&size=10", "host": ["{{baseUrl}}"], "path": ["api", "usuario"], "query": [{ "key": "page", "value": "0" }, { "key": "size", "value": "10" }] }
+          }
+        },
+        {
+          "name": "Buscar Usuario por ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/usuario/1", "host": ["{{baseUrl}}"], "path": ["api", "usuario", "1"] }
+          }
+        },
+        {
+          "name": "Ativar Usuario (ADMIN)",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/usuario/2/ativar", "host": ["{{baseUrl}}"], "path": ["api", "usuario", "2", "ativar"] }
+          }
+        },
+        {
+          "name": "Desativar Usuario (ADMIN)",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/usuario/2/desativar", "host": ["{{baseUrl}}"], "path": ["api", "usuario", "2", "desativar"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Pessoa Fisica",
+      "item": [
+        {
+          "name": "Criar Pessoa Fisica (publico)",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/pessoaFisica", "host": ["{{baseUrl}}"], "path": ["api", "pessoaFisica"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Cliente Teste\",\n  \"email\": \"cliente.teste@email.com\",\n  \"senhaHash\": \"Senha@123\",\n  \"dataNascimento\": \"1995-08-10\",\n  \"role\": \"CLIENTE\",\n  \"cpf\": \"52998224725\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Listar Pessoas Fisicas",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/pessoaFisica?page=0&size=10", "host": ["{{baseUrl}}"], "path": ["api", "pessoaFisica"], "query": [{ "key": "page", "value": "0" }, { "key": "size", "value": "10" }] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Produto",
+      "item": [
+        {
+          "name": "Listar Produtos",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/produto?page=0&size=10", "host": ["{{baseUrl}}"], "path": ["api", "produto"], "query": [{ "key": "page", "value": "0" }, { "key": "size", "value": "10" }] }
+          }
+        },
+        {
+          "name": "Buscar Produto por ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/produto/1", "host": ["{{baseUrl}}"], "path": ["api", "produto", "1"] }
+          }
+        },
+        {
+          "name": "Criar Produto (ADMIN/VENDEDOR)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/produto", "host": ["{{baseUrl}}"], "path": ["api", "produto"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"modelo\": \"Camry\",\n  \"cor\": \"Azul\",\n  \"versao\": \"XLE\",\n  \"ano\": 2025\n}"
+            }
+          }
+        },
+        {
+          "name": "Atualizar Produto (ADMIN/VENDEDOR)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/produto/1", "host": ["{{baseUrl}}"], "path": ["api", "produto", "1"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"modelo\": \"Corolla\",\n  \"cor\": \"Branco Perola\",\n  \"versao\": \"Altis\",\n  \"ano\": 2025\n}"
+            }
+          }
+        },
+        {
+          "name": "Deletar Produto (ADMIN)",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/produto/6", "host": ["{{baseUrl}}"], "path": ["api", "produto", "6"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Pedido",
+      "item": [
+        {
+          "name": "Listar Pedidos (VENDEDOR/ADMIN)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/pedido?page=0&size=10", "host": ["{{baseUrl}}"], "path": ["api", "pedido"], "query": [{ "key": "page", "value": "0" }, { "key": "size", "value": "10" }] }
+          }
+        },
+        {
+          "name": "Buscar Pedido por ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/pedido/1", "host": ["{{baseUrl}}"], "path": ["api", "pedido", "1"] }
+          }
+        },
+        {
+          "name": "Meus Pedidos",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/pedido/meus-pedidos", "host": ["{{baseUrl}}"], "path": ["api", "pedido", "meus-pedidos"] }
+          }
+        },
+        {
+          "name": "Criar Pedido (VENDEDOR/ADMIN)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/pedido", "host": ["{{baseUrl}}"], "path": ["api", "pedido"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idCliente\": 3,\n  \"idVendedor\": 2,\n  \"dataPedido\": \"2026-09-25T10:00:00\",\n  \"valorTotal\": 149900.00\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Veiculo",
+      "item": [
+        {
+          "name": "Listar Veiculos",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/veiculo?page=0&size=10", "host": ["{{baseUrl}}"], "path": ["api", "veiculo"], "query": [{ "key": "page", "value": "0" }, { "key": "size", "value": "10" }] }
+          }
+        },
+        {
+          "name": "Buscar Veiculo por ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/veiculo/1", "host": ["{{baseUrl}}"], "path": ["api", "veiculo", "1"] }
+          }
+        },
+        {
+          "name": "Buscar Veiculo por Chassi",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/veiculo/chassi/10001", "host": ["{{baseUrl}}"], "path": ["api", "veiculo", "chassi", "10001"] }
+          }
+        },
+        {
+          "name": "Confirmar Chegada (VENDEDOR/ADMIN)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/veiculo/1/confirmacao-chegada", "host": ["{{baseUrl}}"], "path": ["api", "veiculo", "1", "confirmacao-chegada"] }
+          }
+        },
+        {
+          "name": "Evento Node-RED (publico)",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/veiculo/nodered/evento", "host": ["{{baseUrl}}"], "path": ["api", "veiculo", "nodered", "evento"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"chassi\": \"CHASSI_00001\",\n  \"etapa\": \"PINTURA\",\n  \"status\": \"Iniciado\",\n  \"timestamp\": 12345\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Status Historico",
+      "item": [
+        {
+          "name": "Historico do Veiculo",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/veiculo/1/status", "host": ["{{baseUrl}}"], "path": ["api", "veiculo", "1", "status"] }
+          }
+        },
+        {
+          "name": "Atualizar Status (publico)",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/veiculo/1/status", "host": ["{{baseUrl}}"], "path": ["api", "veiculo", "1", "status"] },
+            "body": {
+              "mode": "raw",
+              "raw": "\"PINTURA\""
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Analytics",
+      "item": [
+        {
+          "name": "Registrar Sessao (autenticado)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/analytics/sessao", "host": ["{{baseUrl}}"], "path": ["api", "analytics", "sessao"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clienteId\": 3,\n  \"secao\": \"PINTURA\",\n  \"duracaoSegundos\": 45\n}"
+            }
+          }
+        },
+        {
+          "name": "Resumo por Secao (ADMIN)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{baseUrl}}/api/analytics/sessao/resumo", "host": ["{{baseUrl}}"], "path": ["api", "analytics", "sessao", "resumo"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Docs & Utils",
+      "item": [
+        {
+          "name": "OpenAPI (v3/api-docs)",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/v3/api-docs", "host": ["{{baseUrl}}"], "path": ["v3", "api-docs"] }
+          }
+        },
+        {
+          "name": "Swagger UI",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "url": { "raw": "{{baseUrl}}/swagger-ui/index.html", "host": ["{{baseUrl}}"], "path": ["swagger-ui", "index.html"] }
+          }
+        }
+      ]
+    }
+  ]
+}
