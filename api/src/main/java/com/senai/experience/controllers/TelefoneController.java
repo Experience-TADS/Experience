@@ -1,6 +1,7 @@
 package com.senai.experience.controllers;
 
 
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -35,14 +36,14 @@ public class TelefoneController {
     }
 
     @PostMapping
-    public ResponseEntity<TelefoneResponse> createTelefone(@RequestBody TelefoneRequest dto) {
+    public ResponseEntity<TelefoneResponse> createTelefone(@RequestBody @Valid TelefoneRequest dto) {
         Telefone telefone = TelefoneMapper.toEntity(dto);
         Telefone novoTelefone = telefoneService.save(telefone);
         return ResponseEntity.status(201).body(TelefoneMapper.toResponse(novoTelefone));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<TelefoneResponse> updateTelefone(@PathVariable Long id, @RequestBody TelefoneRequest dto) {
+    public ResponseEntity<TelefoneResponse> updateTelefone(@PathVariable Long id, @RequestBody @Valid TelefoneRequest dto) {
         Telefone telefone = TelefoneMapper.toEntity(dto);
         Telefone atualizado = telefoneService.update(id, telefone);
         if (atualizado != null) {

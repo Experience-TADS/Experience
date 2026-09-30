@@ -1,6 +1,7 @@
 package com.senai.experience.controllers;
 
 
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -35,14 +36,14 @@ public class EnderecoController {
     }
 
     @PostMapping
-    public ResponseEntity<EnderecoResponse> createEndereco(@RequestBody EnderecoRequest dto) {
+    public ResponseEntity<EnderecoResponse> createEndereco(@RequestBody @Valid EnderecoRequest dto) {
         Endereco endereco = EnderecoMapper.toEntity(dto);
         Endereco salvo = enderecoService.save(endereco);
         return ResponseEntity.status(201).body(EnderecoMapper.toResponse(salvo));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<EnderecoResponse> updateEndereco(@PathVariable Long id, @RequestBody EnderecoRequest dto) {
+    public ResponseEntity<EnderecoResponse> updateEndereco(@PathVariable Long id, @RequestBody @Valid EnderecoRequest dto) {
         Endereco endereco = EnderecoMapper.toEntity(dto);
         Endereco atualizado = enderecoService.update(id, endereco);
         if (atualizado != null) {

@@ -7,7 +7,7 @@ import lombok.Data;
 public class EnderecoRequest {
 
     @NotBlank(message = "O CEP é obrigatório")
-    @Pattern(regexp = "\\d{8}", message = "O CEP deve conter exatamente 8 dígitos numéricos")
+    @Pattern(regexp = "\\d{5}-?\\d{3}", message = "O CEP deve estar no formato 00000-000 ou 00000000")
     private String cep;
 
     @NotBlank(message = "O logradouro é obrigatório")
