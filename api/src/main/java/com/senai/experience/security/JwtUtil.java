@@ -28,11 +28,12 @@ public class JwtUtil {
         return key;
     }
 
-    // Gera token com email no subject e role como claim separado
-    public static String generateToken(String email, String role) {
+    // Gera token com email no subject, role e userId como claims
+    public static String generateToken(String email, String role, Long userId) {
         return Jwts.builder()
                 .setSubject(email)
                 .claim("role", role)
+                .claim("userId", userId)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
                 .signWith(key, SignatureAlgorithm.HS256)
@@ -55,6 +56,18 @@ public class JwtUtil {
                 .parseClaimsJws(token)
                 .getBody()
                 .get("role", String.class);
+    }
+
+    // Retorna o userId gravado no claim "userId"
+    public static Long extractUserId(String token) {
+        Object userId = Jwts.parserBuilder()
+                .setSigningKey(key).build()
+                .parseClaimsJws(token)
+                .getBody()
+                .get("userId");
+        if (userId instanceof Integer) return ((Integer) userId).longValue();
+        if (userId instanceof Long) return (Long) userId;
+        return null;
     }
 
     public static boolean validateToken(String token) {
