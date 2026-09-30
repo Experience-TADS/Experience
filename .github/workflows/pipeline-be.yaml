@@ -60,6 +60,9 @@ jobs:
           exit-code: '1'
           # Só reporta CVEs que já têm correção disponível (evita ruído sem ação possível)
           ignore-unfixed: true
+          # CVEs conscientemente adiadas (só corrigíveis com upgrade de minor 3.5.x/4.x).
+          # Cada entrada é documentada em api/.trivyignore. Caminho relativo à raiz do repo.
+          trivyignores: 'api/.trivyignore'
           format: 'table'
         env:
           # Autentica no registro público da base do Trivy com o token que o GitHub
