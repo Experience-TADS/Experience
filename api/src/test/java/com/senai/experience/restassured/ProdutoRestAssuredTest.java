@@ -25,10 +25,10 @@ class ProdutoRestAssuredTest extends RestAssuredBaseTest {
 
     private static final String BASE = "/api/produto";
 
-    private String corpoProduto(String modelo, String cor, String versao, int ano) {
+    private String corpoProduto(String modelo, String cor, String versao, int ano, String preco) {
         return """
-                { "modelo": "%s", "cor": "%s", "versao": "%s", "ano": %d }
-                """.formatted(modelo, cor, versao, ano);
+                { "modelo": "%s", "cor": "%s", "versao": "%s", "ano": %d, "preco": %s }
+                """.formatted(modelo, cor, versao, ano, preco);
     }
 
     // ── Autenticação / Autorização ───────────────────────────────────────────
@@ -64,7 +64,7 @@ class ProdutoRestAssuredTest extends RestAssuredBaseTest {
         given()
                 .header("Authorization", "Bearer " + tokenCliente)
                 .contentType(ContentType.JSON)
-                .body(corpoProduto("Hilux", "Prata", "SRX", 2024))
+                .body(corpoProduto("Hilux", "Prata", "SRX", 2024, "289900.00"))
         .when()
                 .post(BASE)
         .then()
@@ -100,7 +100,7 @@ class ProdutoRestAssuredTest extends RestAssuredBaseTest {
         Integer id = given()
                 .header("Authorization", "Bearer " + token)
                 .contentType(ContentType.JSON)
-                .body(corpoProduto("Yaris", "Vermelho", "XLS", 2024))
+                .body(corpoProduto("Yaris", "Vermelho", "XLS", 2024, "109900.00"))
         .when()
                 .post(BASE)
         .then()
@@ -110,6 +110,7 @@ class ProdutoRestAssuredTest extends RestAssuredBaseTest {
                 .body("cor", equalTo("Vermelho"))
                 .body("versao", equalTo("XLS"))
                 .body("ano", equalTo(2024))
+                .body("preco", notNullValue())
                 .extract()
                 .path("idProduto");
 
@@ -127,7 +128,7 @@ class ProdutoRestAssuredTest extends RestAssuredBaseTest {
         given()
                 .header("Authorization", "Bearer " + token)
                 .contentType(ContentType.JSON)
-                .body(corpoProduto("Yaris", "Azul", "XL", 2025))
+                .body(corpoProduto("Yaris", "Azul", "XL", 2025, "109900.00"))
         .when()
                 .put(BASE + "/" + id)
         .then()
@@ -164,7 +165,7 @@ class ProdutoRestAssuredTest extends RestAssuredBaseTest {
         Integer id = given()
                 .header("Authorization", "Bearer " + tokenVendedor)
                 .contentType(ContentType.JSON)
-                .body(corpoProduto("RAV4", "Preto", "GR-S", 2025))
+                .body(corpoProduto("RAV4", "Preto", "GR-S", 2025, "319900.00"))
         .when()
                 .post(BASE)
         .then()

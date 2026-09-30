@@ -1,6 +1,7 @@
 package com.senai.experience.controllers;
 
 
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -38,13 +39,13 @@ public class ProdutoController {
     }
 
     @PostMapping
-    public ResponseEntity<ProdutoResponse> createProduto(@RequestBody ProdutoRequest dto) {
+    public ResponseEntity<ProdutoResponse> createProduto(@RequestBody @Valid ProdutoRequest dto) {
         Produto salvo = produtoService.save(ProdutoMapper.toEntity(dto));
         return ResponseEntity.status(201).body(ProdutoMapper.toResponse(salvo));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ProdutoResponse> updateProduto(@PathVariable Long id, @RequestBody ProdutoRequest dto) {
+    public ResponseEntity<ProdutoResponse> updateProduto(@PathVariable Long id, @RequestBody @Valid ProdutoRequest dto) {
         Produto p = ProdutoMapper.toEntity(dto);
         p.setIdProduto(id);
         Produto atualizado = produtoService.update(p);
