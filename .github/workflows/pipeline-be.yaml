@@ -85,9 +85,14 @@ jobs:
         if: steps.dependency_check.outcome == 'failure'
         run: echo "::warning::OWASP Dependency-Check não concluiu (provável instabilidade da NVD). Verifique o artefato dependency-check-report quando disponível."
 
-      # rodar testes unitários e cobertura de código utilizando JaCoCo
+      # Roda os testes e valida a cobertura via JaCoCo.
+      # Usamos a fase "verify" (em vez de invocar jacoco:check pela CLI) porque as
+      # <rules> de cobertura estão ligadas à execução "check" na fase verify do pom.
+      # Chamar o goal solto pela linha de comando não enxerga essas rules, o que
+      # causava o erro "parameters 'rules' ... are missing or invalid".
+      # -DskipITs pula os testes de integração (Failsafe) nesta etapa.
       - name: Run Unit Tests & Verify Coverage Threshold
-        run: mvn test jacoco:report jacoco:check -B
+        run: mvn verify -DskipITs -B
 
       - name: Upload JaCoCo Coverage Report
         if: always()
