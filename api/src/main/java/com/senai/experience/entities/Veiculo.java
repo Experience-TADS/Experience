@@ -22,6 +22,7 @@ public class Veiculo {
     @JoinColumn(name = "id_produto")
     private Produto produto;
 
+    @Column(unique = true, nullable = false)
     private int chassi;
 
     @Enumerated(EnumType.STRING)

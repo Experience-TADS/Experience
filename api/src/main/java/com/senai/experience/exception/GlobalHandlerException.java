@@ -1,12 +1,11 @@
 package com.senai.experience.exception;
 
-import org.springframework.security.access.AccessDeniedException; 
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.security.access.AccessDeniedException;
 
 import org.springframework.http.HttpStatus;
-
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -59,6 +58,17 @@ public class GlobalHandlerException{
            "Você não tem permissão para acessar este recurso."
        );
        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(erro);
+   }
+
+   @ExceptionHandler(DataIntegrityViolationException.class)
+   public ResponseEntity<ErrorResponse> handleDataIntegrity(DataIntegrityViolationException ex) {
+       String detalhe = ex.getMostSpecificCause().getMessage();
+       String mensagem = (detalhe != null && detalhe.toLowerCase().contains("chassi"))
+               ? "Já existe um veículo cadastrado com este chassi."
+               : "Violação de integridade: valor duplicado ou restrição violada.";
+
+       ErrorResponse erro = new ErrorResponse(409, "Conflito de dados", mensagem);
+       return ResponseEntity.status(HttpStatus.CONFLICT).body(erro);
    }
 
    @ExceptionHandler(Exception.class)
