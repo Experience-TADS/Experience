@@ -54,6 +54,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
                 UsernamePasswordAuthenticationToken authToken =
                         new UsernamePasswordAuthenticationToken(userDetails, null, authorities);
+                // Armazena o userId extraído do token em details para evitar query extra por email
+                authToken.setDetails(JwtUtil.extractUserId(token));
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             } catch (Exception ex) {
                 // Token inválido em qualquer etapa: segue sem autenticar.
