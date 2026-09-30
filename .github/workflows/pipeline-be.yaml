@@ -43,14 +43,16 @@ jobs:
 
       # Cacheia o banco local da NVD entre execuções, evitando rebaixar ~400 mil
       # registros toda vez (o que dispara rate limit / instabilidade da API da NVD).
-      # A key muda a cada semana para forçar uma atualização periódica da base.
+      # Prefixo "v2-": invalida caches antigos, que guardaram uma base VAZIA gerada
+      # enquanto a chave NVD ainda não estava ativa. O restore-keys só reaproveita
+      # caches do mesmo prefixo v2, nunca os antigos quebrados.
       - name: Cache NVD Database
         uses: actions/cache@v4
         with:
           path: ~/.m2/repository/org/owasp/dependency-check-data
-          key: nvd-data-${{ github.run_id }}
+          key: nvd-data-v2-${{ github.run_id }}
           restore-keys: |
-            nvd-data-
+            nvd-data-v2-
 
       # segurança e validação de dependências
       - name: Run OWASP Dependency-Check
