@@ -41,11 +41,27 @@ jobs:
       - name: Compile Application
         run: mvn clean compile -B
 
+      # Cacheia o banco local da NVD entre execuções, evitando rebaixar ~400 mil
+      # registros toda vez (o que dispara rate limit / instabilidade da API da NVD).
+      # A key muda a cada semana para forçar uma atualização periódica da base.
+      - name: Cache NVD Database
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository/org/owasp/dependency-check-data
+          key: nvd-data-${{ github.run_id }}
+          restore-keys: |
+            nvd-data-
+
       # segurança e validação de dependências
       - name: Run OWASP Dependency-Check
         env:
           NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
-        run: mvn org.owasp:dependency-check-maven:check
+        # nvdApiDelay: espera entre requisições à NVD (ms), reduz rate limit
+        # nvdMaxRetryCount: tentativas antes de desistir em falhas de rede
+        run: >
+          mvn org.owasp:dependency-check-maven:check -B
+          -DnvdApiDelay=6000
+          -DnvdMaxRetryCount=10
 
       # rodar testes unitários e cobertura de código utilizando JaCoCo
       - name: Run Unit Tests & Verify Coverage Threshold
