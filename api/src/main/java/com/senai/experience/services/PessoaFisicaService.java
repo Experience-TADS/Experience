@@ -30,8 +30,12 @@ public class PessoaFisicaService {
     }
 
     public PessoaFisica save(PessoaFisica pessoaFisica) {
-        // Sempre encoda a senha — vem como texto puro do request
-        pessoaFisica.setSenhaHash(passwordEncoder.encode(pessoaFisica.getSenhaHash()));
+        // Encoda a senha apenas se vier como texto puro (nova entidade ou senha alterada).
+        // Senhas já encodadas pelo BCrypt começam com "$2a$" — evita duplo encoding no update.
+        String senha = pessoaFisica.getSenhaHash();
+        if (senha != null && !senha.startsWith("$2a$") && !senha.startsWith("$2b$")) {
+            pessoaFisica.setSenhaHash(passwordEncoder.encode(senha));
+        }
         return repository.save(pessoaFisica);
     }
 
