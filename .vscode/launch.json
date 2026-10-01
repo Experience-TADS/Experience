@@ -1,0 +1,14 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-ExperienceApplication<experience>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.senai.experience.ExperienceApplication",
+            "projectName": "experience",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}

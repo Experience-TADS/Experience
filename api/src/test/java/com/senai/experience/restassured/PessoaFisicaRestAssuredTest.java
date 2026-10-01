@@ -5,35 +5,29 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static io.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.*;
 
 /**
  * Testes de integração REST Assured para {@code /api/pessoaFisica}.
  *
- * <p>O POST é público (permitAll). Os demais métodos exigem autenticação.
- * O corpo é a entidade {@code PessoaFisica} crua, então o campo de senha é
- * {@code senhaHash} e o CPF deve ter 11 dígitos sem máscara e ser válido.
- * Erros de validação/persistência são convertidos para 404 pelo
- * {@code GlobalHandlerException}.</p>
+ * <p>Valida o contrato DTO: request usa campo {@code senha} (não {@code senhaHash}),
+ * o response não expõe {@code senhaHash}, e POST retorna 201.</p>
  */
 @DisplayName("PessoaFisica — testes de integração (REST Assured)")
 class PessoaFisicaRestAssuredTest extends RestAssuredBaseTest {
 
     private static final String BASE = "/api/pessoaFisica";
 
-    // CPFs válidos e distintos entre si — evitam colisão com o UNIQUE do banco.
-    // Nenhum destes é usado pelo DataSeeder.
-    private static final String CPF_CRIAR   = "39053344705";
-    private static final String CPF_GET     = "16899535009";
-    private static final String CPF_DELETE  = "12345678909";
+    private static final String CPF_CRIAR  = "39053344705";
+    private static final String CPF_GET    = "16899535009";
+    private static final String CPF_DELETE = "12345678909";
 
     private String corpo(String nome, String email, String cpf) {
         return """
                 {
                   "nome": "%s",
                   "email": "%s",
-                  "senhaHash": "senha123",
+                  "senha": "Senha@123",
                   "dataNascimento": "1990-01-01",
                   "cpf": "%s",
                   "role": "CLIENTE"
@@ -48,7 +42,7 @@ class PessoaFisicaRestAssuredTest extends RestAssuredBaseTest {
         .when()
                 .post(BASE)
         .then()
-                .statusCode(200)
+                .statusCode(201)
                 .extract()
                 .path("id");
     }
@@ -56,29 +50,50 @@ class PessoaFisicaRestAssuredTest extends RestAssuredBaseTest {
     // ── POST público ──────────────────────────────────────────────────────────
 
     @Test
-    @DisplayName("POST com CPF válido cria pessoa física (público) → 200")
-    void criar_cpfValido_retorna200() {
+    @DisplayName("POST com CPF válido cria pessoa física → 201 sem senhaHash")
+    void criar_cpfValido_retorna201() {
         given()
                 .contentType(ContentType.JSON)
                 .body(corpo("Ana Teste", "ana.pf@teste.com", CPF_CRIAR))
         .when()
                 .post(BASE)
         .then()
-                .statusCode(200)
+                .statusCode(201)
                 .body("id", notNullValue())
-                .body("cpf", equalTo(CPF_CRIAR));
+                .body("cpf", equalTo(CPF_CRIAR))
+                .body("senhaHash", nullValue());
     }
 
     @Test
-    @DisplayName("POST com CPF inválido retorna erro (404 pelo handler)")
-    void criar_cpfInvalido_retornaErro() {
+    @DisplayName("POST com CPF inválido retorna 400")
+    void criar_cpfInvalido_retorna400() {
         given()
                 .contentType(ContentType.JSON)
                 .body(corpo("Invalido", "invalido.pf@teste.com", "11111111111"))
         .when()
                 .post(BASE)
         .then()
-                .statusCode(404);
+                .statusCode(400);
+    }
+
+    @Test
+    @DisplayName("POST sem campo obrigatório retorna 400")
+    void criar_semCampoObrigatorio_retorna400() {
+        given()
+                .contentType(ContentType.JSON)
+                .body("""
+                        {
+                          "email": "semcampo.pf@teste.com",
+                          "senha": "Senha@123",
+                          "dataNascimento": "1990-01-01",
+                          "cpf": "39053344705",
+                          "role": "CLIENTE"
+                        }
+                        """)
+        .when()
+                .post(BASE)
+        .then()
+                .statusCode(400);
     }
 
     // ── Leitura protegida ─────────────────────────────────────────────────────
@@ -94,7 +109,7 @@ class PessoaFisicaRestAssuredTest extends RestAssuredBaseTest {
     }
 
     @Test
-    @DisplayName("GET lista com token retorna 200")
+    @DisplayName("GET lista com token retorna 200 sem senhaHash")
     void listar_comToken_retorna200() {
         String token = obterTokenAdmin();
 
@@ -104,11 +119,12 @@ class PessoaFisicaRestAssuredTest extends RestAssuredBaseTest {
                 .get(BASE)
         .then()
                 .statusCode(200)
-                .body("content", notNullValue());
+                .body("content", notNullValue())
+                .body("content.senhaHash", everyItem(nullValue()));
     }
 
     @Test
-    @DisplayName("GET por id existente retorna 200")
+    @DisplayName("GET por id existente retorna 200 sem senhaHash")
     void buscarPorId_existente_retorna200() {
         String token = obterTokenAdmin();
         Integer id = criarPessoaFisica("get.pf@teste.com", CPF_GET);
@@ -119,7 +135,8 @@ class PessoaFisicaRestAssuredTest extends RestAssuredBaseTest {
                 .get(BASE + "/" + id)
         .then()
                 .statusCode(200)
-                .body("id", equalTo(id));
+                .body("id", equalTo(id))
+                .body("senhaHash", nullValue());
     }
 
     @Test
