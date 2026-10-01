@@ -46,17 +46,15 @@ public class UsuarioService {
     }
 
     public Usuario findByEmail(String email) {
-        return usuarioRepository.findByEmail(email);
+        return usuarioRepository.findByEmail(email).orElse(null);
     }
 
     // Valida email e senha, retorna o usuário se válido ou null se inválido
     public Usuario login(String email, String senha) {
-        Usuario usuario = usuarioRepository.findByEmail(email);
-        if (usuario != null && passwordEncoder.matches(senha, usuario.getSenhaHash())) {
-            if(!usuario.isAtivo()) return null;
-            return usuario;
-        }
-        return null;
+        return usuarioRepository.findByEmail(email)
+                .filter(u -> passwordEncoder.matches(senha, u.getSenhaHash()))
+                .filter(Usuario::isAtivo)
+                .orElse(null);
     }
     public Usuario ativar(Long id){
         Usuario usuario = usuarioRepository.findById(id).orElse(null);
