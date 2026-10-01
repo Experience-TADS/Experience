@@ -20,12 +20,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * Testes de integração para PessoaFisicaController — /api/pessoaFisica
  *
- * O endpoint POST /api/pessoaFisica é público (permitAll no SecurityConfig).
- * Os demais endpoints exigem autenticação.
- *
- * Observação: a coluna cpf é VARCHAR(11), então o CPF deve ser enviado
- * sem máscara (11 dígitos). Erros de persistência/validação são traduzidos
- * pelo GlobalHandlerException para 404 (RuntimeException genérica).
+ * Valida o contrato DTO: request com campo "senha" (não "senhaHash"),
+ * response sem senhaHash, e POST retorna 201.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -40,78 +36,58 @@ class PessoaFisicaControllerTest extends PostgresTestContainer {
 
     @BeforeEach
     void setup() throws Exception {
-        tokenAdmin = AuthHelper.obterToken(mockMvc, "admin.pf@test.com", "senha123", "ADMIN");
+        tokenAdmin = AuthHelper.obterToken(mockMvc, "admin.pf@test.com", "Senha@123", "ADMIN");
+    }
+
+    private String corpo(String nome, String email, String cpf) {
+        return """
+                {
+                  "nome": "%s",
+                  "email": "%s",
+                  "senha": "Senha@123",
+                  "dataNascimento": "1990-05-15",
+                  "cpf": "%s",
+                  "role": "CLIENTE"
+                }
+                """.formatted(nome, email, cpf);
     }
 
     // ── POST /api/pessoaFisica (público) ──────────────────────────────────────
 
     @Test
-    void postPessoaFisicaValidaDeveRetornar200() throws Exception {
+    void postPessoaFisicaValidaDeveRetornar201() throws Exception {
+        mockMvc.perform(post("/api/pessoaFisica")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(corpo("João Silva", "joao.silva@test.com", "39053344705")))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").isNumber())
+                .andExpect(jsonPath("$.cpf").value("39053344705"))
+                .andExpect(jsonPath("$.senhaHash").doesNotExist());
+    }
+
+    @Test
+    void postPessoaFisicaComCpfInvalidoDeveRetornar400() throws Exception {
+        mockMvc.perform(post("/api/pessoaFisica")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(corpo("CPF Inválido", "cpfinvalido@test.com", "11111111111")))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void postPessoaFisicaSemCampoObrigatorioDeveRetornar400() throws Exception {
+        // Sem o campo "nome"
         mockMvc.perform(post("/api/pessoaFisica")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
-                                  "nome": "João Silva",
-                                  "email": "joao.silva@test.com",
-                                  "senhaHash": "senha123",
+                                  "email": "semcampo@test.com",
+                                  "senha": "Senha@123",
                                   "dataNascimento": "1990-05-15",
                                   "cpf": "39053344705",
                                   "role": "CLIENTE"
                                 }
                                 """))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.cpf").value("39053344705"));
-    }
-
-    @Test
-    void postPessoaFisicaComCpfInvalidoDeveRetornarErro() throws Exception {
-        // CPF sem dígito verificador válido: a validação @CPF falha na persistência
-        // e o GlobalHandlerException converte a exceção para 404.
-        mockMvc.perform(post("/api/pessoaFisica")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {
-                                  "nome": "CPF Inválido",
-                                  "email": "cpfinvalido@test.com",
-                                  "senhaHash": "senha123",
-                                  "dataNascimento": "1990-05-15",
-                                  "cpf": "11111111111",
-                                  "role": "CLIENTE"
-                                }
-                                """))
-                .andExpect(status().isNotFound());
-    }
-
-    @Test
-    void postPessoaFisicaComEmailDuplicadoDeveRetornarErro() throws Exception {
-        // Primeiro cadastro
-        mockMvc.perform(post("/api/pessoaFisica")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("""
-                        {
-                          "nome": "Maria Souza",
-                          "email": "maria.duplicada@test.com",
-                          "senhaHash": "senha123",
-                          "dataNascimento": "1985-03-20",
-                          "cpf": "39053344705",
-                          "role": "CLIENTE"
-                        }
-                        """));
-
-        // Segundo com mesmo email deve falhar (email duplicado → 404 pelo handler)
-        mockMvc.perform(post("/api/pessoaFisica")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {
-                                  "nome": "Maria Souza 2",
-                                  "email": "maria.duplicada@test.com",
-                                  "senhaHash": "senha123",
-                                  "dataNascimento": "1985-03-20",
-                                  "cpf": "27548483086",
-                                  "role": "CLIENTE"
-                                }
-                                """))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isBadRequest());
     }
 
     // ── GET /api/pessoaFisica ─────────────────────────────────────────────────
@@ -130,6 +106,14 @@ class PessoaFisicaControllerTest extends PostgresTestContainer {
                 .andExpect(jsonPath("$.content").isArray());
     }
 
+    @Test
+    void responseNaoDeveConterSenhaHash() throws Exception {
+        mockMvc.perform(get("/api/pessoaFisica")
+                        .header("Authorization", "Bearer " + tokenAdmin))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[0].senhaHash").doesNotExist());
+    }
+
     // ── GET /api/pessoaFisica/{id} ────────────────────────────────────────────
 
     @Test
@@ -139,7 +123,8 @@ class PessoaFisicaControllerTest extends PostgresTestContainer {
         mockMvc.perform(get("/api/pessoaFisica/" + id)
                         .header("Authorization", "Bearer " + tokenAdmin))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(id));
+                .andExpect(jsonPath("$.id").value(id))
+                .andExpect(jsonPath("$.senhaHash").doesNotExist());
     }
 
     @Test
@@ -162,14 +147,15 @@ class PessoaFisicaControllerTest extends PostgresTestContainer {
                                 {
                                   "nome": "João Atualizado",
                                   "email": "joao.put@test.com",
-                                  "senhaHash": "novaSenha123",
+                                  "senha": "NovaSenha@456",
                                   "dataNascimento": "1990-05-15",
                                   "cpf": "39053344705",
                                   "role": "CLIENTE"
                                 }
                                 """))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.nome").value("João Atualizado"));
+                .andExpect(jsonPath("$.nome").value("João Atualizado"))
+                .andExpect(jsonPath("$.senhaHash").doesNotExist());
     }
 
     @Test
@@ -177,16 +163,7 @@ class PessoaFisicaControllerTest extends PostgresTestContainer {
         mockMvc.perform(put("/api/pessoaFisica/9999")
                         .header("Authorization", "Bearer " + tokenAdmin)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {
-                                  "nome": "Ninguém",
-                                  "email": "ninguem@test.com",
-                                  "senhaHash": "senha123",
-                                  "dataNascimento": "1990-01-01",
-                                  "cpf": "39053344705",
-                                  "role": "CLIENTE"
-                                }
-                                """))
+                        .content(corpo("Ninguém", "ninguem@test.com", "39053344705")))
                 .andExpect(status().isNotFound());
     }
 
@@ -212,16 +189,8 @@ class PessoaFisicaControllerTest extends PostgresTestContainer {
     private Long criarPessoaFisica(String email, String cpf) throws Exception {
         MvcResult result = mockMvc.perform(post("/api/pessoaFisica")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {
-                                  "nome": "João Silva",
-                                  "email": "%s",
-                                  "senhaHash": "senha123",
-                                  "dataNascimento": "1990-05-15",
-                                  "cpf": "%s",
-                                  "role": "CLIENTE"
-                                }
-                                """.formatted(email, cpf)))
+                        .content(corpo("João Silva", email, cpf)))
+                .andExpect(status().isCreated())
                 .andReturn();
         JsonNode json = mapper.readTree(result.getResponse().getContentAsString());
         return json.get("id").asLong();

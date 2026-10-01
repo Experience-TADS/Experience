@@ -20,12 +20,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * Testes de integração para PessoaJuridicaController — /api/pessoaJuridica
  *
- * O endpoint POST /api/pessoaJuridica é público (permitAll no SecurityConfig).
- * Os demais endpoints exigem autenticação.
- *
- * Observação: a coluna cnpj é VARCHAR(14), então o CNPJ deve ser enviado
- * sem máscara (14 dígitos). Erros de persistência/validação são traduzidos
- * pelo GlobalHandlerException para 404 (RuntimeException genérica).
+ * Valida o contrato DTO: request com campo "senha" (não "senhaHash"),
+ * response sem senhaHash, e POST retorna 201.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -40,102 +36,60 @@ class PessoaJuridicaControllerTest extends PostgresTestContainer {
 
     @BeforeEach
     void setup() throws Exception {
-        tokenAdmin = AuthHelper.obterToken(mockMvc, "admin.pj@test.com", "senha123", "ADMIN");
+        tokenAdmin = AuthHelper.obterToken(mockMvc, "admin.pj@test.com", "Senha@123", "ADMIN");
+    }
+
+    private String corpo(String nome, String email, String cnpj, String razaoSocial) {
+        return """
+                {
+                  "nome": "%s",
+                  "email": "%s",
+                  "senha": "Senha@123",
+                  "dataNascimento": "2000-01-01",
+                  "cnpj": "%s",
+                  "razaoSocial": "%s",
+                  "role": "VENDEDOR"
+                }
+                """.formatted(nome, email, cnpj, razaoSocial);
     }
 
     // ── POST /api/pessoaJuridica (público) ────────────────────────────────────
 
     @Test
-    void postPessoaJuridicaValidaDeveRetornar200() throws Exception {
+    void postPessoaJuridicaValidaDeveRetornar201() throws Exception {
         mockMvc.perform(post("/api/pessoaJuridica")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {
-                                  "nome": "Empresa Teste",
-                                  "email": "empresa@test.com",
-                                  "senhaHash": "senha123",
-                                  "dataNascimento": "2000-01-01",
-                                  "cnpj": "11222333000181",
-                                  "razaoSocial": "Empresa Teste LTDA",
-                                  "role": "VENDEDOR"
-                                }
-                                """))
-                .andExpect(status().isOk())
+                        .content(corpo("Empresa Teste", "empresa@test.com", "11222333000181", "Empresa Teste LTDA")))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").isNumber())
                 .andExpect(jsonPath("$.cnpj").value("11222333000181"))
-                .andExpect(jsonPath("$.razaoSocial").value("Empresa Teste LTDA"));
+                .andExpect(jsonPath("$.razaoSocial").value("Empresa Teste LTDA"))
+                .andExpect(jsonPath("$.senhaHash").doesNotExist());
     }
 
     @Test
-    void postPessoaJuridicaComCnpjInvalidoDeveRetornarErro() throws Exception {
-        // CNPJ sem dígito verificador válido: a validação @CNPJ falha na persistência
-        // e o GlobalHandlerException converte a exceção para 404.
+    void postPessoaJuridicaComCnpjInvalidoDeveRetornar400() throws Exception {
         mockMvc.perform(post("/api/pessoaJuridica")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {
-                                  "nome": "Empresa Inválida",
-                                  "email": "invalida@test.com",
-                                  "senhaHash": "senha123",
-                                  "dataNascimento": "2000-01-01",
-                                  "cnpj": "11111111111111",
-                                  "razaoSocial": "Empresa Inválida LTDA",
-                                  "role": "VENDEDOR"
-                                }
-                                """))
-                .andExpect(status().isNotFound());
+                        .content(corpo("Empresa Inválida", "invalida@test.com", "11111111111111", "Empresa Inválida LTDA")))
+                .andExpect(status().isBadRequest());
     }
 
     @Test
-    void postPessoaJuridicaSemRazaoSocialDeveRetornarErro() throws Exception {
-        // Razão social em branco viola @NotBlank na persistência → 404 pelo handler.
+    void postPessoaJuridicaSemRazaoSocialDeveRetornar400() throws Exception {
         mockMvc.perform(post("/api/pessoaJuridica")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
                                   "nome": "Empresa Sem Razão",
                                   "email": "semrazao@test.com",
-                                  "senhaHash": "senha123",
+                                  "senha": "Senha@123",
                                   "dataNascimento": "2000-01-01",
                                   "cnpj": "11222333000181",
-                                  "razaoSocial": "",
                                   "role": "VENDEDOR"
                                 }
                                 """))
-                .andExpect(status().isNotFound());
-    }
-
-    @Test
-    void postPessoaJuridicaComCnpjDuplicadoDeveRetornarErro() throws Exception {
-        // Primeiro cadastro
-        mockMvc.perform(post("/api/pessoaJuridica")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("""
-                        {
-                          "nome": "Empresa A",
-                          "email": "empresa.a@test.com",
-                          "senhaHash": "senha123",
-                          "dataNascimento": "2000-01-01",
-                          "cnpj": "11222333000181",
-                          "razaoSocial": "Empresa A LTDA",
-                          "role": "VENDEDOR"
-                        }
-                        """));
-
-        // Segundo com mesmo CNPJ deve falhar (CNPJ duplicado → 404 pelo handler)
-        mockMvc.perform(post("/api/pessoaJuridica")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {
-                                  "nome": "Empresa B",
-                                  "email": "empresa.b@test.com",
-                                  "senhaHash": "senha123",
-                                  "dataNascimento": "2000-01-01",
-                                  "cnpj": "11222333000181",
-                                  "razaoSocial": "Empresa B LTDA",
-                                  "role": "VENDEDOR"
-                                }
-                                """))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isBadRequest());
     }
 
     // ── GET /api/pessoaJuridica ───────────────────────────────────────────────
@@ -154,6 +108,14 @@ class PessoaJuridicaControllerTest extends PostgresTestContainer {
                 .andExpect(jsonPath("$.content").isArray());
     }
 
+    @Test
+    void responseNaoDeveConterSenhaHash() throws Exception {
+        mockMvc.perform(get("/api/pessoaJuridica")
+                        .header("Authorization", "Bearer " + tokenAdmin))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[0].senhaHash").doesNotExist());
+    }
+
     // ── GET /api/pessoaJuridica/{id} ──────────────────────────────────────────
 
     @Test
@@ -163,7 +125,8 @@ class PessoaJuridicaControllerTest extends PostgresTestContainer {
         mockMvc.perform(get("/api/pessoaJuridica/" + id)
                         .header("Authorization", "Bearer " + tokenAdmin))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(id));
+                .andExpect(jsonPath("$.id").value(id))
+                .andExpect(jsonPath("$.senhaHash").doesNotExist());
     }
 
     @Test
@@ -182,19 +145,10 @@ class PessoaJuridicaControllerTest extends PostgresTestContainer {
         mockMvc.perform(put("/api/pessoaJuridica/" + id)
                         .header("Authorization", "Bearer " + tokenAdmin)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {
-                                  "nome": "Empresa Atualizada",
-                                  "email": "empresa.put@test.com",
-                                  "senhaHash": "novaSenha123",
-                                  "dataNascimento": "2000-01-01",
-                                  "cnpj": "11222333000181",
-                                  "razaoSocial": "Empresa Atualizada LTDA",
-                                  "role": "VENDEDOR"
-                                }
-                                """))
+                        .content(corpo("Empresa Atualizada", "empresa.put@test.com", "11222333000181", "Empresa Atualizada LTDA")))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.razaoSocial").value("Empresa Atualizada LTDA"));
+                .andExpect(jsonPath("$.razaoSocial").value("Empresa Atualizada LTDA"))
+                .andExpect(jsonPath("$.senhaHash").doesNotExist());
     }
 
     @Test
@@ -202,17 +156,7 @@ class PessoaJuridicaControllerTest extends PostgresTestContainer {
         mockMvc.perform(put("/api/pessoaJuridica/9999")
                         .header("Authorization", "Bearer " + tokenAdmin)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {
-                                  "nome": "Ninguém",
-                                  "email": "ninguem@test.com",
-                                  "senhaHash": "senha123",
-                                  "dataNascimento": "2000-01-01",
-                                  "cnpj": "11222333000181",
-                                  "razaoSocial": "Ninguém LTDA",
-                                  "role": "VENDEDOR"
-                                }
-                                """))
+                        .content(corpo("Ninguém", "ninguem@test.com", "11222333000181", "Ninguém LTDA")))
                 .andExpect(status().isNotFound());
     }
 
@@ -238,17 +182,8 @@ class PessoaJuridicaControllerTest extends PostgresTestContainer {
     private Long criarPessoaJuridica(String email, String cnpj) throws Exception {
         MvcResult result = mockMvc.perform(post("/api/pessoaJuridica")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {
-                                  "nome": "Empresa Teste",
-                                  "email": "%s",
-                                  "senhaHash": "senha123",
-                                  "dataNascimento": "2000-01-01",
-                                  "cnpj": "%s",
-                                  "razaoSocial": "Empresa Teste LTDA",
-                                  "role": "VENDEDOR"
-                                }
-                                """.formatted(email, cnpj)))
+                        .content(corpo("Empresa Teste", email, cnpj, "Empresa Teste LTDA")))
+                .andExpect(status().isCreated())
                 .andReturn();
         JsonNode json = mapper.readTree(result.getResponse().getContentAsString());
         return json.get("id").asLong();

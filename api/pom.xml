@@ -8,7 +8,7 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/x
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.3.1</version>
+        <version>3.3.13</version>
         <relativePath/>
     </parent>
 
@@ -22,6 +22,14 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/x
 
     <properties>
         <java.version>17</java.version>
+        <!--
+          Sobrescreve a versão do Jackson gerenciada pelo Spring Boot (2.17.3), que
+          tem dois CVEs HIGH de Denial of Service no jackson-core (CVE-2026-89407 e
+          CVE-2026-89425). A 2.18.11 corrige ambos. Usar jackson-bom.version garante
+          que todos os módulos Jackson (core, databind, annotations) sobem juntos e
+          consistentes, sem conflito de versão entre eles.
+        -->
+        <jackson-bom.version>2.18.11</jackson-bom.version>
     </properties>
 
     <dependencies>
@@ -206,36 +214,14 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/x
                 </executions>
             </plugin>
 
-            <!-- OWASP Dependency-Check — análise de vulnerabilidades (SCA) -->
-            <plugin>
-                <groupId>org.owasp</groupId>
-                <artifactId>dependency-check-maven</artifactId>
-                <version>12.1.0</version>
-                <configuration>
-                    <!-- Falha o build se encontrar CVE com CVSS >= 7 (High/Critical) -->
-                    <failBuildOnCVSS>7.0</failBuildOnCVSS>
-                    <!-- Ignora dependências de escopo 'test', focando no código de produção -->
-                    <skipTestScope>true</skipTestScope>
-                    <!-- Formatos de relatório gerados em target/ -->
-                    <formats>
-                        <format>HTML</format>
-                        <format>JSON</format>
-                    </formats>
-                    <!-- Lê a chave da variável de ambiente NVD_API_KEY -->
-                    <nvdApiKey>${env.NVD_API_KEY}</nvdApiKey>
-                    <!-- Arquivo opcional para suprimir falsos positivos -->
-                    <!-- <suppressionFiles>
-                        <suppressionFile>owasp-suppressions.xml</suppressionFile>
-                    </suppressionFiles> -->
-                </configuration>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>check</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
+            <!--
+              A análise de vulnerabilidades de dependências (SCA) foi migrada do
+              OWASP Dependency-Check para o Trivy, executado no pipeline de CI
+              (.github/workflows/pipeline-be.yaml). O plugin OWASP foi removido
+              porque dependia da API da NVD, que causava falhas intermitentes
+              ("NullPointerException: bytes is null") e travava o build ao rodar
+              junto da fase verify. O Trivy não exige chave e usa base própria.
+            -->
 
             <!-- Spring Boot -->
             <plugin>

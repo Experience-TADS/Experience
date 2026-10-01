@@ -6,16 +6,23 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.senai.experience.entities.Pedido;
+import com.senai.experience.entities.Pedido;
 import com.senai.experience.entities.Produto;
 import com.senai.experience.entities.StatusFabricacao;
 import com.senai.experience.entities.StatusHistorico;
+import com.senai.experience.entities.Usuario;
 import com.senai.experience.entities.Veiculo;
+import com.senai.experience.repositories.PedidoRepository;
+import com.senai.experience.repositories.PedidoRepository;
 import com.senai.experience.repositories.ProdutoRepository;
 import com.senai.experience.repositories.StatusHistoricoRepository;
 import com.senai.experience.repositories.VeiculoRepository;
+import com.senai.experience.services.AgendaService;
 import lombok.RequiredArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @RequiredArgsConstructor
 @Service
@@ -25,6 +32,10 @@ public class VeiculoService {
     private final ProdutoRepository produtoRepository;
 
     private final StatusHistoricoRepository statusHistoricoRepository;
+
+    private final PedidoRepository pedidoRepository;
+
+    private final AgendaService agendaService;
 
     public Page<Veiculo> findAll(Pageable pageable) { 
         return veiculoRepository.findAll(pageable);
@@ -82,6 +93,7 @@ public class VeiculoService {
 
     /**
      * Confirma a chegada do veículo na concessionária, definindo o status NA_CONCESSIONARIA.
+     * Cria automaticamente um evento de ENTREGA na agenda do vendedor responsável pelo pedido.
      */
     @Transactional
     public Veiculo confirmarChegada(Long id) {
@@ -96,6 +108,25 @@ public class VeiculoService {
         historico.setStatus(StatusFabricacao.NA_CONCESSIONARIA);
         historico.setDataAlteracao(LocalDateTime.now());
         statusHistoricoRepository.save(historico);
+
+        // Busca o pedido mais recente deste veículo pelo produto associado
+        // para obter o vendedor (colaborador) e o cliente
+        if (veiculo.getProduto() != null) {
+            List<Pedido> pedidos = pedidoRepository.findAll();
+            pedidos.stream()
+                    .filter(p -> p.getItens() != null && p.getItens().stream()
+                            .anyMatch(item -> item.getProduto() != null
+                                    && item.getProduto().getIdProduto()
+                                        .equals(veiculo.getProduto().getIdProduto())))
+                    .findFirst()
+                    .ifPresent(pedido -> {
+                        Usuario vendedor = pedido.getIdVendedor();
+                        Usuario cliente = pedido.getIdCliente();
+                        if (vendedor != null && cliente != null) {
+                            agendaService.criarEventoEntregaAutomatico(vendedor, cliente);
+                        }
+                    });
+        }
 
         return veiculo;
     }

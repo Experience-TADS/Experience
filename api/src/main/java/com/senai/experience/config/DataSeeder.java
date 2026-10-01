@@ -113,7 +113,7 @@ public class DataSeeder {
 
     private void criarAdmin(UsuarioRepository repo, PasswordEncoder encoder) {
         String email = "admin@experience.com";
-        if (repo.findByEmail(email) != null) return;
+        if (repo.findByEmail(email).isPresent()) return;
 
         Usuario admin = new Usuario(
                 "Administrador",
@@ -141,17 +141,16 @@ public class DataSeeder {
 
     private Usuario criarVendedor(UsuarioRepository repo, PasswordEncoder encoder) {
         String email = "vendedor.toyota@experience.com";
-        Usuario existente = repo.findByEmail(email);
-        if (existente != null) return existente;
-
-        Usuario vendedor = new Usuario(
-                "Carlos Vendedor Toyota",
-                email,
-                encoder.encode("vendedor123"),
-                LocalDate.of(1980, 5, 10),
-                UserRole.VENDEDOR
-        );
-        return repo.save(vendedor);
+        return repo.findByEmail(email).orElseGet(() -> {
+            Usuario vendedor = new Usuario(
+                    "Carlos Vendedor Toyota",
+                    email,
+                    encoder.encode("vendedor123"),
+                    LocalDate.of(1980, 5, 10),
+                    UserRole.VENDEDOR
+            );
+            return repo.save(vendedor);
+        });
     }
 
     /**
