@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -79,9 +80,7 @@ public class ProdutoController {
         @ApiResponse(responseCode = "403", description = "Acesso negado", content = @Content)
     })
     @PutMapping("/{id}")
-    public ResponseEntity<ProdutoResponse> updateProduto(
-            @Parameter(description = "ID do produto", example = "1") @PathVariable Long id,
-            @RequestBody @Valid ProdutoRequest dto) {
+    public ResponseEntity<ProdutoResponse> updateProduto(@PathVariable Long id, @RequestBody @Valid ProdutoRequest dto) {
         Produto p = ProdutoMapper.toEntity(dto);
         p.setIdProduto(id);
         Produto atualizado = produtoService.update(p);

@@ -41,11 +41,11 @@ public class DataSeeder {
     private static final int CHASSI_BASE = 10001;
 
     private static final Object[][] PRODUTOS = {
-        {"Corolla", "Branco Pérola",  "XEi",    2024},
-        {"Hilux",   "Prata Metálico", "SRX",    2024},
-        {"Yaris",   "Vermelho",       "XLS",    2024},
-        {"RAV4",    "Preto",          "GR-S",   2025},
-        {"SW4",     "Cinza Grafite",  "Diamond", 2025},
+        {"Corolla", "Branco Pérola",  "XEi",     2024, new java.math.BigDecimal("149900.00")},
+        {"Hilux",   "Prata Metálico", "SRX",     2024, new java.math.BigDecimal("289900.00")},
+        {"Yaris",   "Vermelho",       "XLS",     2024, new java.math.BigDecimal("109900.00")},
+        {"RAV4",    "Preto",          "GR-S",    2025, new java.math.BigDecimal("319900.00")},
+        {"SW4",     "Cinza Grafite",  "Diamond", 2025, new java.math.BigDecimal("399900.00")},
     };
 
     // CPFs válidos sem formatação (11 dígitos) — compatível com @Column(length=11)
@@ -133,6 +133,7 @@ public class DataSeeder {
             p.setCor((String) d[1]);
             p.setVersao((String) d[2]);
             p.setAno((Integer) d[3]);
+            p.setPreco((java.math.BigDecimal) d[4]);
             repo.save(p);
         }
         return repo.findAll();

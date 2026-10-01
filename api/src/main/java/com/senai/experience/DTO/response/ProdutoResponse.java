@@ -5,7 +5,6 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 
-@Schema(description = "Dados de um produto (modelo de veículo) retornados pela API")
 @Data
 public class ProdutoResponse {
 
@@ -23,7 +22,5 @@ public class ProdutoResponse {
 
     @Schema(description = "Ano de fabricação", example = "2024")
     private int ano;
-
-    @Schema(description = "Preço de tabela em reais", example = "149900.00")
     private BigDecimal preco;
 }

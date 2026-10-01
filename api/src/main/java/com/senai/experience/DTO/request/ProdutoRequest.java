@@ -6,7 +6,6 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 
-@Schema(description = "Dados para cadastro ou atualização de um produto (modelo de veículo)")
 @Data
 public class ProdutoRequest {
 
@@ -30,7 +29,6 @@ public class ProdutoRequest {
     @Max(value = 2100, message = "O ano informado é inválido")
     private int ano;
 
-    @Schema(description = "Preço de tabela do produto em reais", example = "149900.00", minimum = "0.01")
     @NotNull(message = "O preço é obrigatório")
     @DecimalMin(value = "0.0", inclusive = false, message = "O preço deve ser maior que zero")
     private BigDecimal preco;
