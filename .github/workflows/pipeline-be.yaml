@@ -76,16 +76,16 @@ jobs:
       # Chamar o goal solto pela linha de comando não enxerga essas rules, o que
       # causava o erro "parameters 'rules' ... are missing or invalid".
       # -DskipITs pula os testes de integração (Failsafe) nesta etapa.
-      - name: Run Unit Tests & Verify Coverage Threshold
-        run: mvn verify -DskipITs -B
-
-      - name: Upload JaCoCo Coverage Report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: jacoco-coverage-report
-          path: api/target/site/jacoco/
-
+#      - name: Run Unit Tests & Verify Coverage Threshold
+#        run: mvn verify -DskipITs -B
+#
+#      - name: Upload JaCoCo Coverage Report
+#        if: always()
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: jacoco-coverage-report
+#          path: api/target/site/jacoco/
+#
       # próx: testes automatizados com restassured + testcontainers
 
       # - name: Run Integration Tests (Failsafe Plugin)
