@@ -156,8 +156,7 @@ public class UsuarioController {
         Usuario usuario = usuarioService.findByEmail(email);
         if (usuario == null) {
             return ResponseEntity.status(404).body("Usuário não encontrado.");
-        }
-        return ResponseEntity.ok(UsuarioMapper.toResponse(usuario));
+        }        return ResponseEntity.ok(UsuarioMapper.toResponse(usuario));
     }
 
     @Operation(summary = "Ativar usuário", description = "Ativa a conta de um usuário desativado. Exclusivo para ADMIN.")
