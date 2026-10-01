@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -77,9 +78,7 @@ public class EnderecoController {
         @ApiResponse(responseCode = "403", description = "Acesso negado", content = @Content)
     })
     @PutMapping("/{id}")
-    public ResponseEntity<EnderecoResponse> updateEndereco(
-            @Parameter(description = "ID do endereço", example = "1") @PathVariable Long id,
-            @RequestBody @Valid EnderecoRequest dto) {
+    public ResponseEntity<EnderecoResponse> updateEndereco(@PathVariable Long id, @RequestBody @Valid EnderecoRequest dto) {
         Endereco endereco = EnderecoMapper.toEntity(dto);
         Endereco atualizado = enderecoService.update(id, endereco);
         if (atualizado != null) {

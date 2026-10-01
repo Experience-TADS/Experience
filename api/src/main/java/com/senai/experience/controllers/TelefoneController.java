@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -77,9 +78,7 @@ public class TelefoneController {
         @ApiResponse(responseCode = "403", description = "Acesso negado", content = @Content)
     })
     @PutMapping("/{id}")
-    public ResponseEntity<TelefoneResponse> updateTelefone(
-            @Parameter(description = "ID do telefone", example = "1") @PathVariable Long id,
-            @RequestBody @Valid TelefoneRequest dto) {
+    public ResponseEntity<TelefoneResponse> updateTelefone(@PathVariable Long id, @RequestBody @Valid TelefoneRequest dto) {
         Telefone telefone = TelefoneMapper.toEntity(dto);
         Telefone atualizado = telefoneService.update(id, telefone);
         if (atualizado != null) {
