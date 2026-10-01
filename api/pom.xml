@@ -22,6 +22,14 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/x
 
     <properties>
         <java.version>17</java.version>
+        <!--
+          Sobrescreve a versão do Jackson gerenciada pelo Spring Boot (2.17.3), que
+          tem dois CVEs HIGH de Denial of Service no jackson-core (CVE-2026-89407 e
+          CVE-2026-89425). A 2.18.11 corrige ambos. Usar jackson-bom.version garante
+          que todos os módulos Jackson (core, databind, annotations) sobem juntos e
+          consistentes, sem conflito de versão entre eles.
+        -->
+        <jackson-bom.version>2.18.11</jackson-bom.version>
     </properties>
 
     <dependencies>
