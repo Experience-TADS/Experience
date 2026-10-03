@@ -1,5 +1,7 @@
 package com.senai.experience.controllers;
 
+import com.senai.experience.DTO.request.PessoaJuridicaRequest;
+import com.senai.experience.DTO.response.PessoaJuridicaResponse;
 import com.senai.experience.entities.PessoaJuridica;
 import com.senai.experience.mappers.PessoaJuridicaMapper;
 import com.senai.experience.services.PessoaJuridicaService;
@@ -11,10 +13,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -36,7 +38,6 @@ public class PessoaJuridicaController {
         @ApiResponse(responseCode = "403", description = "Acesso negado", content = @Content)
     })
     @GetMapping
-    @Operation(summary = "Lista todas as pessoas jurídicas paginadas")
     public Page<PessoaJuridicaResponse> getAll(Pageable pageable) {
         return service.findAll(pageable).map(PessoaJuridicaMapper::toResponse);
     }
@@ -48,7 +49,7 @@ public class PessoaJuridicaController {
         @ApiResponse(responseCode = "403", description = "Acesso negado", content = @Content)
     })
     @GetMapping("/{id}")
-    public ResponseEntity<PessoaJuridica> getById(
+    public ResponseEntity<PessoaJuridicaResponse> getById(
             @Parameter(description = "ID da pessoa jurídica", example = "1") @PathVariable Long id) {
         PessoaJuridica pessoaJuridica = service.findById(id);
         if (pessoaJuridica == null) {
@@ -64,28 +65,10 @@ public class PessoaJuridicaController {
         @ApiResponse(responseCode = "403", description = "Acesso negado", content = @Content)
     })
     @PostMapping
-    @Operation(summary = "Cadastra uma nova pessoa jurídica")
     public ResponseEntity<PessoaJuridicaResponse> create(@Valid @RequestBody PessoaJuridicaRequest request) {
         PessoaJuridica entity = PessoaJuridicaMapper.toEntity(request);
         PessoaJuridica salva = service.save(entity);
         return ResponseEntity.status(201).body(PessoaJuridicaMapper.toResponse(salva));
-    }
-
-    @PutMapping("/{id}")
-    @Operation(summary = "Atualiza os dados de uma pessoa jurídica")
-    public ResponseEntity<PessoaJuridicaResponse> update(
-            @PathVariable Long id,
-            @Valid @RequestBody PessoaJuridicaRequest request) {
-
-        PessoaJuridica existing = service.findById(id);
-        if (existing == null) {
-            return ResponseEntity.notFound().build();
-        }
-
-        PessoaJuridica entity = PessoaJuridicaMapper.toEntity(request);
-        entity.setId(id);
-        PessoaJuridica atualizada = service.save(entity);
-        return ResponseEntity.ok(PessoaJuridicaMapper.toResponse(atualizada));
     }
 
     @Operation(summary = "Remover pessoa jurídica", description = "Remove o registro de uma pessoa jurídica pelo ID.")

@@ -48,7 +48,7 @@ class ProdutoRestAssuredTest extends RestAssuredBaseTest {
     void criar_semToken_retorna403() {
         given()
                 .contentType(ContentType.JSON)
-                .body(corpoProduto("Corolla", "Branco", "XEi", 2024))
+                .body(corpoProduto("Corolla", "Branco", "XEi", 2024, "159900.00"))
         .when()
                 .post(BASE)
         .then()

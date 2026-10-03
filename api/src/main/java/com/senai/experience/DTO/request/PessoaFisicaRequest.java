@@ -4,6 +4,7 @@ import com.senai.experience.entities.role.UserRole;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 import lombok.Data;
+import org.hibernate.validator.constraints.br.CPF;
 
 import java.time.LocalDate;
 
@@ -40,6 +41,10 @@ public class PessoaFisicaRequest {
     @Schema(description = "CPF com 11 dígitos numéricos sem formatação", example = "52998224725")
     @NotBlank(message = "O CPF é obrigatório")
     @Pattern(regexp = "\\d{11}", message = "O CPF deve conter exatamente 11 dígitos numéricos")
+    // Valida os dígitos verificadores do CPF (rejeita valores como 11111111111).
+    // Fica no DTO para que a falha vire 400 via @Valid, em vez de estourar só na
+    // persistência (onde o handler genérico a transformava em 404).
+    @CPF(message = "CPF inválido")
     private String cpf;
 
     @Schema(description = "Perfil de acesso", example = "CLIENTE", allowableValues = {"ADMIN", "VENDEDOR", "CLIENTE", "IOT"})

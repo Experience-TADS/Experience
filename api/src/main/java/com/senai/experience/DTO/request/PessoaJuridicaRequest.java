@@ -4,6 +4,7 @@ import com.senai.experience.entities.role.UserRole;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 import lombok.Data;
+import org.hibernate.validator.constraints.br.CNPJ;
 
 import java.time.LocalDate;
 
@@ -40,6 +41,10 @@ public class PessoaJuridicaRequest {
     @Schema(description = "CNPJ com 14 dígitos numéricos sem formatação", example = "12345678000195")
     @NotBlank(message = "O CNPJ é obrigatório")
     @Pattern(regexp = "\\d{14}", message = "O CNPJ deve conter exatamente 14 dígitos numéricos")
+    // Valida os dígitos verificadores do CNPJ (rejeita valores como 11111111111111).
+    // Fica no DTO para que a falha vire 400 via @Valid, em vez de estourar só na
+    // persistência (onde o handler genérico a transformava em 404).
+    @CNPJ(message = "CNPJ inválido")
     private String cnpj;
 
     @Schema(description = "Razão social da empresa", example = "Empresa de Veículos LTDA", minLength = 2, maxLength = 200)

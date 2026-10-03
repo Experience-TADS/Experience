@@ -2,7 +2,6 @@ package com.senai.experience.exception;
 
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.access.AccessDeniedException;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -59,27 +58,17 @@ public class GlobalHandlerException {
     public ResponseEntity<ErrorResponse> handleDataIntegrity(DataIntegrityViolationException ex) {
         String causa = ex.getMostSpecificCause().getMessage();
         String detalhe;
+        if (causa != null && causa.toLowerCase().contains("email")) {
+            detalhe = "Já existe um usuário cadastrado com este e-mail.";
+        } else if (causa != null && causa.toLowerCase().contains("chassi")) {
+            detalhe = "Já existe um veículo cadastrado com este chassi.";
+        } else {
+            detalhe = "Violação de integridade: valor duplicado ou restrição violada.";
+        }
 
-   @ExceptionHandler(DataIntegrityViolationException.class)
-   public ResponseEntity<ErrorResponse> handleDataIntegrity(DataIntegrityViolationException ex) {
-       String detalhe = ex.getMostSpecificCause().getMessage();
-       String mensagem = (detalhe != null && detalhe.toLowerCase().contains("chassi"))
-               ? "Já existe um veículo cadastrado com este chassi."
-               : "Violação de integridade: valor duplicado ou restrição violada.";
-
-       ErrorResponse erro = new ErrorResponse(409, "Conflito de dados", mensagem);
-       return ResponseEntity.status(HttpStatus.CONFLICT).body(erro);
-   }
-
-   @ExceptionHandler(Exception.class)
-   public ResponseEntity<ErrorResponse> handleGeneric(Exception ex) {
-       ErrorResponse erro = new ErrorResponse(
-           500,
-           "Erro interno",
-           "Ocorreu um erro inesperado. Tente novamente."
-       );
-       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(erro);
-   }
+        ErrorResponse erro = new ErrorResponse(409, "Conflito de dados", detalhe);
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(erro);
+    }
 
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ErrorResponse> handleAccessDenied(AccessDeniedException ex) {

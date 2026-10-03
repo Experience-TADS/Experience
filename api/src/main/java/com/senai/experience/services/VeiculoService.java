@@ -7,18 +7,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.senai.experience.entities.Pedido;
-import com.senai.experience.entities.Pedido;
 import com.senai.experience.entities.Produto;
 import com.senai.experience.entities.StatusFabricacao;
 import com.senai.experience.entities.StatusHistorico;
 import com.senai.experience.entities.Usuario;
 import com.senai.experience.entities.Veiculo;
 import com.senai.experience.repositories.PedidoRepository;
-import com.senai.experience.repositories.PedidoRepository;
 import com.senai.experience.repositories.ProdutoRepository;
 import com.senai.experience.repositories.StatusHistoricoRepository;
 import com.senai.experience.repositories.VeiculoRepository;
-import com.senai.experience.services.AgendaService;
 import lombok.RequiredArgsConstructor;
 
 import java.time.LocalDateTime;
