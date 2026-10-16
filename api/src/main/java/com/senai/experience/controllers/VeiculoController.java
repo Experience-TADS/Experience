@@ -1,5 +1,6 @@
 package com.senai.experience.controllers;
 
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -36,13 +37,13 @@ public class VeiculoController {
     }
 
     @PostMapping
-    public ResponseEntity<VeiculoResponse> createVeiculo(@RequestBody VeiculoRequest dto) {
+    public ResponseEntity<VeiculoResponse> createVeiculo(@Valid @RequestBody VeiculoRequest dto) {
         Veiculo salvo = veiculoService.save(VeiculoMapper.toEntity(dto));
         return ResponseEntity.status(201).body(VeiculoMapper.toResponse(salvo));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<VeiculoResponse> updateVeiculo(@PathVariable Long id, @RequestBody VeiculoRequest dto) {
+    public ResponseEntity<VeiculoResponse> updateVeiculo(@PathVariable Long id, @Valid @RequestBody VeiculoRequest dto) {
         Veiculo veiculo = VeiculoMapper.toEntity(dto);
         Veiculo atualizado = veiculoService.update(id, veiculo);
         if (atualizado == null) {

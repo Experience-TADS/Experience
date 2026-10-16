@@ -1,5 +1,6 @@
 package com.senai.experience.controllers;
 
+import jakarta.validation.Valid;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,13 +40,13 @@ public class PedidoController {
     }
 
     @PostMapping
-    public ResponseEntity<PedidoResponse> createPedido(@RequestBody PedidoRequest dto) {
+    public ResponseEntity<PedidoResponse> createPedido(@Valid @RequestBody PedidoRequest dto) {
         Pedido salvo = pedidoService.save(dto);
         return ResponseEntity.status(201).body(PedidoMapper.toResponse(salvo));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<PedidoResponse> updatePedido(@PathVariable Long id, @RequestBody PedidoRequest dto) {
+    public ResponseEntity<PedidoResponse> updatePedido(@PathVariable Long id, @Valid @RequestBody PedidoRequest dto) {
         Pedido atualizado = pedidoService.update(id, dto);
         if (atualizado == null) {
             return ResponseEntity.notFound().build();

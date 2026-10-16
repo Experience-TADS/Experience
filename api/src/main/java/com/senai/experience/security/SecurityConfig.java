@@ -26,14 +26,20 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 public class SecurityConfig {
 
     private final UserDetailsService userDetailsService;
+    private final TokenBlacklist tokenBlacklist;
+    private final AuditAccessDeniedHandler auditAccessDeniedHandler;
 
-    public SecurityConfig(UserDetailsService userDetailsService) {
+    public SecurityConfig(UserDetailsService userDetailsService,
+                          TokenBlacklist tokenBlacklist,
+                          AuditAccessDeniedHandler auditAccessDeniedHandler) {
         this.userDetailsService = userDetailsService;
+        this.tokenBlacklist = tokenBlacklist;
+        this.auditAccessDeniedHandler = auditAccessDeniedHandler;
     }
 
     @Bean
     public JwtAuthFilter jwtAuthFilter() {
-        return new JwtAuthFilter(userDetailsService);
+        return new JwtAuthFilter(userDetailsService, tokenBlacklist);
     }
 
     @Bean
@@ -41,7 +47,20 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable())
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            .headers(headers -> headers.frameOptions().disable())
+            // S-009: cabeçalhos de segurança HTTP
+            .headers(headers -> headers
+                .frameOptions(frame -> frame.deny())
+                .contentTypeOptions(ct -> {})                          // X-Content-Type-Options: nosniff
+                .httpStrictTransportSecurity(hsts -> hsts
+                    .includeSubDomains(true)
+                    .maxAgeInSeconds(31536000))
+                .xssProtection(xss -> xss.headerValue(
+                    org.springframework.security.web.header.writers.XXssProtectionHeaderWriter.HeaderValue.ENABLED_MODE_BLOCK))
+                .referrerPolicy(referrer -> referrer
+                    .policy(org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN))
+                .contentSecurityPolicy(csp -> csp
+                    .policyDirectives("default-src 'self'; frame-ancestors 'none'"))
+            )
             .authorizeHttpRequests(auth -> auth
                 // Rotas públicas
                 .requestMatchers("/h2-console/**").permitAll()
@@ -49,6 +68,7 @@ public class SecurityConfig {
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/usuario/login").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/usuario").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/usuario/logout").authenticated()
                 .requestMatchers(HttpMethod.POST, "/api/pessoaFisica").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/pessoaJuridica").permitAll()
 
@@ -78,6 +98,8 @@ public class SecurityConfig {
                 .anyRequest().authenticated()
             )
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            // S-010: registra acessos negados (403) no audit.log
+            .exceptionHandling(ex -> ex.accessDeniedHandler(auditAccessDeniedHandler))
             .addFilterBefore(jwtAuthFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

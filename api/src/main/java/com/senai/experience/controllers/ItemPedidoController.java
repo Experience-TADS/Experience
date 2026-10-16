@@ -1,8 +1,8 @@
 package com.senai.experience.controllers;
 
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -37,13 +37,13 @@ public class ItemPedidoController {
     }
 
     @PostMapping
-    public ResponseEntity<ItemPedidoResponse> createItemPedido(@RequestBody ItemPedidoRequest dto) {
+    public ResponseEntity<ItemPedidoResponse> createItemPedido(@Valid @RequestBody ItemPedidoRequest dto) {
         ItemPedido salvo = service.save(ItemPedidoMapper.toEntity(dto));
         return ResponseEntity.status(201).body(ItemPedidoMapper.toResponse(salvo));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ItemPedidoResponse> updateItemPedido(@PathVariable Long id, @RequestBody ItemPedidoRequest dto) {
+    public ResponseEntity<ItemPedidoResponse> updateItemPedido(@PathVariable Long id, @Valid @RequestBody ItemPedidoRequest dto) {
         ItemPedido item = ItemPedidoMapper.toEntity(dto);
         item.setIdItemPedido(id);
         ItemPedido atualizado = service.update(item);
