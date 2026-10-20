@@ -1,5 +1,6 @@
 package com.senai.experience.controllers;
 
+import jakarta.validation.Valid;
 import java.util.List;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -67,7 +68,7 @@ public class PedidoController {
         @ApiResponse(responseCode = "403", description = "Acesso negado", content = @Content)
     })
     @PostMapping
-    public ResponseEntity<PedidoResponse> createPedido(@RequestBody PedidoRequest dto) {
+    public ResponseEntity<PedidoResponse> createPedido(@Valid @RequestBody PedidoRequest dto) {
         Pedido salvo = pedidoService.save(dto);
         return ResponseEntity.status(201).body(PedidoMapper.toResponse(salvo));
     }

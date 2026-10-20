@@ -19,9 +19,11 @@ import jakarta.servlet.http.HttpServletResponse;
 public class JwtAuthFilter extends OncePerRequestFilter {
 
     private final UserDetailsService userDetailsService;
+    private final TokenBlacklist tokenBlacklist;
 
-    public JwtAuthFilter(UserDetailsService userDetailsService) {
+    public JwtAuthFilter(UserDetailsService userDetailsService, TokenBlacklist tokenBlacklist) {
         this.userDetailsService = userDetailsService;
+        this.tokenBlacklist = tokenBlacklist;
     }
 
     @Override
@@ -35,6 +37,14 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         }
 
         String token = authHeader.substring(7);
+
+        // S-012: rejeita tokens invalidados após logout
+        if (tokenBlacklist.isBlacklisted(token)) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json");
+            response.getWriter().write("{\"error\":\"Token inválido. Faça login novamente.\"}");
+            return;
+        }
 
         // Valida o token antes de qualquer extração. Tokens malformados/inválidos
         // não devem quebrar a cadeia de filtros: apenas seguem sem autenticação,

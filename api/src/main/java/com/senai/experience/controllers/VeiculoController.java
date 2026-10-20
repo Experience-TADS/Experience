@@ -64,7 +64,7 @@ public class VeiculoController {
         @ApiResponse(responseCode = "403", description = "Acesso negado", content = @Content)
     })
     @PostMapping
-    public ResponseEntity<VeiculoResponse> createVeiculo(@RequestBody VeiculoRequest dto) {
+    public ResponseEntity<VeiculoResponse> createVeiculo(@Valid @RequestBody VeiculoRequest dto) {
         Veiculo salvo = veiculoService.save(VeiculoMapper.toEntity(dto));
         return ResponseEntity.status(201).body(VeiculoMapper.toResponse(salvo));
     }

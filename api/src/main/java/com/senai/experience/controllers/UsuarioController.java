@@ -7,6 +7,8 @@ import com.senai.experience.DTO.response.UsuarioResponse;
 import com.senai.experience.entities.Usuario;
 import com.senai.experience.mappers.UsuarioMapper;
 import com.senai.experience.security.JwtUtil;
+import com.senai.experience.security.TokenBlacklist;
+import com.senai.experience.services.AuditService;
 import com.senai.experience.services.UsuarioService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -30,8 +32,12 @@ import org.springframework.web.bind.annotation.*;
 public class UsuarioController {
 
     private final UsuarioService usuarioService;
+    private final TokenBlacklist tokenBlacklist;
+    private final AuditService auditService;
 
-    public UsuarioController(UsuarioService usuarioService) {
+    public UsuarioController(UsuarioService usuarioService,
+                             TokenBlacklist tokenBlacklist,
+                             AuditService auditService) {
         this.usuarioService = usuarioService;
     }
 
@@ -70,7 +76,7 @@ public class UsuarioController {
         @ApiResponse(responseCode = "400", description = "Dados inválidos no corpo da requisição", content = @Content)
     })
     @PostMapping
-    public ResponseEntity<UsuarioResponse> createUsuario(@RequestBody UsuarioRequest dto) {
+    public ResponseEntity<UsuarioResponse> createUsuario(@Valid @RequestBody UsuarioRequest dto) {
         Usuario salvo = usuarioService.save(UsuarioMapper.toEntity(dto));
         return ResponseEntity.status(201).body(UsuarioMapper.toResponse(salvo));
     }
@@ -120,9 +126,13 @@ public class UsuarioController {
         @ApiResponse(responseCode = "401", description = "E-mail ou senha inválidos", content = @Content)
     })
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest loginRequest,
+                                   HttpServletRequest request) {
+        String ip = resolverIp(request);
         Usuario usuario = usuarioService.login(loginRequest.getEmail(), loginRequest.getSenha());
         if (usuario == null) {
+            // S-010: log de falha de login com IP
+            auditService.logLoginFalha(loginRequest.getEmail(), ip);
             return ResponseEntity.status(401).body("Email ou senha inválidos.");
         }
         String token = JwtUtil.generateToken(

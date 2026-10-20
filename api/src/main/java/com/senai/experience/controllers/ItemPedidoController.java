@@ -63,7 +63,7 @@ public class ItemPedidoController {
         @ApiResponse(responseCode = "403", description = "Acesso negado", content = @Content)
     })
     @PostMapping
-    public ResponseEntity<ItemPedidoResponse> createItemPedido(@RequestBody ItemPedidoRequest dto) {
+    public ResponseEntity<ItemPedidoResponse> createItemPedido(@Valid @RequestBody ItemPedidoRequest dto) {
         ItemPedido salvo = service.save(ItemPedidoMapper.toEntity(dto));
         return ResponseEntity.status(201).body(ItemPedidoMapper.toResponse(salvo));
     }
