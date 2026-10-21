@@ -16,10 +16,10 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.math.BigDecimal;
-import java.sql.Statement;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Popula o banco com dados iniciais para demonstração da integração MQTT.
@@ -177,7 +177,7 @@ public class DataSeeder {
             var ps = connection.prepareStatement(
                     "INSERT INTO usuario (ativo, data_nascimento, email, nome, role, senha_hash) " +
                     "VALUES (true, ?, ?, ?, 'CLIENTE', ?)",
-                    Statement.RETURN_GENERATED_KEYS
+                    new String[]{"id"}  // retorna apenas a coluna id
             );
             ps.setDate(1, java.sql.Date.valueOf(nasc));
             ps.setString(2, email);
@@ -186,7 +186,9 @@ public class DataSeeder {
             return ps;
         }, keyHolder);
 
-        Long usuarioId = keyHolder.getKey().longValue();
+        Long usuarioId = Optional.ofNullable(keyHolder.getKeyAs(Long.class))
+                .orElseThrow(() -> new IllegalStateException(
+                        "[DataSeeder] Falha ao recuperar ID gerado para o usuário: " + email));
 
         // Insere na tabela filha (pessoa_fisica)
         jdbc.update(
