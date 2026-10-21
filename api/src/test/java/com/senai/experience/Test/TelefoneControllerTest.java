@@ -31,7 +31,7 @@ class TelefoneControllerTest extends PostgresTestContainer {
 
     @BeforeEach
     void setup() throws Exception {
-        tokenAdmin = AuthHelper.obterToken(mockMvc, "admin.telefone@test.com", "senha123", "ADMIN");
+        tokenAdmin = AuthHelper.obterToken(mockMvc, "admin.telefone@test.com", "Senha@123", "ADMIN");
         idUsuario  = buscarIdPorEmail("admin.telefone@test.com");
     }
 

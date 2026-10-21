@@ -1,5 +1,7 @@
 package com.senai.experience.DTO.request;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.deser.std.StringDeserializer;
 import com.senai.experience.entities.role.UserRole;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
@@ -30,6 +32,9 @@ public class UsuarioRequest {
         regexp = "^(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*#?&])[A-Za-z\\d@$!%*#?&]{8,}$",
         message = "A senha deve ter no mínimo 8 caracteres, ao menos 1 letra maiúscula, 1 número e 1 caractere especial (@$!%*#?&)"
     )
+    // S-011: a senha não passa pela sanitização XSS global — caracteres como & não devem
+    // ser alterados, pois o valor é usado para gerar o hash e precisa bater no login.
+    @JsonDeserialize(using = StringDeserializer.class)
     private String senha;
 
     @Schema(description = "Data de nascimento do usuário (deve ser uma data passada)", example = "1990-05-20")

@@ -19,6 +19,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -39,6 +41,8 @@ public class UsuarioController {
                              TokenBlacklist tokenBlacklist,
                              AuditService auditService) {
         this.usuarioService = usuarioService;
+        this.tokenBlacklist = tokenBlacklist;
+        this.auditService = auditService;
     }
 
     @Operation(summary = "Listar usuários", description = "Retorna todos os usuários cadastrados de forma paginada. Requer autenticação.")
@@ -106,7 +110,7 @@ public class UsuarioController {
     @PutMapping("/{id}")
     public ResponseEntity<UsuarioResponse> updateUsuario(
             @Parameter(description = "ID do usuário", example = "1") @PathVariable Long id,
-            @RequestBody UsuarioRequest dto) {
+            @Valid @RequestBody UsuarioRequest dto) {
         Usuario u = UsuarioMapper.toEntity(dto);
         u.setId(id);
         Usuario atualizado = usuarioService.update(u);
@@ -139,7 +143,36 @@ public class UsuarioController {
                 usuario.getEmail(),
                 usuario.getRole() != null ? usuario.getRole().name() : "CLIENTE",
                 usuario.getId());
+        // S-010: log de sucesso de login com IP
+        auditService.logLoginSucesso(usuario.getEmail(), ip);
         return ResponseEntity.ok(new LoginResponse(token, usuario.getEmail(), usuario.getRole()));
+    }
+
+    @Operation(
+        summary = "Encerrar sessão (logout)",
+        description = "Invalida o token JWT atual adicionando-o a uma blacklist. "
+                + "Após o logout, qualquer requisição que reutilize o token recebe 401."
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Logout realizado com sucesso — token invalidado"),
+        @ApiResponse(responseCode = "400", description = "Token não fornecido", content = @Content),
+        @ApiResponse(responseCode = "401", description = "Token ausente ou inválido", content = @Content)
+    })
+    @SecurityRequirement(name = "bearerAuth")
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(@RequestHeader(value = "Authorization", required = false) String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.badRequest().body("Token não fornecido.");
+        }
+        String token = authHeader.substring(7);
+        if (!JwtUtil.validateToken(token)) {
+            return ResponseEntity.status(401).body("Token inválido ou expirado.");
+        }
+        // S-012: invalida o token na blacklist — passa a ser rejeitado pelo JwtAuthFilter
+        tokenBlacklist.invalidate(token);
+        // S-010: registra o logout (sem dados sensíveis)
+        auditService.logLogout(JwtUtil.extractUsername(token));
+        return ResponseEntity.ok("Logout realizado com sucesso.");
     }
 
     @Operation(
@@ -199,5 +232,16 @@ public class UsuarioController {
         Usuario usuario = usuarioService.desativar(id);
         if (usuario == null) return ResponseEntity.notFound().build();
         return ResponseEntity.ok(UsuarioMapper.toResponse(usuario));
+    }
+
+    private String resolverIp(HttpServletRequest request) {
+        if (request == null) {
+            return "desconhecido";
+        }
+        String xff = request.getHeader("X-Forwarded-For");
+        if (xff != null && !xff.isBlank()) {
+            return xff.split(",")[0].trim();
+        }
+        return request.getRemoteAddr();
     }
 }

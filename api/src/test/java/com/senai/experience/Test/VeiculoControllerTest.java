@@ -32,8 +32,8 @@ class VeiculoControllerTest extends PostgresTestContainer {
 
     @BeforeEach
     void setup() throws Exception {
-        tokenAdmin   = AuthHelper.obterToken(mockMvc, "admin.veiculo@test.com",   "senha123", "ADMIN");
-        tokenCliente = AuthHelper.obterToken(mockMvc, "cliente.veiculo@test.com", "senha123", "CLIENTE");
+        tokenAdmin   = AuthHelper.obterToken(mockMvc, "admin.veiculo@test.com",   "Senha@123", "ADMIN");
+        tokenCliente = AuthHelper.obterToken(mockMvc, "cliente.veiculo@test.com", "Senha@123", "CLIENTE");
         idProduto    = criarProduto();
     }
 
@@ -218,7 +218,7 @@ class VeiculoControllerTest extends PostgresTestContainer {
                         .header("Authorization", "Bearer " + tokenAdmin)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"modelo":"Civic","cor":"Preto","versao":"EXL","ano":2024}
+                                {"modelo":"Civic","cor":"Preto","versao":"EXL","ano":2024,"preco":149900.00}
                                 """))
                 .andReturn();
         return mapper.readTree(result.getResponse().getContentAsString()).get("idProduto").asLong();

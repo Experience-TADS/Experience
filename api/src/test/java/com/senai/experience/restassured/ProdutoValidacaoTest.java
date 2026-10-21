@@ -46,7 +46,7 @@ class ProdutoValidacaoTest extends RestAssuredBaseTest {
                 .post(BASE)
         .then()
                 .statusCode(400)
-                .body("detalhes", containsString("preco"));
+                .body("mensagem", containsString("preco"));
     }
 
     // ── Preço inválido ────────────────────────────────────────────────────────
@@ -64,7 +64,7 @@ class ProdutoValidacaoTest extends RestAssuredBaseTest {
                 .post(BASE)
         .then()
                 .statusCode(400)
-                .body("detalhes", containsString("preco"));
+                .body("mensagem", containsString("preco"));
     }
 
     @Test
@@ -80,7 +80,7 @@ class ProdutoValidacaoTest extends RestAssuredBaseTest {
                 .post(BASE)
         .then()
                 .statusCode(400)
-                .body("detalhes", containsString("preco"));
+                .body("mensagem", containsString("preco"));
     }
 
     // ── Preço válido ──────────────────────────────────────────────────────────
@@ -132,6 +132,6 @@ class ProdutoValidacaoTest extends RestAssuredBaseTest {
                 .put(BASE + "/1")
         .then()
                 .statusCode(400)
-                .body("detalhes", containsString("preco"));
+                .body("mensagem", containsString("preco"));
     }
 }

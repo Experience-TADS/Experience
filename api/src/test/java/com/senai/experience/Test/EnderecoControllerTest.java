@@ -31,7 +31,7 @@ class EnderecoControllerTest extends PostgresTestContainer {
 
     @BeforeEach
     void setup() throws Exception {
-        tokenAdmin = AuthHelper.obterToken(mockMvc, "admin.endereco@test.com", "senha123", "ADMIN");
+        tokenAdmin = AuthHelper.obterToken(mockMvc, "admin.endereco@test.com", "Senha@123", "ADMIN");
         idUsuario  = buscarIdPorEmail("admin.endereco@test.com");
     }
 

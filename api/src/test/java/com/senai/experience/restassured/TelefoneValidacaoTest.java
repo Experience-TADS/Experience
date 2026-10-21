@@ -33,7 +33,7 @@ class TelefoneValidacaoTest extends RestAssuredBaseTest {
                         {
                           "nome": "Dono Telefone Validacao",
                           "email": "%s",
-                          "senha": "senha123",
+                          "senha": "Senha@123",
                           "dataNascimento": "1990-01-01",
                           "role": "CLIENTE"
                         }
@@ -61,7 +61,7 @@ class TelefoneValidacaoTest extends RestAssuredBaseTest {
                 .post(BASE)
         .then()
                 .statusCode(400)
-                .body("detalhes", containsString("numero"));
+                .body("mensagem", containsString("numero"));
     }
 
     @Test
@@ -77,7 +77,7 @@ class TelefoneValidacaoTest extends RestAssuredBaseTest {
                 .post(BASE)
         .then()
                 .statusCode(400)
-                .body("detalhes", containsString("numero"));
+                .body("mensagem", containsString("numero"));
     }
 
     // ── Formato inválido ──────────────────────────────────────────────────────
@@ -95,7 +95,7 @@ class TelefoneValidacaoTest extends RestAssuredBaseTest {
                 .post(BASE)
         .then()
                 .statusCode(400)
-                .body("detalhes", containsString("numero"));
+                .body("mensagem", containsString("numero"));
     }
 
     @Test
@@ -111,7 +111,7 @@ class TelefoneValidacaoTest extends RestAssuredBaseTest {
                 .post(BASE)
         .then()
                 .statusCode(400)
-                .body("detalhes", containsString("numero"));
+                .body("mensagem", containsString("numero"));
     }
 
     @Test
@@ -127,7 +127,7 @@ class TelefoneValidacaoTest extends RestAssuredBaseTest {
                 .post(BASE)
         .then()
                 .statusCode(400)
-                .body("detalhes", containsString("numero"));
+                .body("mensagem", containsString("numero"));
     }
 
     @Test
@@ -143,7 +143,7 @@ class TelefoneValidacaoTest extends RestAssuredBaseTest {
                 .post(BASE)
         .then()
                 .statusCode(400)
-                .body("detalhes", containsString("numero"));
+                .body("mensagem", containsString("numero"));
     }
 
     // ── Formatos válidos ──────────────────────────────────────────────────────
@@ -195,6 +195,6 @@ class TelefoneValidacaoTest extends RestAssuredBaseTest {
                 .put(BASE + "/1")
         .then()
                 .statusCode(400)
-                .body("detalhes", containsString("numero"));
+                .body("mensagem", containsString("numero"));
     }
 }

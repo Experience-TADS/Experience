@@ -27,7 +27,7 @@ class EnderecoRestAssuredTest extends RestAssuredBaseTest {
                         {
                           "nome": "Dono Endereco",
                           "email": "%s",
-                          "senha": "senha123",
+                          "senha": "Senha@123",
                           "dataNascimento": "1990-01-01",
                           "role": "CLIENTE"
                         }

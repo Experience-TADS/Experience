@@ -32,8 +32,8 @@ class ProdutoControllerTest extends PostgresTestContainer {
 
     @BeforeEach
     void setup() throws Exception {
-        tokenAdmin   = AuthHelper.obterToken(mockMvc, "admin.produto@test.com",   "senha123", "ADMIN");
-        tokenCliente = AuthHelper.obterToken(mockMvc, "cliente.produto@test.com", "senha123", "CLIENTE");
+        tokenAdmin   = AuthHelper.obterToken(mockMvc, "admin.produto@test.com",   "Senha@123", "ADMIN");
+        tokenCliente = AuthHelper.obterToken(mockMvc, "cliente.produto@test.com", "Senha@123", "CLIENTE");
     }
 
     // ── GET /api/produto ──────────────────────────────────────────────────────
@@ -60,7 +60,7 @@ class ProdutoControllerTest extends PostgresTestContainer {
                         .header("Authorization", "Bearer " + tokenAdmin)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"modelo":"Civic","cor":"Preto","versao":"EXL","ano":2024}
+                                {"modelo":"Civic","cor":"Preto","versao":"EXL","ano":2024,"preco":149900.00}
                                 """))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.modelo").value("Civic"));
@@ -106,7 +106,7 @@ class ProdutoControllerTest extends PostgresTestContainer {
                         .header("Authorization", "Bearer " + tokenAdmin)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"modelo":"Corolla","cor":"Branco","versao":"XEI","ano":2025}
+                                {"modelo":"Corolla","cor":"Branco","versao":"XEI","ano":2025,"preco":159900.00}
                                 """))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.modelo").value("Corolla"));
@@ -152,7 +152,7 @@ class ProdutoControllerTest extends PostgresTestContainer {
                         .header("Authorization", "Bearer " + tokenAdmin)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"modelo":"Civic","cor":"Preto","versao":"EXL","ano":2024}
+                                {"modelo":"Civic","cor":"Preto","versao":"EXL","ano":2024,"preco":149900.00}
                                 """))
                 .andReturn();
         JsonNode json = mapper.readTree(result.getResponse().getContentAsString());

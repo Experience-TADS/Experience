@@ -61,8 +61,8 @@ class UsuarioEmailDuplicadoTest extends RestAssuredBaseTest {
                 .post(BASE)
         .then()
                 .statusCode(409)
-                .body("mensagem", containsString("Conflito"))
-                .body("detalhes", containsString("e-mail"));
+                .body("erro", containsString("Conflito"))
+                .body("mensagem", containsString("e-mail"));
     }
 
     @Test
@@ -103,7 +103,7 @@ class UsuarioEmailDuplicadoTest extends RestAssuredBaseTest {
                 .post(BASE)
         .then()
                 .statusCode(409)
-                .body("detalhes", containsString("e-mail"));
+                .body("mensagem", containsString("e-mail"));
     }
 
     // ── Case sensitivity: mesmo e-mail com capitalização diferente ────────────

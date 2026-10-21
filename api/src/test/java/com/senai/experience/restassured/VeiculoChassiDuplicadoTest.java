@@ -62,8 +62,8 @@ class VeiculoChassiDuplicadoTest extends RestAssuredBaseTest {
                 .post(BASE)
         .then()
                 .statusCode(409)
-                .body("mensagem", containsString("Conflito"))
-                .body("detalhes", containsString("chassi"));
+                .body("erro", containsString("Conflito"))
+                .body("mensagem", containsString("chassi"));
     }
 
     @Test
@@ -129,6 +129,6 @@ class VeiculoChassiDuplicadoTest extends RestAssuredBaseTest {
                 .post(BASE)
         .then()
                 .statusCode(409)
-                .body("detalhes", containsString("chassi"));
+                .body("mensagem", containsString("chassi"));
     }
 }

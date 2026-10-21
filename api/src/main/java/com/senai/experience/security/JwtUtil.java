@@ -78,9 +78,4 @@ public class JwtUtil {
             return false;
         }
     }
-
-    /** Expõe a chave de assinatura para uso interno (ex.: TokenBlacklist). */
-    public static Key getKey() {
-        return key;
-    }
 }

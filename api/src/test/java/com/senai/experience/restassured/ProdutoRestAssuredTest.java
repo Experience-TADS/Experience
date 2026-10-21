@@ -59,7 +59,7 @@ class ProdutoRestAssuredTest extends RestAssuredBaseTest {
     @DisplayName("POST com token de CLIENTE retorna 403 (sem permissão)")
     void criar_comCliente_retorna403() {
         String tokenCliente = criarUsuarioEObterToken(
-                "cliente.produto@teste.com", "senha123", "CLIENTE");
+                "cliente.produto@teste.com", "Senha@123", "CLIENTE");
 
         given()
                 .header("Authorization", "Bearer " + tokenCliente)
@@ -159,7 +159,7 @@ class ProdutoRestAssuredTest extends RestAssuredBaseTest {
     @DisplayName("VENDEDOR pode criar produto mas não pode deletar")
     void vendedor_criaMasNaoDeleta() {
         String tokenVendedor = criarUsuarioEObterToken(
-                "vendedor.produto@teste.com", "senha123", "VENDEDOR");
+                "vendedor.produto@teste.com", "Senha@123", "VENDEDOR");
 
         // VENDEDOR cria → 201
         Integer id = given()

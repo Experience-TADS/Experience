@@ -92,15 +92,16 @@ public class PessoaJuridicaController {
         @ApiResponse(responseCode = "403", description = "Acesso negado", content = @Content)
     })
     @PutMapping("/{id}")
-    public ResponseEntity<PessoaJuridica> update(
+    public ResponseEntity<PessoaJuridicaResponse> update(
             @Parameter(description = "ID da pessoa jurídica", example = "1") @PathVariable Long id,
-            @RequestBody PessoaJuridica pessoaJuridica) {
-        PessoaJuridica existingPessoaJuridica = service.findById(id);
-        if (existingPessoaJuridica != null) {
-            pessoaJuridica.setId(id);
-            return ResponseEntity.ok(service.save(pessoaJuridica));
-        } else {
+            @Valid @RequestBody PessoaJuridicaRequest request) {
+        PessoaJuridica existente = service.findById(id);
+        if (existente == null) {
             return ResponseEntity.notFound().build();
         }
+        // Aplica o DTO sobre a entidade gerenciada, preservando id e estado de persistência.
+        PessoaJuridicaMapper.updateEntity(existente, request);
+        PessoaJuridica atualizada = service.save(existente);
+        return ResponseEntity.ok(PessoaJuridicaMapper.toResponse(atualizada));
     }
 }

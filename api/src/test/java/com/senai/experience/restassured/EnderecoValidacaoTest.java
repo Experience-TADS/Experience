@@ -44,7 +44,7 @@ class EnderecoValidacaoTest extends RestAssuredBaseTest {
                 .post(BASE)
         .then()
                 .statusCode(400)
-                .body("detalhes", containsString("cep"));
+                .body("mensagem", containsString("cep"));
     }
 
     @Test
@@ -70,17 +70,14 @@ class EnderecoValidacaoTest extends RestAssuredBaseTest {
                 .post(BASE)
         .then()
                 .statusCode(400)
-                .body("detalhes", containsString("cep"));
+                .body("mensagem", containsString("cep"));
     }
 
     @Test
     @DisplayName("POST com CEP no formato com hífen (00000-000) retorna 201")
     void criar_cepComHifen_retorna201() {
         String token = obterTokenAdmin();
-        Integer idUsuario = criarUsuarioEObterToken(
-                "valida.cep.hifen@teste.com", "senha123", "CLIENTE") != null
-                ? extrairIdUsuario("valida.cep.hifen@teste.com")
-                : 1;
+        Integer idUsuario = extrairIdUsuario("valida.cep.hifen@teste.com");
 
         given()
                 .header("Authorization", "Bearer " + token)
@@ -153,7 +150,7 @@ class EnderecoValidacaoTest extends RestAssuredBaseTest {
                 .post(BASE)
         .then()
                 .statusCode(400)
-                .body("detalhes", containsString("logradouro"));
+                .body("mensagem", containsString("logradouro"));
     }
 
     @Test
@@ -179,7 +176,7 @@ class EnderecoValidacaoTest extends RestAssuredBaseTest {
                 .post(BASE)
         .then()
                 .statusCode(400)
-                .body("detalhes", containsString("bairro"));
+                .body("mensagem", containsString("bairro"));
     }
 
     @Test
@@ -205,7 +202,7 @@ class EnderecoValidacaoTest extends RestAssuredBaseTest {
                 .post(BASE)
         .then()
                 .statusCode(400)
-                .body("detalhes", containsString("cidade"));
+                .body("mensagem", containsString("cidade"));
     }
 
     // ── Estado ───────────────────────────────────────────────────────────────
@@ -233,7 +230,7 @@ class EnderecoValidacaoTest extends RestAssuredBaseTest {
                 .post(BASE)
         .then()
                 .statusCode(400)
-                .body("detalhes", containsString("estado"));
+                .body("mensagem", containsString("estado"));
     }
 
     // ── PUT também valida ─────────────────────────────────────────────────────
@@ -261,7 +258,7 @@ class EnderecoValidacaoTest extends RestAssuredBaseTest {
                 .put(BASE + "/1")
         .then()
                 .statusCode(400)
-                .body("detalhes", containsString("cep"));
+                .body("mensagem", containsString("cep"));
     }
 
     // ── Utilitário ───────────────────────────────────────────────────────────
@@ -278,7 +275,7 @@ class EnderecoValidacaoTest extends RestAssuredBaseTest {
                         {
                           "nome": "Usuario Validacao",
                           "email": "%s",
-                          "senha": "senha123",
+                          "senha": "Senha@123",
                           "dataNascimento": "1990-01-01",
                           "role": "CLIENTE"
                         }

@@ -18,6 +18,22 @@ public class PessoaJuridicaMapper {
         return p;
     }
 
+    /**
+     * Aplica os campos do DTO sobre uma entidade já gerenciada (fluxo de update).
+     * Preserva o id e o estado de persistência da entidade existente, evitando
+     * conflitos de constraint no commit. A senha vem como texto puro do request;
+     * o service reencoda conforme necessário.
+     */
+    public static void updateEntity(PessoaJuridica destino, PessoaJuridicaRequest dto) {
+        destino.setNome(dto.getNome());
+        destino.setEmail(dto.getEmail());
+        destino.setSenhaHash(dto.getSenha());
+        destino.setDataNascimento(dto.getDataNascimento());
+        destino.setCnpj(dto.getCnpj());
+        destino.setRazaoSocial(dto.getRazaoSocial());
+        destino.setRole(dto.getRole());
+    }
+
     public static PessoaJuridicaResponse toResponse(PessoaJuridica p) {
         PessoaJuridicaResponse r = new PessoaJuridicaResponse();
         r.setId(p.getId());

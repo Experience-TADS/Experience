@@ -35,9 +35,9 @@ class PedidoControllerTest extends PostgresTestContainer {
 
     @BeforeEach
     void setup() throws Exception {
-        tokenAdmin   = AuthHelper.obterToken(mockMvc, "admin.pedido@test.com",   "senha123", "ADMIN");
-        tokenVendedor = AuthHelper.obterToken(mockMvc, "vendedor.pedido@test.com", "senha123", "VENDEDOR");
-        tokenCliente = AuthHelper.obterToken(mockMvc, "cliente.pedido@test.com", "senha123", "CLIENTE");
+        tokenAdmin   = AuthHelper.obterToken(mockMvc, "admin.pedido@test.com",   "Senha@123", "ADMIN");
+        tokenVendedor = AuthHelper.obterToken(mockMvc, "vendedor.pedido@test.com", "Senha@123", "VENDEDOR");
+        tokenCliente = AuthHelper.obterToken(mockMvc, "cliente.pedido@test.com", "Senha@123", "CLIENTE");
 
         idCliente  = buscarIdPorEmail("cliente.pedido@test.com");
         idVendedor = buscarIdPorEmail("vendedor.pedido@test.com");
