@@ -18,4 +18,7 @@ public class LoginResponse {
 
     @Schema(description = "Perfil de acesso do usuário autenticado", example = "ADMIN")
     private UserRole role;
+
+    @Schema(description = "Refresh token opaco de longa duração para renovar o access token via POST /auth/refresh")
+    private String refreshToken;
 }

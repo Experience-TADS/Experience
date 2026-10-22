@@ -62,7 +62,7 @@ class AgendaRestAssuredTest extends RestAssuredBaseTest {
                         {
                           "nome": "Cliente Agenda",
                           "email": "%s",
-                          "senha": "senha123",
+                          "senha": "Senha@123",
                           "dataNascimento": "1990-01-01",
                           "role": "CLIENTE"
                         }
@@ -72,7 +72,7 @@ class AgendaRestAssuredTest extends RestAssuredBaseTest {
         if (resCliente.statusCode() == 201) {
             idCliente = resCliente.jsonPath().getLong("id");
         } else {
-            String tk = obterToken(emailCliente, "senha123");
+            String tk = obterToken(emailCliente, "Senha@123");
             idCliente = given()
                     .header("Authorization", "Bearer " + tk)
                     .when().get("/api/usuario/me")
@@ -80,7 +80,7 @@ class AgendaRestAssuredTest extends RestAssuredBaseTest {
                     .extract().jsonPath().getLong("id");
         }
 
-        tokenCliente = obterToken(emailCliente, "senha123");
+        tokenCliente = obterToken(emailCliente, "Senha@123");
 
         idVendedor = given()
                 .header("Authorization", "Bearer " + tokenVendedor)

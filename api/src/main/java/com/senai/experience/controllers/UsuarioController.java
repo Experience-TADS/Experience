@@ -8,7 +8,9 @@ import com.senai.experience.entities.Usuario;
 import com.senai.experience.mappers.UsuarioMapper;
 import com.senai.experience.security.JwtUtil;
 import com.senai.experience.security.TokenBlacklist;
+import com.senai.experience.DTO.request.LogoutRequest;
 import com.senai.experience.services.AuditService;
+import com.senai.experience.services.RefreshTokenService;
 import com.senai.experience.services.UsuarioService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -36,13 +38,16 @@ public class UsuarioController {
     private final UsuarioService usuarioService;
     private final TokenBlacklist tokenBlacklist;
     private final AuditService auditService;
+    private final RefreshTokenService refreshTokenService;
 
     public UsuarioController(UsuarioService usuarioService,
                              TokenBlacklist tokenBlacklist,
-                             AuditService auditService) {
+                             AuditService auditService,
+                             RefreshTokenService refreshTokenService) {
         this.usuarioService = usuarioService;
         this.tokenBlacklist = tokenBlacklist;
         this.auditService = auditService;
+        this.refreshTokenService = refreshTokenService;
     }
 
     @Operation(summary = "Listar usuários", description = "Retorna todos os usuários cadastrados de forma paginada. Requer autenticação.")
@@ -143,9 +148,12 @@ public class UsuarioController {
                 usuario.getEmail(),
                 usuario.getRole() != null ? usuario.getRole().name() : "CLIENTE",
                 usuario.getId());
+        // S-Card 1: emite o refresh token antes do log de sucesso — uma falha de
+        // persistência aqui não deixa um log de "login OK" para uma requisição com erro.
+        String refresh = refreshTokenService.emitir(usuario.getId());
         // S-010: log de sucesso de login com IP
         auditService.logLoginSucesso(usuario.getEmail(), ip);
-        return ResponseEntity.ok(new LoginResponse(token, usuario.getEmail(), usuario.getRole()));
+        return ResponseEntity.ok(new LoginResponse(token, usuario.getEmail(), usuario.getRole(), refresh));
     }
 
     @Operation(
@@ -160,7 +168,8 @@ public class UsuarioController {
     })
     @SecurityRequirement(name = "bearerAuth")
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(@RequestHeader(value = "Authorization", required = false) String authHeader) {
+    public ResponseEntity<?> logout(@RequestHeader(value = "Authorization", required = false) String authHeader,
+                                    @RequestBody(required = false) LogoutRequest body) {
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             return ResponseEntity.badRequest().body("Token não fornecido.");
         }
@@ -170,6 +179,10 @@ public class UsuarioController {
         }
         // S-012: invalida o token na blacklist — passa a ser rejeitado pelo JwtAuthFilter
         tokenBlacklist.invalidate(token);
+        // S-Card 1: revoga o refresh token atual (idempotente; não altera o status do logout)
+        if (body != null && body.getRefreshToken() != null && !body.getRefreshToken().isBlank()) {
+            refreshTokenService.revogar(body.getRefreshToken());
+        }
         // S-010: registra o logout (sem dados sensíveis)
         auditService.logLogout(JwtUtil.extractUsername(token));
         return ResponseEntity.ok("Logout realizado com sucesso.");
