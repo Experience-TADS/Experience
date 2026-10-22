@@ -16,11 +16,18 @@ public class JwtUtil {
 
     private static Key key;
 
-    private static final long EXPIRATION_TIME = 86400000; // 24h
+    // Access token de curta duração (S-Card 1). Default 15 min, configurável via
+    // jwt.access-token.ttl-minutos (env JWT_ACCESS_TOKEN_TTL_MINUTOS).
+    private static long accessTtlMillis = 15 * 60 * 1000L; // default 15 min
 
     @Value("${jwt.secret}")
     public void setSecret(String secret) {
         key = Keys.hmacShaKeyFor(Decoders.BASE64.decode(secret));
+    }
+
+    @Value("${jwt.access-token.ttl-minutos:15}")
+    public void setAccessTtlMinutos(long minutos) {
+        accessTtlMillis = minutos * 60_000L;
     }
 
     // Expõe a chave de assinatura para validação de tokens em outras classes
@@ -35,7 +42,7 @@ public class JwtUtil {
                 .claim("role", role)
                 .claim("userId", userId)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
+                .setExpiration(new Date(System.currentTimeMillis() + accessTtlMillis))
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
     }

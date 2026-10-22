@@ -160,17 +160,16 @@ class VeiculoControllerTest extends PostgresTestContainer {
     }
 
     @Test
-    void postStatusComClienteDevePermitir() throws Exception {
+    void postStatusComClienteDeveSerProibido() throws Exception {
         Long id = criarVeiculo();
 
-        // O endpoint POST /api/veiculo/{id}/status é permitAll (recebe eventos de fabricação),
-        // então qualquer usuário autenticado consegue avançar o status.
+        // Card de segurança: alterar o status de fabricação exige role ADMIN ou VENDEDOR.
+        // Um usuário CLIENTE autenticado deve receber 403 Forbidden ao tentar avançar o status.
         mockMvc.perform(post("/api/veiculo/" + id + "/status")
                         .header("Authorization", "Bearer " + tokenCliente)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("\"MONTAGEM_ESTRUTURAL\""))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("MONTAGEM_ESTRUTURAL"));
+                .andExpect(status().isForbidden());
     }
 
     @Test

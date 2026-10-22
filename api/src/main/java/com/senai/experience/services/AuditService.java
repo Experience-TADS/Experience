@@ -37,6 +37,15 @@ public class AuditService {
         audit.info("LOGOUT | usuario={}", email);
     }
 
+    /** O valor/hash do refresh token NUNCA é registrado — apenas o evento. */
+    public void logRefreshSucesso(String email) {
+        audit.info("REFRESH_SUCESSO | usuario={}", email);
+    }
+
+    public void logRefreshFalha(String ip) {
+        audit.info("REFRESH_FALHA | ip={}", ip);
+    }
+
     // ------------------------------------------------------------------ //
     // Controle de acesso                                                   //
     // ------------------------------------------------------------------ //

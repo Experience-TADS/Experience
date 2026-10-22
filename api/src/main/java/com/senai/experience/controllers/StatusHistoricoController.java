@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -44,14 +45,16 @@ public class StatusHistoricoController {
 
     @Operation(
         summary = "Atualizar status do veículo",
-        description = "Registra uma nova transição de status para o veículo. O novo status deve respeitar a sequência de fabricação definida."
+        description = "Registra uma nova transição de status para o veículo. O novo status deve respeitar a sequência de fabricação definida. Apenas usuários com role ADMIN ou VENDEDOR podem alterar o status."
     )
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Status atualizado e histórico registrado com sucesso"),
         @ApiResponse(responseCode = "400", description = "Transição de status inválida", content = @Content),
-        @ApiResponse(responseCode = "404", description = "Veículo não encontrado", content = @Content),
-        @ApiResponse(responseCode = "403", description = "Acesso negado", content = @Content)
+        @ApiResponse(responseCode = "401", description = "Não autenticado — token JWT ausente ou inválido", content = @Content),
+        @ApiResponse(responseCode = "403", description = "Acesso negado — exige role ADMIN ou VENDEDOR", content = @Content),
+        @ApiResponse(responseCode = "404", description = "Veículo não encontrado", content = @Content)
     })
+    @PreAuthorize("hasAnyRole('ADMIN', 'VENDEDOR')")
     @PostMapping
     public ResponseEntity<StatusHistorico> atualizarStatus(
             @Parameter(description = "ID do veículo", example = "1") @PathVariable Long veiculoId,

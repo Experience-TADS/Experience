@@ -44,7 +44,7 @@ class AnalyticsRestAssuredTest extends RestAssuredBaseTest {
                         {
                           "nome": "Cliente Analytics",
                           "email": "%s",
-                          "senha": "senha123",
+                          "senha": "Senha@123",
                           "dataNascimento": "1990-01-01",
                           "role": "CLIENTE"
                         }
@@ -55,7 +55,7 @@ class AnalyticsRestAssuredTest extends RestAssuredBaseTest {
         if (res.statusCode() == 201) {
             idCliente = res.jsonPath().getLong("id");
         } else {
-            String tk = obterToken(emailCliente, "senha123");
+            String tk = obterToken(emailCliente, "Senha@123");
             idCliente = given()
                     .header("Authorization", "Bearer " + tk)
                     .when().get("/api/usuario/me")
@@ -63,7 +63,7 @@ class AnalyticsRestAssuredTest extends RestAssuredBaseTest {
                     .extract().jsonPath().getLong("id");
         }
 
-        tokenCliente = obterToken(emailCliente, "senha123");
+        tokenCliente = obterToken(emailCliente, "Senha@123");
     }
 
     // ── POST /sessao — autorização ────────────────────────────────────────────
