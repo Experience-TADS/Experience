@@ -141,16 +141,17 @@ public class DataSeeder {
 
     private Usuario criarVendedor(UsuarioRepository repo, PasswordEncoder encoder) {
         String email = "vendedor.toyota@experience.com";
-        return repo.findByEmail(email).orElseGet(() -> {
-            Usuario vendedor = new Usuario(
-                    "Carlos Vendedor Toyota",
-                    email,
-                    encoder.encode("vendedor123"),
-                    LocalDate.of(1980, 5, 10),
-                    UserRole.VENDEDOR
-            );
-            return repo.save(vendedor);
-        });
+        Optional<Usuario> existente = repo.findByEmail(email);
+        if (existente.isPresent()) return existente.get();
+
+        Usuario vendedor = new Usuario(
+                "Carlos Vendedor Toyota",
+                email,
+                encoder.encode("vendedor123"),
+                LocalDate.of(1980, 5, 10),
+                UserRole.VENDEDOR
+        );
+        return repo.save(vendedor);
     }
 
     /**
