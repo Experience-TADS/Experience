@@ -26,22 +26,90 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 public class SecurityConfig {
 
     private final UserDetailsService userDetailsService;
+    private final TokenBlacklist tokenBlacklist;
+    private final AuditAccessDeniedHandler auditAccessDeniedHandler;
+    private final StatusUnauthorizedEntryPoint statusUnauthorizedEntryPoint;
+    private final LoginRateLimitFilter loginRateLimitFilter;
 
-    public SecurityConfig(UserDetailsService userDetailsService) {
+    public SecurityConfig(UserDetailsService userDetailsService,
+                          TokenBlacklist tokenBlacklist,
+                          AuditAccessDeniedHandler auditAccessDeniedHandler,
+                          StatusUnauthorizedEntryPoint statusUnauthorizedEntryPoint,
+                          LoginRateLimitFilter loginRateLimitFilter) {
         this.userDetailsService = userDetailsService;
+        this.tokenBlacklist = tokenBlacklist;
+        this.auditAccessDeniedHandler = auditAccessDeniedHandler;
+        this.statusUnauthorizedEntryPoint = statusUnauthorizedEntryPoint;
+        this.loginRateLimitFilter = loginRateLimitFilter;
     }
 
     @Bean
     public JwtAuthFilter jwtAuthFilter() {
-        return new JwtAuthFilter(userDetailsService);
+        return new JwtAuthFilter(userDetailsService, tokenBlacklist);
+    }
+
+    /**
+     * Cadeia dedicada ao endpoint POST /api/veiculo/{id}/status (card de autorização de status).
+     *
+     * <p>Fica com @Order(1) para ser avaliada antes da cadeia principal e capturar apenas
+     * esse path/método via securityMatcher. É a única cadeia com entry point de 401, de modo
+     * que requisições sem token nessa rota recebem 401 — enquanto todas as demais rotas, na
+     * cadeia principal, mantêm o 403 padrão da API para anônimos. Mantém o mesmo stack de
+     * filtros (JWT + rate limit) e os cabeçalhos de segurança da cadeia principal.</p>
+     */
+    @Bean
+    @org.springframework.core.annotation.Order(1)
+    public SecurityFilterChain statusSecurityFilterChain(HttpSecurity http) throws Exception {
+        http
+            .securityMatcher(new org.springframework.security.web.util.matcher.AntPathRequestMatcher(
+                    "/api/veiculo/*/status", HttpMethod.POST.name()))
+            .csrf(csrf -> csrf.disable())
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+            .headers(headers -> headers
+                .frameOptions(frame -> frame.deny())
+                .contentTypeOptions(ct -> {})
+                .httpStrictTransportSecurity(hsts -> hsts
+                    .includeSubDomains(true)
+                    .maxAgeInSeconds(31536000))
+                .xssProtection(xss -> xss.headerValue(
+                    org.springframework.security.web.header.writers.XXssProtectionHeaderWriter.HeaderValue.ENABLED_MODE_BLOCK))
+                .referrerPolicy(referrer -> referrer
+                    .policy(org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN))
+                .contentSecurityPolicy(csp -> csp
+                    .policyDirectives("default-src 'self'; frame-ancestors 'none'"))
+            )
+            .authorizeHttpRequests(auth -> auth
+                .anyRequest().hasAnyRole("ADMIN", "VENDEDOR"))
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            // 401 para anônimo nesta rota; 403 (accessDenied) para token sem a role exigida.
+            .exceptionHandling(ex -> ex
+                .authenticationEntryPoint(statusUnauthorizedEntryPoint)
+                .accessDeniedHandler(auditAccessDeniedHandler))
+            .addFilterBefore(jwtAuthFilter(), UsernamePasswordAuthenticationFilter.class);
+
+        return http.build();
     }
 
     @Bean
+    @org.springframework.core.annotation.Order(2)
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .csrf(csrf -> csrf.disable())
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            .headers(headers -> headers.frameOptions().disable())
+            // S-009: cabeçalhos de segurança HTTP
+            .headers(headers -> headers
+                .frameOptions(frame -> frame.deny())
+                .contentTypeOptions(ct -> {})                          // X-Content-Type-Options: nosniff
+                .httpStrictTransportSecurity(hsts -> hsts
+                    .includeSubDomains(true)
+                    .maxAgeInSeconds(31536000))
+                .xssProtection(xss -> xss.headerValue(
+                    org.springframework.security.web.header.writers.XXssProtectionHeaderWriter.HeaderValue.ENABLED_MODE_BLOCK))
+                .referrerPolicy(referrer -> referrer
+                    .policy(org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN))
+                .contentSecurityPolicy(csp -> csp
+                    .policyDirectives("default-src 'self'; frame-ancestors 'none'"))
+            )
             .authorizeHttpRequests(auth -> auth
                 // Rotas públicas
                 .requestMatchers("/h2-console/**").permitAll()
@@ -49,6 +117,8 @@ public class SecurityConfig {
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/usuario/login").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/usuario").permitAll()
+                .requestMatchers(HttpMethod.POST, "/auth/refresh").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/usuario/logout").authenticated()
                 .requestMatchers(HttpMethod.POST, "/api/pessoaFisica").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/pessoaJuridica").permitAll()
 
@@ -63,7 +133,7 @@ public class SecurityConfig {
 
                 // Status de fabricação: leitura para autenticados, escrita apenas para IOT e ADMIN
                 .requestMatchers(HttpMethod.GET, "/api/veiculo/*/status").authenticated()
-                .requestMatchers(HttpMethod.POST, "/api/veiculo/*/status").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/veiculo/*/status").hasAnyRole("ADMIN", "VENDEDOR")
 
                 .requestMatchers(HttpMethod.POST, "/api/analytics/sessao").authenticated()
                 .requestMatchers(HttpMethod.GET, "/api/analytics/sessao/resumo").hasRole("ADMIN")
@@ -84,7 +154,18 @@ public class SecurityConfig {
                 .anyRequest().authenticated()
             )
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .addFilterBefore(jwtAuthFilter(), UsernamePasswordAuthenticationFilter.class);
+            // S-010: registra acessos negados (403) no audit.log.
+            // Mantém o comportamento padrão da API: 403 para requisições anônimas.
+            // O requisito de 401 sem token no endpoint POST /api/veiculo/*/status é
+            // tratado de forma isolada por uma SecurityFilterChain dedicada (ver abaixo),
+            // para não alterar o 403 global das demais rotas.
+            .exceptionHandling(ex -> ex.accessDeniedHandler(auditAccessDeniedHandler))
+            // S-008: rate limiting do login — roda antes do filtro JWT.
+            // Como ambos usam addFilterBefore na mesma âncora, o JWT é registrado
+            // por último para ficar imediatamente antes do UsernamePasswordAuthenticationFilter,
+            // e o rate limit (registrado antes) roda à frente do JWT.
+            .addFilterBefore(jwtAuthFilter(), UsernamePasswordAuthenticationFilter.class)
+            .addFilterBefore(loginRateLimitFilter, JwtAuthFilter.class);
 
         return http.build();
     }

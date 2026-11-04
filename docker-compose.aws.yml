@@ -3,7 +3,7 @@ services:
   # ─── API SPRING BOOT ───────────────────────────────────────────────────────
   api:
     build:
-      context: ./api/experience
+      context: ./api
       dockerfile: Dockerfile
     container_name: experience-api
     restart: unless-stopped
@@ -19,16 +19,6 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
-
-  # ─── CHATBOT FLASK ─────────────────────────────────────────────────────────
-  chatbot:
-    build:
-      context: ./web
-      dockerfile: Dockerfile.flask
-    container_name: experience-chatbot
-    restart: unless-stopped
-    ports:
-      - "5000:5000"
 
   # ─── MQTT / IOT ────────────────────────────────────────────────────────────
   mqtt:

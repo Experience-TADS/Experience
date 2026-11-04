@@ -32,7 +32,7 @@ services:
   # ─── API SPRING BOOT ───────────────────────────────────────────────────────
   api:
     build:
-      context: ./api/experience
+      context: ./api
       dockerfile: Dockerfile
     container_name: experience-api
     ports:
@@ -44,27 +44,6 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-
-  # ─── CHATBOT FLASK ─────────────────────────────────────────────────────────
-  chatbot:
-    build:
-      context: ./web
-      dockerfile: Dockerfile.flask
-    container_name: experience-chatbot
-    ports:
-      - "5000:5000"
-
-  # ─── FRONTEND NEXT.JS ──────────────────────────────────────────────────────
-  web:
-    build:
-      context: ./web
-      dockerfile: Dockerfile
-    container_name: experience-web
-    ports:
-      - "3000:3000"
-    depends_on:
-      - api
-      - chatbot
 
   # ─── MQTT / IOT ────────────────────────────────────────────────────────────
   mqtt:

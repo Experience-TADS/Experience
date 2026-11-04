@@ -75,7 +75,7 @@ class UsuarioRestAssuredTest extends RestAssuredBaseTest {
     void criar_semToken_retorna201() {
         given()
                 .contentType(ContentType.JSON)
-                .body(corpoUsuario("Novo Usuario", "novo.usuario@teste.com", "senha123", "CLIENTE"))
+                .body(corpoUsuario("Novo Usuario", "novo.usuario@teste.com", "Senha@123", "CLIENTE"))
         .when()
                 .post(BASE)
         .then()
@@ -136,7 +136,7 @@ class UsuarioRestAssuredTest extends RestAssuredBaseTest {
         // Cria usuário alvo (público) e captura o id
         Integer id = given()
                 .contentType(ContentType.JSON)
-                .body(corpoUsuario("Alvo", "alvo.toggle@teste.com", "senha123", "CLIENTE"))
+                .body(corpoUsuario("Alvo", "alvo.toggle@teste.com", "Senha@123", "CLIENTE"))
         .when()
                 .post(BASE)
         .then()
@@ -165,7 +165,7 @@ class UsuarioRestAssuredTest extends RestAssuredBaseTest {
     @DisplayName("CLIENTE não pode ativar usuário → 403")
     void ativar_comCliente_retorna403() {
         String tokenCliente = criarUsuarioEObterToken(
-                "cliente.toggle@teste.com", "senha123", "CLIENTE");
+                "cliente.toggle@teste.com", "Senha@123", "CLIENTE");
 
         given()
                 .header("Authorization", "Bearer " + tokenCliente)

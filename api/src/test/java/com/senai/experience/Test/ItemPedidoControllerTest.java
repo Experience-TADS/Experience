@@ -1,5 +1,6 @@
 package com.senai.experience.Test;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.senai.experience.config.PostgresTestContainer;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,11 +34,47 @@ class ItemPedidoControllerTest extends PostgresTestContainer {
 
     private String tokenAdmin;
     private Long idProduto;
+    private Long idPedido;
 
     @BeforeEach
     void setup() throws Exception {
-        tokenAdmin = AuthHelper.obterToken(mockMvc, "admin.item@test.com", "senha123", "ADMIN");
-        idProduto  = criarProduto();
+        tokenAdmin   = AuthHelper.obterToken(mockMvc, "admin.item@test.com",    "Senha@123", "ADMIN");
+        // Cliente e vendedor são necessários para criar um pedido ao qual os itens se vinculam.
+        AuthHelper.obterToken(mockMvc, "cliente.item@test.com",  "Senha@123", "CLIENTE");
+        AuthHelper.obterToken(mockMvc, "vendedor.item@test.com", "Senha@123", "VENDEDOR");
+        idProduto = criarProduto();
+        idPedido  = criarPedido();
+    }
+
+    private Long criarPedido() throws Exception {
+        Long idCliente  = buscarIdPorEmail("cliente.item@test.com");
+        Long idVendedor = buscarIdPorEmail("vendedor.item@test.com");
+        MvcResult result = mockMvc.perform(post("/api/pedido")
+                        .header("Authorization", "Bearer " + tokenAdmin)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "idCliente": %d,
+                                  "idVendedor": %d,
+                                  "dataPedido": "2024-01-15T10:00:00",
+                                  "valorTotal": 85000.00
+                                }
+                                """.formatted(idCliente, idVendedor)))
+                .andReturn();
+        return mapper.readTree(result.getResponse().getContentAsString()).get("id").asLong();
+    }
+
+    private Long buscarIdPorEmail(String email) throws Exception {
+        MvcResult result = mockMvc.perform(get("/api/usuario")
+                        .header("Authorization", "Bearer " + tokenAdmin))
+                .andReturn();
+        JsonNode usuarios = mapper.readTree(result.getResponse().getContentAsString()).get("content");
+        for (JsonNode u : usuarios) {
+            if (email.equals(u.get("email").asText())) {
+                return u.get("id").asLong();
+            }
+        }
+        throw new RuntimeException("Usuário não encontrado: " + email);
     }
 
     // ── GET /api/itens-pedido ─────────────────────────────────────────────────
@@ -64,8 +101,8 @@ class ItemPedidoControllerTest extends PostgresTestContainer {
                         .header("Authorization", "Bearer " + tokenAdmin)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"idProduto": %d, "quantidade": 2}
-                                """.formatted(idProduto)))
+                                {"idPedido": %d, "idProduto": %d, "quantidade": 2}
+                                """.formatted(idPedido, idProduto)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.quantidade").value(2))
                 .andExpect(jsonPath("$.produto.id").value(idProduto));
@@ -88,8 +125,8 @@ class ItemPedidoControllerTest extends PostgresTestContainer {
                         .header("Authorization", "Bearer " + tokenAdmin)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"idProduto": 9999, "quantidade": 1}
-                                """))
+                                {"idPedido": %d, "idProduto": 9999, "quantidade": 1}
+                                """.formatted(idPedido)))
                 .andExpect(status().isNotFound());
     }
 
@@ -173,7 +210,7 @@ class ItemPedidoControllerTest extends PostgresTestContainer {
                         .header("Authorization", "Bearer " + tokenAdmin)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"modelo":"Civic","cor":"Preto","versao":"EXL","ano":2024}
+                                {"modelo":"Civic","cor":"Preto","versao":"EXL","ano":2024,"preco":149900.00}
                                 """))
                 .andReturn();
         return mapper.readTree(result.getResponse().getContentAsString()).get("idProduto").asLong();
@@ -184,8 +221,8 @@ class ItemPedidoControllerTest extends PostgresTestContainer {
                         .header("Authorization", "Bearer " + tokenAdmin)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"idProduto": %d, "quantidade": 2}
-                                """.formatted(idProduto)))
+                                {"idPedido": %d, "idProduto": %d, "quantidade": 2}
+                                """.formatted(idPedido, idProduto)))
                 .andReturn();
         return mapper.readTree(result.getResponse().getContentAsString()).get("idItemPedido").asLong();
     }
