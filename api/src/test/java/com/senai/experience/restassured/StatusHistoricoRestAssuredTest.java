@@ -7,18 +7,6 @@ import org.junit.jupiter.api.Test;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.notNullValue;
 
-/**
- * Testes de integração REST Assured para {@code /api/veiculo/{veiculoId}/status}.
- *
- * <p>Regras de segurança:</p>
- * <ul>
- *   <li>GET {@code /api/veiculo/*&#47;status} → autenticado</li>
- *   <li>POST {@code /api/veiculo/*&#47;status} → público (permitAll)</li>
- * </ul>
- *
- * <p>O POST recebe um {@code StatusFabricacao} cru no corpo — em JSON, uma
- * string como {@code "PINTURA"}.</p>
- */
 @DisplayName("StatusHistorico — testes de integração (REST Assured)")
 class StatusHistoricoRestAssuredTest extends RestAssuredBaseTest {
 
@@ -69,31 +57,22 @@ class StatusHistoricoRestAssuredTest extends RestAssuredBaseTest {
                 .body("$", notNullValue()); // corpo é uma lista JSON
     }
 
-    // ── POST (público) ────────────────────────────────────────────────────────
+    // ── POST (exige autenticação) ─────────────────────────────────────────────
 
     @Test
-    @DisplayName("POST atualiza status sem autenticação (endpoint público) → 200")
-    void atualizarStatus_publico_retorna200() {
+    @DisplayName("POST atualiza status sem token → 401")
+    void atualizarStatus_semToken_retorna401() {
         String token = obterTokenAdmin();
         Integer veiculoId = criarVeiculo(token, 66602);
 
-        // POST é público: envia o enum como string, sem header de autorização.
-        // O veículo começa em AGUARDANDO; a única transição válida é para
-        // MONTAGEM_ESTRUTURAL (ver StatusHistoricoService.validarTransicao).
+        // Sem header de autorização: o endpoint deixou de ser público e passa a
+        // exigir autenticação. A rota de status devolve 401 para o anônimo.
         given()
                 .contentType(ContentType.JSON)
                 .body("\"MONTAGEM_ESTRUTURAL\"")
         .when()
                 .post(statusUrl(veiculoId))
         .then()
-                .statusCode(200);
-
-        // Confirma que o histórico agora reflete a atualização (GET autenticado).
-        given()
-                .header("Authorization", "Bearer " + token)
-        .when()
-                .get(statusUrl(veiculoId))
-        .then()
-                .statusCode(200);
+                .statusCode(401);
     }
 }

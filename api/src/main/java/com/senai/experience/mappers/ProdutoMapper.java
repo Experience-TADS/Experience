@@ -13,6 +13,7 @@ public class ProdutoMapper {
         p.setCor(dto.getCor());
         p.setVersao(dto.getVersao());
         p.setAno(dto.getAno());
+        p.setPreco(dto.getPreco());
         return p;
     }
 
@@ -23,6 +24,7 @@ public class ProdutoMapper {
         r.setCor(p.getCor());
         r.setVersao(p.getVersao());
         r.setAno(p.getAno());
+        r.setPreco(p.getPreco());
         return r;
     }
 }

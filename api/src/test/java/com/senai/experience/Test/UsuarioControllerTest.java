@@ -34,7 +34,7 @@ class UsuarioControllerTest extends PostgresTestContainer {
             {
               "nome": "Admin Teste",
               "email": "admin@test.com",
-              "senha": "senha123",
+              "senha": "Senha@123",
               "dataNascimento": "1990-01-01",
               "role": "ADMIN"
             }
@@ -46,7 +46,7 @@ class UsuarioControllerTest extends PostgresTestContainer {
         mockMvc.perform(post("/api/usuario/login")
             .contentType(MediaType.APPLICATION_JSON)
             .content("""
-                {"email": "admin@test.com", "senha": "senha123"}
+                {"email": "admin@test.com", "senha": "Senha@123"}
             """))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.token").exists());

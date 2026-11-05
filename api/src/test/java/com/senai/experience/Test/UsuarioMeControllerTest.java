@@ -31,7 +31,7 @@ class UsuarioMeControllerTest extends PostgresTestContainer {
 
     @BeforeEach
     void setup() throws Exception {
-        tokenAdmin = AuthHelper.obterToken(mockMvc, "admin.me@test.com", "senha123", "ADMIN");
+        tokenAdmin = AuthHelper.obterToken(mockMvc, "admin.me@test.com", "Senha@123", "ADMIN");
         idAdmin    = buscarIdAdmin();
     }
 
@@ -73,7 +73,7 @@ class UsuarioMeControllerTest extends PostgresTestContainer {
                                 {
                                   "nome": "Admin Atualizado",
                                   "email": "admin.me@test.com",
-                                  "senha": "novaSenha123",
+                                  "senha": "NovaSenha@123",
                                   "dataNascimento": "1990-01-01",
                                   "role": "ADMIN"
                                 }
@@ -91,7 +91,7 @@ class UsuarioMeControllerTest extends PostgresTestContainer {
                                 {
                                   "nome": "Ninguém",
                                   "email": "ninguem@test.com",
-                                  "senha": "senha123",
+                                  "senha": "Senha@123",
                                   "dataNascimento": "1990-01-01",
                                   "role": "ADMIN"
                                 }
@@ -104,7 +104,7 @@ class UsuarioMeControllerTest extends PostgresTestContainer {
     @Test
     void deleteUsuarioComTokenDeveRetornar204() throws Exception {
         // Cria um usuário extra para deletar
-        String tokenExtra = AuthHelper.obterToken(mockMvc, "extra.delete@test.com", "senha123", "CLIENTE");
+        String tokenExtra = AuthHelper.obterToken(mockMvc, "extra.delete@test.com", "Senha@123", "CLIENTE");
         Long idExtra = buscarIdPorEmail("extra.delete@test.com");
 
         mockMvc.perform(delete("/api/usuario/" + idExtra)
@@ -200,16 +200,16 @@ class UsuarioMeControllerTest extends PostgresTestContainer {
     // ── POST /api/usuario — validações ────────────────────────────────────────
 
     @Test
-    void postUsuarioComEmailDuplicadoEhPermitido() throws Exception {
-        // A entidade Usuario não define o email como único, então a API permite
-        // cadastrar mais de um usuário com o mesmo email (ambos retornam 201).
+    void postUsuarioComEmailDuplicadoRetorna409() throws Exception {
+        // O e-mail é único no banco: a primeira inserção é aceita (201) e a
+        // segunda com o mesmo e-mail é rejeitada com 409 (Conflito de dados).
         mockMvc.perform(post("/api/usuario")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("""
                         {
                           "nome": "Duplicado",
                           "email": "duplicado@test.com",
-                          "senha": "senha123",
+                          "senha": "Senha@123",
                           "dataNascimento": "1990-01-01",
                           "role": "CLIENTE"
                         }
@@ -222,12 +222,12 @@ class UsuarioMeControllerTest extends PostgresTestContainer {
                                 {
                                   "nome": "Duplicado 2",
                                   "email": "duplicado@test.com",
-                                  "senha": "senha123",
+                                  "senha": "Senha@123",
                                   "dataNascimento": "1990-01-01",
                                   "role": "CLIENTE"
                                 }
                                 """))
-                .andExpect(status().isCreated());
+                .andExpect(status().isConflict());
     }
 
     // ── helpers ───────────────────────────────────────────────────────────────

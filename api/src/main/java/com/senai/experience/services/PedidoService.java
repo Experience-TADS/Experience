@@ -76,7 +76,7 @@ public class PedidoService {
 
     @Transactional(readOnly = true)
     public List<Pedido> findMeusPedidos(String email) {
-        Usuario usuario = usuarioRepository.findByEmail(email);
+        Usuario usuario = usuarioRepository.findByEmail(email).orElse(null);
         if (usuario == null || usuario.getRole() == null) return List.of();
 
         List<Pedido> pedidos;

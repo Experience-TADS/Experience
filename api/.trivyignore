@@ -1,0 +1,62 @@
+# .trivyignore — CVEs conscientemente adiadas (dívida técnica documentada)
+#
+# CONTEXTO
+# O projeto usa Spring Boot 3.3.13 (a versão de patch mais recente e segura da
+# linha 3.3.x). As CVEs listadas abaixo NÃO têm correção dentro da linha 3.3.x:
+# a única versão que as resolve está em 3.5.x / 4.x (Spring Boot, Spring Security,
+# Spring Framework, Spring Data) ou em versões de Tomcat/Jackson que só chegam via
+# esse upgrade de minor. Subir de minor é uma mudança que exige testes de
+# compatibilidade e foi adiada de forma consciente.
+#
+# O gate do Trivy CONTINUA ativo: ele falha o build para qualquer CVE nova,
+# High/Critical, que tenha correção aplicável. Este arquivo só suprime as que hoje
+# exigiriam o salto de minor.
+#
+# REVISÃO: reavaliar ao planejar a migração para Spring Boot 3.5.x / 4.x.
+# Ao migrar, remover as entradas correspondentes e deixar o Trivy revalidar.
+
+# --- Apache Tomcat (tomcat-embed-core) — correção só em 10.1.55+ (linha 3.5.x) ---
+CVE-2026-41293
+CVE-2026-43512
+CVE-2026-43515
+CVE-2026-65182
+CVE-2026-65905
+CVE-2026-68525
+CVE-2025-48989
+CVE-2025-52520
+CVE-2025-53506
+CVE-2025-55752
+CVE-2026-24734
+CVE-2026-24880
+CVE-2026-34483
+CVE-2026-34487
+CVE-2026-41284
+CVE-2026-42498
+CVE-2026-43513
+
+# --- Jackson (jackson-core / jackson-databind) — correção só em 2.18.8+ (linha 3.5.x) ---
+GHSA-r7wm-3cxj-wff9
+CVE-2026-54512
+CVE-2026-54513
+CVE-2026-68497
+CVE-2026-91776
+CVE-2026-91777
+
+# --- PostgreSQL JDBC (postgresql) — correção em 42.7.11+ ---
+CVE-2026-42198
+CVE-2026-54291
+
+# --- Spring Boot — correção só em 3.5.14 / 4.0.6 ---
+CVE-2026-40973
+
+# --- Spring Data Commons — correção só em 3.5.12 / 4.0.6 ---
+CVE-2026-41716
+
+# --- Spring Security (spring-security-web) — correção só em 6.5.9 / 7.0.4 ---
+CVE-2026-22732
+
+# --- Spring Framework (spring-core / spring-webmvc / spring-expression) — correção só em 6.2.x+ ---
+CVE-2025-41249
+CVE-2026-41850
+CVE-2026-41842
+CVE-2026-41845

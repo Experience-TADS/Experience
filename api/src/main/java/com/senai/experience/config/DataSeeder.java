@@ -16,10 +16,10 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.math.BigDecimal;
-import java.sql.Statement;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Popula o banco com dados iniciais para demonstração da integração MQTT.
@@ -41,11 +41,11 @@ public class DataSeeder {
     private static final int CHASSI_BASE = 10001;
 
     private static final Object[][] PRODUTOS = {
-        {"Corolla", "Branco Pérola",  "XEi",    2024},
-        {"Hilux",   "Prata Metálico", "SRX",    2024},
-        {"Yaris",   "Vermelho",       "XLS",    2024},
-        {"RAV4",    "Preto",          "GR-S",   2025},
-        {"SW4",     "Cinza Grafite",  "Diamond", 2025},
+        {"Corolla", "Branco Pérola",  "XEi",     2024, new java.math.BigDecimal("149900.00")},
+        {"Hilux",   "Prata Metálico", "SRX",     2024, new java.math.BigDecimal("289900.00")},
+        {"Yaris",   "Vermelho",       "XLS",     2024, new java.math.BigDecimal("109900.00")},
+        {"RAV4",    "Preto",          "GR-S",    2025, new java.math.BigDecimal("319900.00")},
+        {"SW4",     "Cinza Grafite",  "Diamond", 2025, new java.math.BigDecimal("399900.00")},
     };
 
     // CPFs válidos sem formatação (11 dígitos) — compatível com @Column(length=11)
@@ -113,7 +113,7 @@ public class DataSeeder {
 
     private void criarAdmin(UsuarioRepository repo, PasswordEncoder encoder) {
         String email = "admin@experience.com";
-        if (repo.findByEmail(email) != null) return;
+        if (repo.findByEmail(email).isPresent()) return;
 
         Usuario admin = new Usuario(
                 "Administrador",
@@ -133,6 +133,7 @@ public class DataSeeder {
             p.setCor((String) d[1]);
             p.setVersao((String) d[2]);
             p.setAno((Integer) d[3]);
+            p.setPreco((java.math.BigDecimal) d[4]);
             repo.save(p);
         }
         return repo.findAll();
@@ -140,17 +141,16 @@ public class DataSeeder {
 
     private Usuario criarVendedor(UsuarioRepository repo, PasswordEncoder encoder) {
         String email = "vendedor.toyota@experience.com";
-        Usuario existente = repo.findByEmail(email);
-        if (existente != null) return existente;
-
-        Usuario vendedor = new Usuario(
-                "Carlos Vendedor Toyota",
-                email,
-                encoder.encode("vendedor123"),
-                LocalDate.of(1980, 5, 10),
-                UserRole.VENDEDOR
-        );
-        return repo.save(vendedor);
+        return repo.findByEmail(email).orElseGet(() -> {
+            Usuario vendedor = new Usuario(
+                    "Carlos Vendedor Toyota",
+                    email,
+                    encoder.encode("vendedor123"),
+                    LocalDate.of(1980, 5, 10),
+                    UserRole.VENDEDOR
+            );
+            return repo.save(vendedor);
+        });
     }
 
     /**
@@ -177,7 +177,7 @@ public class DataSeeder {
             var ps = connection.prepareStatement(
                     "INSERT INTO usuario (ativo, data_nascimento, email, nome, role, senha_hash) " +
                     "VALUES (true, ?, ?, ?, 'CLIENTE', ?)",
-                    Statement.RETURN_GENERATED_KEYS
+                    new String[]{"id"}  // retorna apenas a coluna id
             );
             ps.setDate(1, java.sql.Date.valueOf(nasc));
             ps.setString(2, email);
@@ -186,7 +186,9 @@ public class DataSeeder {
             return ps;
         }, keyHolder);
 
-        Long usuarioId = keyHolder.getKey().longValue();
+        Long usuarioId = Optional.ofNullable(keyHolder.getKeyAs(Long.class))
+                .orElseThrow(() -> new IllegalStateException(
+                        "[DataSeeder] Falha ao recuperar ID gerado para o usuário: " + email));
 
         // Insere na tabela filha (pessoa_fisica)
         jdbc.update(

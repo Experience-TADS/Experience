@@ -31,7 +31,7 @@ class PedidoRestAssuredTest extends RestAssuredBaseTest {
                         {
                           "nome": "Usuario %s",
                           "email": "%s",
-                          "senha": "senha123",
+                          "senha": "Senha@123",
                           "dataNascimento": "1990-01-01",
                           "role": "%s"
                         }
@@ -71,7 +71,7 @@ class PedidoRestAssuredTest extends RestAssuredBaseTest {
     @DisplayName("CLIENTE não pode acessar a lista geral de pedidos → 403")
     void listar_comCliente_retorna403() {
         String tokenCliente = criarUsuarioEObterToken(
-                "cliente.pedido@teste.com", "senha123", "CLIENTE");
+                "cliente.pedido@teste.com", "Senha@123", "CLIENTE");
 
         given()
                 .header("Authorization", "Bearer " + tokenCliente)
@@ -101,7 +101,7 @@ class PedidoRestAssuredTest extends RestAssuredBaseTest {
     @DisplayName("CLIENTE acessa /meus-pedidos → 200")
     void meusPedidos_comCliente_retorna200() {
         String tokenCliente = criarUsuarioEObterToken(
-                "cliente.meus@teste.com", "senha123", "CLIENTE");
+                "cliente.meus@teste.com", "Senha@123", "CLIENTE");
 
         given()
                 .header("Authorization", "Bearer " + tokenCliente)

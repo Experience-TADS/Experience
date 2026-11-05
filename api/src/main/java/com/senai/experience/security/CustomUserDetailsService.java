@@ -18,10 +18,8 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String emailUsuario) {
-        Usuario usuario = usuarioRepository.findByEmail(emailUsuario);
-        if (usuario == null) {
-            throw new UsernameNotFoundException("Usuário não encontrado: " + emailUsuario);
-        }
+        Usuario usuario = usuarioRepository.findByEmail(emailUsuario)
+                .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado: " + emailUsuario));
 
         // Usar o role real do banco com prefixo ROLE_ exigido pelo Spring Security
         String role = usuario.getRole() != null

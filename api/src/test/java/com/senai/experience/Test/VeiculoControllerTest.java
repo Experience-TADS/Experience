@@ -32,8 +32,8 @@ class VeiculoControllerTest extends PostgresTestContainer {
 
     @BeforeEach
     void setup() throws Exception {
-        tokenAdmin   = AuthHelper.obterToken(mockMvc, "admin.veiculo@test.com",   "senha123", "ADMIN");
-        tokenCliente = AuthHelper.obterToken(mockMvc, "cliente.veiculo@test.com", "senha123", "CLIENTE");
+        tokenAdmin   = AuthHelper.obterToken(mockMvc, "admin.veiculo@test.com",   "Senha@123", "ADMIN");
+        tokenCliente = AuthHelper.obterToken(mockMvc, "cliente.veiculo@test.com", "Senha@123", "CLIENTE");
         idProduto    = criarProduto();
     }
 
@@ -160,17 +160,16 @@ class VeiculoControllerTest extends PostgresTestContainer {
     }
 
     @Test
-    void postStatusComClienteDevePermitir() throws Exception {
+    void postStatusComClienteDeveSerProibido() throws Exception {
         Long id = criarVeiculo();
 
-        // O endpoint POST /api/veiculo/{id}/status é permitAll (recebe eventos de fabricação),
-        // então qualquer usuário autenticado consegue avançar o status.
+        // Card de segurança: alterar o status de fabricação exige role ADMIN ou VENDEDOR.
+        // Um usuário CLIENTE autenticado deve receber 403 Forbidden ao tentar avançar o status.
         mockMvc.perform(post("/api/veiculo/" + id + "/status")
                         .header("Authorization", "Bearer " + tokenCliente)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("\"MONTAGEM_ESTRUTURAL\""))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("MONTAGEM_ESTRUTURAL"));
+                .andExpect(status().isForbidden());
     }
 
     @Test
@@ -218,7 +217,7 @@ class VeiculoControllerTest extends PostgresTestContainer {
                         .header("Authorization", "Bearer " + tokenAdmin)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"modelo":"Civic","cor":"Preto","versao":"EXL","ano":2024}
+                                {"modelo":"Civic","cor":"Preto","versao":"EXL","ano":2024,"preco":149900.00}
                                 """))
                 .andReturn();
         return mapper.readTree(result.getResponse().getContentAsString()).get("idProduto").asLong();

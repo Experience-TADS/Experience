@@ -25,10 +25,10 @@ class ProdutoRestAssuredTest extends RestAssuredBaseTest {
 
     private static final String BASE = "/api/produto";
 
-    private String corpoProduto(String modelo, String cor, String versao, int ano) {
+    private String corpoProduto(String modelo, String cor, String versao, int ano, String preco) {
         return """
-                { "modelo": "%s", "cor": "%s", "versao": "%s", "ano": %d }
-                """.formatted(modelo, cor, versao, ano);
+                { "modelo": "%s", "cor": "%s", "versao": "%s", "ano": %d, "preco": %s }
+                """.formatted(modelo, cor, versao, ano, preco);
     }
 
     // ── Autenticação / Autorização ───────────────────────────────────────────
@@ -48,7 +48,7 @@ class ProdutoRestAssuredTest extends RestAssuredBaseTest {
     void criar_semToken_retorna403() {
         given()
                 .contentType(ContentType.JSON)
-                .body(corpoProduto("Corolla", "Branco", "XEi", 2024))
+                .body(corpoProduto("Corolla", "Branco", "XEi", 2024, "159900.00"))
         .when()
                 .post(BASE)
         .then()
@@ -59,12 +59,12 @@ class ProdutoRestAssuredTest extends RestAssuredBaseTest {
     @DisplayName("POST com token de CLIENTE retorna 403 (sem permissão)")
     void criar_comCliente_retorna403() {
         String tokenCliente = criarUsuarioEObterToken(
-                "cliente.produto@teste.com", "senha123", "CLIENTE");
+                "cliente.produto@teste.com", "Senha@123", "CLIENTE");
 
         given()
                 .header("Authorization", "Bearer " + tokenCliente)
                 .contentType(ContentType.JSON)
-                .body(corpoProduto("Hilux", "Prata", "SRX", 2024))
+                .body(corpoProduto("Hilux", "Prata", "SRX", 2024, "289900.00"))
         .when()
                 .post(BASE)
         .then()
@@ -100,7 +100,7 @@ class ProdutoRestAssuredTest extends RestAssuredBaseTest {
         Integer id = given()
                 .header("Authorization", "Bearer " + token)
                 .contentType(ContentType.JSON)
-                .body(corpoProduto("Yaris", "Vermelho", "XLS", 2024))
+                .body(corpoProduto("Yaris", "Vermelho", "XLS", 2024, "109900.00"))
         .when()
                 .post(BASE)
         .then()
@@ -110,6 +110,7 @@ class ProdutoRestAssuredTest extends RestAssuredBaseTest {
                 .body("cor", equalTo("Vermelho"))
                 .body("versao", equalTo("XLS"))
                 .body("ano", equalTo(2024))
+                .body("preco", notNullValue())
                 .extract()
                 .path("idProduto");
 
@@ -127,7 +128,7 @@ class ProdutoRestAssuredTest extends RestAssuredBaseTest {
         given()
                 .header("Authorization", "Bearer " + token)
                 .contentType(ContentType.JSON)
-                .body(corpoProduto("Yaris", "Azul", "XL", 2025))
+                .body(corpoProduto("Yaris", "Azul", "XL", 2025, "109900.00"))
         .when()
                 .put(BASE + "/" + id)
         .then()
@@ -158,13 +159,13 @@ class ProdutoRestAssuredTest extends RestAssuredBaseTest {
     @DisplayName("VENDEDOR pode criar produto mas não pode deletar")
     void vendedor_criaMasNaoDeleta() {
         String tokenVendedor = criarUsuarioEObterToken(
-                "vendedor.produto@teste.com", "senha123", "VENDEDOR");
+                "vendedor.produto@teste.com", "Senha@123", "VENDEDOR");
 
         // VENDEDOR cria → 201
         Integer id = given()
                 .header("Authorization", "Bearer " + tokenVendedor)
                 .contentType(ContentType.JSON)
-                .body(corpoProduto("RAV4", "Preto", "GR-S", 2025))
+                .body(corpoProduto("RAV4", "Preto", "GR-S", 2025, "319900.00"))
         .when()
                 .post(BASE)
         .then()
