@@ -41,9 +41,12 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/db_experience
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: 12345
+      MQTT_BROKER_URL: tcp://mqtt:1883
     depends_on:
       postgres:
         condition: service_healthy
+      mqtt:
+        condition: service_started
 
   # ─── MQTT / IOT ────────────────────────────────────────────────────────────
   mqtt:
@@ -61,16 +64,6 @@ services:
     container_name: experience-simulador
     depends_on:
       - mqtt
-
-  nodered:
-    image: nodered/node-red
-    container_name: experience-nodered
-    ports:
-      - "1880:1880"
-    depends_on:
-      - mqtt
-    volumes:
-      - nodered_data:/data
 
   influxdb:
     image: influxdb:2.7
@@ -101,4 +94,3 @@ services:
 volumes:
   postgres_data:
   influxdb_data:
-  nodered_data:

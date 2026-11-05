@@ -11,12 +11,14 @@ import static org.hamcrest.Matchers.notNullValue;
 /**
  * Testes de integração REST Assured para {@code /api/veiculo}.
  *
- * <p>Os endpoints CRUD exigem autenticação ({@code .anyRequest().authenticated()}).
- * O endpoint público {@code POST /api/veiculo/nodered/evento} recebe eventos do
- * Node-RED sem autenticação.</p>
+ * <p>Os endpoints CRUD exigem autenticação ({@code .anyRequest().authenticated()}).</p>
  *
  * <p>O {@code DataSeeder} cria 5 produtos (id 1–5) e 10 veículos (chassi 10001–10010)
  * no startup do perfil de teste.</p>
+ *
+ * <p><b>Nota:</b> o endpoint {@code POST /api/veiculo/nodered/evento} foi removido.
+ * O backend agora consome o tópico MQTT {@code senai/pii_toy} diretamente via
+ * {@code MqttEspEventoListener}, sem passar pelo Node-RED.</p>
  */
 @DisplayName("Veiculo — testes de integração (REST Assured)")
 class VeiculoRestAssuredTest extends RestAssuredBaseTest {
@@ -135,28 +137,5 @@ class VeiculoRestAssuredTest extends RestAssuredBaseTest {
                 .get(BASE + "/99999999")
         .then()
                 .statusCode(404);
-    }
-
-    // ── Endpoint público Node-RED ─────────────────────────────────────────────
-
-    @Test
-    @DisplayName("POST /nodered/evento é público e atualiza status por chassi")
-    void noderedEvento_publico_atualizaStatus() {
-        // Veículo chassi 10001 é criado pelo DataSeeder.
-        // "CHASSI_00001" → 10000 + 1 = 10001.
-        given()
-                .contentType(ContentType.JSON)
-                .body("""
-                        {
-                          "chassi": "CHASSI_00001",
-                          "etapa": "PINTURA",
-                          "status": "Iniciado",
-                          "timestamp": 12345
-                        }
-                        """)
-        .when()
-                .post(BASE + "/nodered/evento")
-        .then()
-                .statusCode(200);
     }
 }

@@ -93,7 +93,7 @@ Tempos:     3s       5s      4s       6s       3s       2s
 
 ## Formato da mensagem MQTT
 
-Idêntico ao `simulador.py`, compatível com o Node-RED e InfluxDB já configurados:
+Compatível com o backend Spring que assina `senai/pii_toy` diretamente:
 
 ```json
 {
@@ -124,19 +124,17 @@ Idêntico ao `simulador.py`, compatível com o Node-RED e InfluxDB já configura
 ## Topologia do sistema
 
 ```
-┌─────────────┐   WiFi/MQTT    ┌───────────────┐   MQTT   ┌──────────┐
-│   ESP32     │ ─────────────► │   Mosquitto   │ ◄──────► │ Node-RED │
-│ (simulador) │                │  (broker)     │          └──────────┘
-└─────────────┘                └───────────────┘               │
-                                                               ▼
-                                                         ┌──────────┐
-                                                         │ InfluxDB │
-                                                         └──────────┘
-                                                               │
-                                                               ▼
-                                                         ┌──────────┐
-                                                         │ Grafana  │
-                                                         └──────────┘
+┌─────────────┐   WiFi/MQTT    ┌───────────────┐   MQTT subscribe   ┌──────────────────┐
+│   ESP32     │ ─────────────► │   Mosquitto   │ ──────────────────► │  Spring Boot API │
+│ (simulador) │                │  (broker)     │                     │ MqttEspEvento-   │
+└─────────────┘                └───────────────┘                     │ Listener         │
+                                                                      └──────────────────┘
+                                                                               │
+                                                                               ▼
+                                                                      ┌──────────────────┐
+                                                                      │   PostgreSQL     │
+                                                                      │ StatusHistorico  │
+                                                                      └──────────────────┘
 ```
 
 ---
@@ -148,5 +146,5 @@ Idêntico ao `simulador.py`, compatível com o Node-RED e InfluxDB já configura
 | Serial trava em `Conectando...` | WiFi errado ou sinal fraco | Verifique SSID/senha; aproxime o ESP32 do roteador |
 | MQTT `rc=-2` | IP do broker errado | Confirme o IP com `ipconfig` no host |
 | MQTT `rc=-4` | Broker não acessível | Verifique se o container `mqtt` está rodando (`docker ps`) |
-| Nenhuma mensagem no Node-RED | Tópico diferente | Confirme que o tópico é `senai/pii_toy` nos dois lados |
+| Nenhuma mensagem no backend | Tópico diferente | Confirme que o tópico é `senai/pii_toy` nos dois lados |
 | Upload falha | Driver USB não instalado | Instale o driver CP210x ou CH340 conforme o chip do seu ESP32 |

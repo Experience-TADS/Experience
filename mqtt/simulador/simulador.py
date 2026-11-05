@@ -68,7 +68,6 @@ def publicar(chassi, etapa, status):
 # -----------------------------
 
 print("=== SIMULADOR DE LINHA ===")
-input("Pressione ENTER para iniciar a simulação...")
 print("Iniciando simulação...")
 print()
 

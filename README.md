@@ -1,6 +1,6 @@
 # Experience
 
-Projeto Integrador Toyota — SENAI. API REST para gestão do ciclo de vida de veículos, desde o cadastro de clientes e produtos até o acompanhamento em tempo real das etapas de fabricação, integrando dispositivos IoT (ESP32 via Node-RED/MQTT) à linha de produção.
+Projeto Integrador Toyota — SENAI. API REST para gestão do ciclo de vida de veículos, desde o cadastro de clientes e produtos até o acompanhamento em tempo real das etapas de fabricação, integrando dispositivos IoT (ESP32 via MQTT) à linha de produção.
 
 ## Visão geral
 
@@ -69,7 +69,7 @@ AGUARDANDO → MONTAGEM_ESTRUTURAL → PINTURA → INSTALACAO_MOTOR →
 ACABAMENTO_INTERNO → INSPECAO_FINAL → LIBERACAO_TRANSPORTE → ENTREGUE
 ```
 
-Qualquer etapa pode transitar para `CANCELADO`. Transições fora dessa ordem são rejeitadas. Eventos vindos do ESP32 (via Node-RED/MQTT) chegam ao endpoint `POST /api/veiculo/nodered/evento`, que mapeia a etapa/status do dispositivo para o `StatusFabricacao` correspondente.
+Qualquer etapa pode transitar para `CANCELADO`. Transições fora dessa ordem são rejeitadas. Eventos vindos do ESP32 (via MQTT diretamente no backend) chegam ao `MqttEspEventoListener`, que mapeia a etapa/status do dispositivo para o `StatusFabricacao` correspondente.
 
 ## Segurança
 
@@ -84,10 +84,11 @@ Qualquer etapa pode transitar para `CANCELADO`. Transições fora dessa ordem s�
 - `POST /api/usuario/login` — autenticação
 - `GET /api/usuario/me` — dados do usuário autenticado (trata token ausente/ inválido)
 - `POST /api/pessoaFisica` e `POST /api/pessoaJuridica` — auto-cadastro
-- `POST /api/veiculo/nodered/evento` — recepção de eventos IoT
 - Swagger UI e `v3/api-docs`
 
 Demais rotas exigem autenticação e, em muitos casos, papel específico.
+
+> **Integração IoT:** o backend assina o tópico MQTT `senai/pii_toy` diretamente (Spring Integration MQTT). Não há mais endpoint HTTP público para eventos do ESP32.
 
 ## Principais endpoints
 
@@ -114,7 +115,7 @@ As principais configurações ficam em `api/experience/src/main/resources/applic
 - **JPA** — `ddl-auto=update` e dialeto PostgreSQL.
 - **JWT** — `jwt.secret` (chave Base64 de no mínimo 256 bits).
 - **E-mail** — SMTP (Gmail por padrão; credenciais em branco).
-- **MQTT** — broker e tópicos de fabricação para integração IoT.
+- **MQTT** — broker e tópico `senai/pii_toy`. A URL do broker é configurável via variável de ambiente `MQTT_BROKER_URL` (padrão dev: `tcp://localhost:1883`; Docker: `tcp://mqtt:1883`).
 
 > Recomendação: em produção, mova segredos (senha do banco, `jwt.secret`, credenciais de e-mail) para variáveis de ambiente em vez de deixá-los no arquivo de propriedades.
 

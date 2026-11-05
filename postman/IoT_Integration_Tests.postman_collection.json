@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "IoT Integration - Experience API",
-    "description": "Coleção de testes para integração IoT ESP32 → MQTT → Node-RED → Backend",
+    "description": "Coleção de testes para integração IoT ESP32 → MQTT → Backend Spring (sem Node-RED). O endpoint /nodered/evento foi removido — para simular eventos IoT, use mosquitto_pub ou o simulador.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
