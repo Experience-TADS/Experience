@@ -132,6 +132,23 @@ public class VeiculoService {
     }
 
     /**
+     * Converte o chassi textual do ESP32 para o inteiro usado no banco.
+     * Formato de entrada: {@code "CHASSI_00001"} → {@code 10001} (offset 10 000).
+     *
+     * @return número do chassi com offset aplicado, ou {@code -1} se o formato for inválido.
+     */
+    public int parseChassi(String chassiStr) {
+        if (chassiStr == null) return -1;
+        try {
+            String numStr = chassiStr.replace("CHASSI_", "").trim();
+            int num = Integer.parseInt(numStr);
+            return 10000 + num; // CHASSI_00001 → 10001
+        } catch (NumberFormatException e) {
+            return -1;
+        }
+    }
+
+    /**
      * Mapeia a etapa e status do ESP32 para StatusFabricacao do backend.
      * Agora 1:1 — cada etapa do ESP32 tem seu próprio status.
      *

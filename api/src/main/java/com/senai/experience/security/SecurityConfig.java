@@ -54,9 +54,6 @@ public class SecurityConfig {
 
                 // IoT: apenas POST em endpoints de fabricação
                 .requestMatchers(HttpMethod.POST, "/api/fabricacao/**").hasRole("IOT")
-                
-                // Node-RED: endpoint público para receber eventos do ESP32 via MQTT
-                .requestMatchers(HttpMethod.POST, "/api/veiculo/nodered/evento").permitAll()
 
                 // Veiculo
                 .requestMatchers(HttpMethod.POST, "/api/veiculo/*/confirmacao-chegada").hasAnyRole("VENDEDOR", "ADMIN")

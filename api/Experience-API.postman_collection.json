@@ -295,11 +295,12 @@
           }
         },
         {
-          "name": "Evento Node-RED (publico)",
+          "name": "⚠️ Evento Node-RED (REMOVIDO — use MQTT direto)",
           "request": {
             "auth": { "type": "noauth" },
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "description": "Este endpoint foi removido. O backend agora consome o tópico MQTT `senai/pii_toy` diretamente via Spring Integration MQTT (MqttEspEventoListener). Para simular um evento IoT, publique no broker com:\n  mosquitto_pub -h localhost -t senai/pii_toy -m '{\"chassi\":\"CHASSI_00001\",\"etapa\":\"PINTURA\",\"status\":\"Iniciado\",\"timestamp\":12345}'",
             "url": { "raw": "{{baseUrl}}/api/veiculo/nodered/evento", "host": ["{{baseUrl}}"], "path": ["api", "veiculo", "nodered", "evento"] },
             "body": {
               "mode": "raw",
