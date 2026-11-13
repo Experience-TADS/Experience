@@ -3,6 +3,7 @@ package com.senai.experience.services;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,7 +44,8 @@ public class AgendaService {
     }
 
     @Transactional(readOnly = true)
-    public List<Agenda> listarPorColaborador(Long colaboradorId) {
+    public List<Agenda> listarPorColaborador(Long colaboradorId, boolean isAdmin) {
+        if (isAdmin) return agendaRepository.findAll();
         Usuario colaborador = buscarUsuario(colaboradorId);
         return agendaRepository.findByColaborador(colaborador);
     }
@@ -62,16 +64,19 @@ public class AgendaService {
         // Cliente pode ver agendamentos dos quais é o destinatário
         if (agenda.getCliente().getId().equals(usuarioId)) return agenda;
 
-        throw new RuntimeException("Acesso negado: você não tem permissão para visualizar este agendamento.");
+        throw new AccessDeniedException("Acesso negado: você não tem permissão para visualizar este agendamento.");
     }
 
     @Transactional
-    public Agenda atualizar(Long id, AgendaRequest request, Long colaboradorId) {
+    public Agenda atualizar(Long id, AgendaRequest request, Long colaboradorId, boolean isAdmin) {
         Agenda agenda = findById(id);
-        verificarPropriedade(agenda, colaboradorId);
+        if (!isAdmin) {
+            verificarPropriedade(agenda, colaboradorId);
+        }
 
         if (!agenda.getDataHora().equals(request.getDataHora())) {
-            validarConflito(colaboradorId, request.getDataHora(), id);
+            // conflito é na agenda do dono do agendamento, não de quem edita (admin)
+            validarConflito(agenda.getColaborador().getId(), request.getDataHora(), id);
         }
 
         Usuario cliente = buscarUsuario(request.getClienteId());
@@ -96,9 +101,11 @@ public class AgendaService {
     }
 
     @Transactional
-    public void deletar(Long id, Long colaboradorId) {
+    public void deletar(Long id, Long colaboradorId, boolean isAdmin) {
         Agenda agenda = findById(id);
-        verificarPropriedade(agenda, colaboradorId);
+        if (!isAdmin) {
+            verificarPropriedade(agenda, colaboradorId);
+        }
         agendaRepository.deleteById(id);
     }
 
@@ -169,7 +176,7 @@ public class AgendaService {
 
     private void verificarPropriedade(Agenda agenda, Long colaboradorId) {
         if (!agenda.getColaborador().getId().equals(colaboradorId)) {
-            throw new RuntimeException("Acesso negado: você só pode gerenciar sua própria agenda.");
+            throw new AccessDeniedException("Acesso negado: você só pode gerenciar sua própria agenda.");
         }
     }
 }

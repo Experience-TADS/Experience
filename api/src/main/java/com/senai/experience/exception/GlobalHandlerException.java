@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 @RestControllerAdvice
 public class GlobalHandlerException {
@@ -15,11 +16,15 @@ public class GlobalHandlerException {
     public ResponseEntity<ErrorResponse> handlerRuntimeException(RuntimeException ex) {
         ErrorResponse e = new ErrorResponse(
             404,
-            "Cliente não encontrado",
+            "Recurso não encontrado",
             ex.getMessage()
         );
         if (ex.getMessage() != null && ex.getMessage().toLowerCase().contains("transição inválida")) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e);
+        }
+        if (ex.getMessage() != null && ex.getMessage().toLowerCase().contains("conflito de horário")) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(new ErrorResponse(409, "Conflito de horário", ex.getMessage()));
         }
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e);
     }
@@ -30,6 +35,17 @@ public class GlobalHandlerException {
             400,
             "Requisição inválida",
             ex.getMessage()
+        );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(erro);
+    }
+
+    // Ex.: /api/agenda/abc — parâmetro de URL com tipo inválido é erro do cliente, não 404.
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ErrorResponse> handleTypeMismatch(MethodArgumentTypeMismatchException ex) {
+        ErrorResponse erro = new ErrorResponse(
+            400,
+            "Requisição inválida",
+            "Valor inválido para o parâmetro '" + ex.getName() + "': " + ex.getValue()
         );
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(erro);
     }
@@ -62,6 +78,9 @@ public class GlobalHandlerException {
             detalhe = "Já existe um usuário cadastrado com este e-mail.";
         } else if (causa != null && causa.toLowerCase().contains("chassi")) {
             detalhe = "Já existe um veículo cadastrado com este chassi.";
+        } else if (causa != null && (causa.toLowerCase().contains("foreign key")              // Postgres
+                || causa.toLowerCase().contains("referential integrity"))) {                    // H2
+            detalhe = "Não é possível excluir: o registro ainda está vinculado a outros dados (ex.: pedidos, agendamentos, endereços).";
         } else {
             detalhe = "Violação de integridade: valor duplicado ou restrição violada.";
         }

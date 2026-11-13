@@ -41,7 +41,7 @@ public class AgendaController {
     @PreAuthorize("hasAnyRole('VENDEDOR', 'ADMIN')")
     public List<AgendaResponse> listar(Authentication auth) {
         Long colaboradorId = resolverIdDoToken(auth);
-        return agendaService.listarPorColaborador(colaboradorId)
+        return agendaService.listarPorColaborador(colaboradorId, isAdmin(auth))
                 .stream()
                 .map(AgendaMapper::toResponse)
                 .toList();
@@ -69,7 +69,7 @@ public class AgendaController {
             Authentication auth) {
 
         Long colaboradorId = resolverIdDoToken(auth);
-        Agenda agenda = agendaService.atualizar(id, request, colaboradorId);
+        Agenda agenda = agendaService.atualizar(id, request, colaboradorId, isAdmin(auth));
         return ResponseEntity.ok(AgendaMapper.toResponse(agenda));
     }
 
@@ -93,7 +93,7 @@ public class AgendaController {
             Authentication auth) {
 
         Long colaboradorId = resolverIdDoToken(auth);
-        agendaService.deletar(id, colaboradorId);
+        agendaService.deletar(id, colaboradorId, isAdmin(auth));
         return ResponseEntity.noContent().build();
     }
 
