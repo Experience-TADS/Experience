@@ -1,0 +1,109 @@
+name: Pipeline Backend
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'api/**'
+      - '.github/workflows/backend-pipeline.yml'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'api/**'
+      - '.github/workflows/backend-pipeline.yml'
+
+# Cancela execuções antigas da mesma branch/PR quando chega um commit novo.
+concurrency:
+  group: backend-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+# Fluxo: build -> test -> deploy (cada etapa só roda se a anterior passar).
+jobs:
+  # ── BUILD ────────────────────────────────────────────────────────────────
+  # Compila/empacota a aplicação e valida as dependências (CVEs HIGH/CRITICAL).
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Compilar e empacotar
+        working-directory: api
+        run: mvn package -DskipTests -B
+
+      # CVEs adiadas conscientemente ficam documentadas em api/.trivyignore.
+      # A action é pinada por SHA (v0.36.0) por segurança de supply chain: não use tags móveis.
+      - name: Verificar dependências (Trivy)
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          scan-type: 'fs'
+          scan-ref: 'api'
+          scanners: 'vuln'
+          severity: 'HIGH,CRITICAL'
+          exit-code: '1'
+          ignore-unfixed: true
+          trivyignores: 'api/.trivyignore'
+          format: 'table'
+        env:
+          # Evita rate limit anônimo no download da base do Trivy.
+          TRIVY_USERNAME: ${{ github.actor }}
+          TRIVY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+
+  # ── TEST ─────────────────────────────────────────────────────────────────
+  test:
+    name: Test
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: api
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+
+      # Mockito puro, sem subir o contexto Spring: falha rápido.
+      - name: Testes unitários
+        run: mvn test -B -Dtest='com.senai.experience.unit.*Test,com.senai.experience.services.*Test'
+
+      # MockMvc e RestAssured com @SpringBootTest (H2 em memória, sem Docker).
+      # "verify" roda a suíte completa e aplica o gate de cobertura do JaCoCo
+      # (mínimo de 60% de linhas), que está ligado à fase verify no pom.xml.
+      - name: Testes automatizados e cobertura
+        run: mvn verify -B
+
+      - name: Publicar relatório de cobertura
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-coverage-report
+          path: api/target/site/jacoco/
+          if-no-files-found: ignore
+
+  # ── DEPLOY (simbólico) ───────────────────────────────────────────────────
+  # Por enquanto não publica nada: só marca o fim do fluxo.
+  # Roda apenas em push na main, nunca em pull request.
+  deploy:
+    name: Deploy (simbólico)
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Deploy simbólico
+        run: echo "Build e testes aprovados. Deploy simbólico do commit ${{ github.sha }}."
