@@ -22,6 +22,7 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/x
 
     <properties>
         <java.version>17</java.version>
+        <tomcat.version>10.1.56</tomcat.version>
         <!--
           Sobrescreve a versão do Jackson gerenciada pelo Spring Boot (2.17.3), que
           tem dois CVEs HIGH de Denial of Service no jackson-core (CVE-2026-89407 e

@@ -1,19 +1,18 @@
 # .trivyignore — CVEs conscientemente adiadas (dívida técnica documentada)
 #
 # CONTEXTO
-# O projeto usa Spring Boot 3.3.13 (a versão de patch mais recente e segura da
-# linha 3.3.x). As CVEs listadas abaixo NÃO têm correção dentro da linha 3.3.x:
-# a única versão que as resolve está em 3.5.x / 4.x (Spring Boot, Spring Security,
-# Spring Framework, Spring Data) ou em versões de Tomcat/Jackson que só chegam via
-# esse upgrade de minor. Subir de minor é uma mudança que exige testes de
-# compatibilidade e foi adiada de forma consciente.
+# O projeto ainda usa Spring Boot 3.3.13. Esta lista contém exceções documentadas
+# para vulnerabilidades presentes nas versões atualmente resolvidas. Quando houver
+# correção compatível, prefira atualizar a dependência afetada sem suprimir a CVE.
+# Algumas atualizações exigem migrar para Spring Boot 3.5.x / 4.x e testes de
+# compatibilidade; outras podem ser aplicadas por override de versão.
 #
 # O gate do Trivy CONTINUA ativo: ele falha o build para qualquer CVE nova,
-# High/Critical, que tenha correção aplicável. Este arquivo só suprime as que hoje
-# exigiriam o salto de minor.
+# High/Critical, que tenha correção aplicável. As exceções neste arquivo devem ter
+# justificativa específica e ser reavaliadas quando as dependências ou o código mudarem.
 #
-# REVISÃO: reavaliar ao planejar a migração para Spring Boot 3.5.x / 4.x.
-# Ao migrar, remover as entradas correspondentes e deixar o Trivy revalidar.
+# REVISÃO: reavaliar ao atualizar dependências e ao planejar a migração para
+# Spring Boot 3.5.x / 4.x. Remover as entradas assim que deixarem de ser necessárias.
 
 # --- Apache Tomcat (tomcat-embed-core) — correção só em 10.1.55+ (linha 3.5.x) ---
 CVE-2026-41293
@@ -60,3 +59,8 @@ CVE-2025-41249
 CVE-2026-41850
 CVE-2026-41842
 CVE-2026-41845
+
+# --- Spring MVC XsltView ---
+# Não aplicável enquanto a API usar apenas @RestController, sem renderização de views,
+# mapeamentos MVC genéricos ou configuração de XsltView. Reavaliar se isso mudar.
+CVE-2026-47884

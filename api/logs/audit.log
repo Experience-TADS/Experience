@@ -1,0 +1,4 @@
+2026-11-24 20:17:54.440 INFO  [AUDIT] LOGIN_SUCESSO | usuario=ana.souza@email.com | ip=127.0.0.1
+2026-11-24 20:22:36.004 INFO  [AUDIT] LOGIN_SUCESSO | usuario=vendedor.toyota@experience.com | ip=127.0.0.1
+2026-11-24 20:25:25.420 INFO  [AUDIT] LOGIN_FALHA | usuario=admin@toyota.com | ip=127.0.0.1
+2026-11-24 20:25:47.129 INFO  [AUDIT] LOGIN_SUCESSO | usuario=admin@experience.com | ip=127.0.0.1
