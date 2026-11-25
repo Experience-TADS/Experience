@@ -2,6 +2,7 @@ package com.senai.experience.security;
 
 import java.security.Key;
 import java.util.Date;
+import java.util.UUID;
 
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
@@ -38,6 +39,10 @@ public class JwtUtil {
     // Gera token com email no subject, role e userId como claims
     public static String generateToken(String email, String role, Long userId) {
         return Jwts.builder()
+                // jti único: iat/exp têm precisão de segundos, então sem ele dois tokens do mesmo
+                // usuário gerados no mesmo segundo seriam idênticos. Como a TokenBlacklist indexa
+                // pelo token inteiro, o logout de um invalidaria o outro (401 até expirar).
+                .setId(UUID.randomUUID().toString())
                 .setSubject(email)
                 .claim("role", role)
                 .claim("userId", userId)

@@ -1309,3 +1309,16 @@
 2026-11-24 21:43:10.312 INFO  [AUDIT] LOGIN_SUCESSO | usuario=cliente.veiculo@test.com | ip=127.0.0.1
 2026-11-24 21:43:10.483 INFO  [AUDIT] LOGIN_SUCESSO | usuario=admin.veiculo@test.com | ip=127.0.0.1
 2026-11-24 21:43:10.654 INFO  [AUDIT] LOGIN_SUCESSO | usuario=cliente.veiculo@test.com | ip=127.0.0.1
+2026-11-24 21:54:38.502 INFO  [AUDIT] LOGIN_SUCESSO | usuario=admin@experience.com | ip=127.0.0.1
+2026-11-24 21:54:39.626 INFO  [AUDIT] LOGIN_SUCESSO | usuario=admin@experience.com | ip=127.0.0.1
+2026-11-24 21:54:39.702 INFO  [AUDIT] REFRESH_SUCESSO | usuario=admin@experience.com
+2026-11-24 21:54:39.742 INFO  [AUDIT] REFRESH_FALHA | ip=127.0.0.1
+2026-11-24 21:54:39.814 INFO  [AUDIT] LOGOUT | usuario=admin@experience.com
+2026-11-24 21:54:39.834 INFO  [AUDIT] REFRESH_FALHA | ip=127.0.0.1
+2026-11-24 21:54:39.860 INFO  [AUDIT] REFRESH_FALHA | ip=127.0.0.1
+2026-11-24 21:54:40.041 INFO  [AUDIT] LOGIN_SUCESSO | usuario=admin@experience.com | ip=127.0.0.1
+2026-11-24 21:54:41.047 INFO  [AUDIT] LOGIN_SUCESSO | usuario=cliente.pedido@teste.com | ip=127.0.0.1
+2026-11-24 21:54:41.089 INFO  [AUDIT] ACESSO_NEGADO | usuario=cliente.pedido@teste.com | metodo=GET | recurso=/api/pedido | ip=127.0.0.1
+2026-11-24 21:54:41.342 INFO  [AUDIT] LOGIN_SUCESSO | usuario=cliente.meus@teste.com | ip=127.0.0.1
+2026-11-24 21:54:41.499 INFO  [AUDIT] LOGIN_SUCESSO | usuario=admin@experience.com | ip=127.0.0.1
+2026-11-24 21:54:41.631 INFO  [AUDIT] LOGIN_SUCESSO | usuario=admin@experience.com | ip=127.0.0.1
