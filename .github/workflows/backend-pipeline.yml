@@ -99,11 +99,9 @@ jobs:
   # Por enquanto não publica nada: só marca o fim do fluxo.
   # Roda apenas em push na main, nunca em pull request.
   deploy:
-    name: Deploy (simbólico)
+    name: Deploy 
     needs: test
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    timeout-minutes: 5
     steps:
       - name: Deploy simbólico
-        run: echo "Build e testes aprovados. Deploy simbólico do commit ${{ github.sha }}."
+        run: echo "Deploy ainda não configurado. Etapa aprovada automaticamente."
