@@ -4,14 +4,15 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.senai.experience.config.PostgresTestContainer;
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
@@ -21,10 +22,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
+@Transactional
 class PedidoControllerTest extends PostgresTestContainer {
 
     @Autowired MockMvc mockMvc;
+    @Autowired EntityManager em;
     private final ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
 
     private String tokenAdmin;
@@ -235,6 +237,10 @@ class PedidoControllerTest extends PostgresTestContainer {
                                 }
                                 """.formatted(idCliente, idVendedor)))
                 .andReturn();
+        // O teste roda em uma transação com rollback: sem flush/clear, o GET seguinte recebe
+        // o mesmo objeto salvo no POST (itens nulo) em vez de relê-lo do banco, como em produção.
+        em.flush();
+        em.clear();
         return mapper.readTree(result.getResponse().getContentAsString()).get("id").asLong();
     }
 
