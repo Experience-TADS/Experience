@@ -1,0 +1,575 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Simulador de Linha</title>
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/mqtt@5.10.1/dist/mqtt.min.js"></script>
+<style>
+  /* Cores de andon (Toyota): verde = fluindo, âmbar = atenção/espera, vermelho = parada/erro. */
+  :root {
+    --bg: #15191e; --painel: #1d2228; --painel-2: #242a31; --linha: #343c45;
+    --texto: #e7eaee; --mudo: #9aa4af;
+    --verde: #3fbf6f; --ambar: #f0a630; --vermelho: #ef5a5f; --azul: #63aee8;
+    --sobre-cor: #0b0d10; /* texto sobre botões preenchidos (contraste >= 4.5:1) */
+    --sans: 'IBM Plex Sans Condensed', 'Arial Narrow', system-ui, sans-serif;
+    --mono: 'IBM Plex Mono', ui-monospace, Consolas, monospace;
+    color-scheme: dark;
+  }
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg: #e9ecef; --painel: #ffffff; --painel-2: #f3f5f7; --linha: #c9d0d7;
+      --texto: #171b20; --mudo: #4f5964;
+      --verde: #19803f; --ambar: #9a5a00; --vermelho: #b4232a; --azul: #1f63a3;
+      --sobre-cor: #fff;
+      color-scheme: light;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--texto); font: 15px/1.45 var(--sans); }
+  h1, h2 { margin: 0; font-weight: 600; }
+  h1 { font-size: 1.3rem; letter-spacing: .01em; }
+  h2 { font-size: 1rem; }
+  input, button { font: inherit; color: inherit; }
+  input {
+    width: 100%; min-height: 36px; padding: 6px 9px; border-radius: 4px;
+    background: var(--painel-2); border: 1px solid var(--linha);
+  }
+  input[type=number] { font-family: var(--mono); font-size: .9rem; }
+  label { display: grid; gap: 4px; font-size: .85rem; color: var(--mudo); }
+  button {
+    min-height: 36px; padding: 6px 14px; border-radius: 4px; cursor: pointer; font-weight: 600;
+    background: var(--painel-2); border: 1px solid var(--linha);
+  }
+  button:hover:not(:disabled) { border-color: var(--mudo); }
+  button:disabled { opacity: .45; cursor: not-allowed; }
+  :focus-visible { outline: 2px solid var(--azul); outline-offset: 2px; }
+  .btn-verde { background: var(--verde); border-color: var(--verde); color: var(--sobre-cor); }
+  .btn-ambar { background: transparent; border: 2px solid var(--ambar); color: var(--ambar); }
+  .btn-ambar:hover:not(:disabled) { background: var(--ambar); color: var(--sobre-cor); border-color: var(--ambar); }
+  .btn-parar { background: var(--vermelho); border-color: var(--vermelho); color: var(--sobre-cor); min-width: 110px; }
+
+  /* Cabeçalho */
+  header {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 12px 24px; justify-content: space-between;
+    padding: 14px 20px; background: var(--painel); border-bottom: 1px solid var(--linha);
+  }
+  header p { margin: 2px 0 0; color: var(--mudo); font-size: .85rem; }
+  header code { font-family: var(--mono); color: var(--texto); }
+  .conexao { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .conexao label { display: flex; align-items: center; gap: 8px; }
+  .conexao input { width: 220px; font-family: var(--mono); font-size: .85rem; }
+  .led-status { display: flex; align-items: center; gap: 8px; min-width: 120px; font-weight: 500; }
+  .led { width: 12px; height: 12px; border-radius: 50%; background: var(--linha); flex: none; }
+  [data-con=ok] .led { background: var(--verde); box-shadow: 0 0 8px var(--verde); }
+  [data-con=con] .led { background: var(--ambar); animation: pisca 1s steps(2) infinite; }
+  [data-con=erro] .led { background: var(--vermelho); box-shadow: 0 0 8px var(--vermelho); }
+  @keyframes pisca { 50% { opacity: .25; } }
+
+  /* Layout: controles à esquerda, supervisório à direita */
+  .layout { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 16px; padding: 16px 20px 24px; max-width: 1500px; margin: 0 auto; }
+  aside { display: grid; gap: 16px; align-content: start; }
+  main { display: grid; gap: 16px; min-width: 0; }
+  .painel { background: var(--painel); border: 1px solid var(--linha); border-radius: 6px; padding: 14px 16px; }
+  .painel > h2 { margin-bottom: 12px; }
+  .campos { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+  .campos .largo { grid-column: 1 / -1; }
+  .dica { font-size: .82rem; color: var(--mudo); margin: 10px 0 0; }
+  .dica strong { color: var(--texto); font-weight: 500; }
+
+  .extremo { border-color: var(--ambar); border-width: 1px 1px 1px 4px; }
+  .extremo > h2 { color: var(--ambar); }
+  .extremo button { width: 100%; }
+  .progresso { margin-top: 14px; display: grid; gap: 6px; }
+  .progresso[hidden] { display: none; }
+  .trilho { height: 8px; border-radius: 4px; background: var(--painel-2); overflow: hidden; border: 1px solid var(--linha); }
+  .trilho > i { display: block; height: 100%; width: 0; background: var(--ambar); }
+  .resumo { display: grid; grid-template-columns: auto 1fr; gap: 2px 12px; margin: 6px 0 0; font-size: .85rem; }
+  .resumo dt { color: var(--mudo); }
+  .resumo dd { margin: 0; font-family: var(--mono); text-align: right; }
+
+  /* Barra de estado da linha */
+  .estado-linha { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+  .estado-linha .rotulo { display: flex; align-items: center; gap: 10px; font-size: 1.05rem; font-weight: 600; }
+  .andon { width: 14px; height: 28px; border-radius: 3px; background: var(--linha); }
+  [data-modo=normal] .andon { background: var(--verde); }
+  [data-modo=extremo] .andon { background: var(--ambar); }
+
+  /* Linha de montagem: 6 postos em sequência */
+  .postos { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 14px; counter-reset: posto; }
+  .posto {
+    position: relative; display: grid; gap: 6px; align-content: start; min-height: 132px;
+    padding: 10px 12px 12px; background: var(--painel-2); border: 1px solid var(--linha); border-top: 4px solid var(--linha); border-radius: 4px;
+  }
+  /* Esteira entre postos */
+  .posto:not(:last-child)::after {
+    content: ''; position: absolute; top: 50%; right: -15px; width: 14px; height: 2px; background: var(--linha);
+  }
+  .posto[data-s=ocupado] { border-top-color: var(--verde); }
+  .posto[data-s=espera] { border-top-color: var(--ambar); }
+  .posto[data-s=lote] { border-top-color: var(--ambar); }
+  .posto-topo { display: flex; justify-content: space-between; gap: 6px; font-size: .78rem; color: var(--mudo); }
+  .posto-nome { font-weight: 600; font-size: .92rem; line-height: 1.2; min-height: 2.4em; }
+  .posto-chassi { font-family: var(--mono); font-size: .95rem; font-weight: 500; }
+  .posto-situacao { font-size: .8rem; color: var(--mudo); }
+  .posto[data-s=espera] .posto-situacao { color: var(--ambar); }
+  .posto .trilho { height: 6px; margin-top: auto; }
+  .posto .trilho > i { background: var(--verde); transition: width 1s linear; }
+  .posto[data-s=espera] .trilho > i, .posto[data-s=lote] .trilho > i { background: var(--ambar); }
+
+  /* KPIs */
+  .kpis { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 1px; background: var(--linha); border: 1px solid var(--linha); border-radius: 6px; overflow: hidden; }
+  .kpi { background: var(--painel); padding: 12px 14px; display: grid; gap: 2px; }
+  .kpi dt { font-size: .8rem; color: var(--mudo); }
+  .kpi dd { margin: 0; font: 500 1.45rem/1.2 var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .kpi dd small { font-size: .8rem; color: var(--mudo); }
+  .kpi .alerta { color: var(--vermelho); }
+
+  .inferior { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 3fr); gap: 16px; }
+  .cabecalho-painel { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+  .cabecalho-painel span { font-size: .8rem; color: var(--mudo); font-family: var(--mono); }
+  #spark { width: 100%; height: 150px; display: block; }
+  #spark .grade { stroke: var(--linha); stroke-width: 1; }
+  #spark .area { fill: var(--azul); opacity: .15; }
+  #spark .traco { fill: none; stroke: var(--azul); stroke-width: 2; vector-effect: non-scaling-stroke; }
+  .eixo { display: flex; justify-content: space-between; font-size: .75rem; color: var(--mudo); margin-top: 4px; }
+
+  .log-filtro { margin-bottom: 8px; }
+  #log {
+    margin: 0; height: 260px; overflow: auto; padding: 8px 10px; border-radius: 4px;
+    background: var(--bg); border: 1px solid var(--linha); color: var(--texto);
+    font: 12px/1.5 var(--mono); white-space: pre;
+  }
+
+  @media (max-width: 1200px) {
+    .postos { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .posto:nth-child(3)::after { display: none; }
+    .kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  }
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: minmax(0, 1fr); padding: 12px 16px 20px; }
+    .inferior { grid-template-columns: minmax(0, 1fr); }
+    header { padding: 12px 16px; }
+  }
+  @media (max-width: 560px) {
+    .postos { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .posto::after { display: none; }
+    .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .conexao, .conexao label { width: 100%; }
+    .conexao input { width: auto; flex: 1; min-width: 0; }
+    .btn-parar { width: 100%; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    [data-con=con] .led { animation: none; }
+    .posto .trilho > i { transition: none; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>Simulador da linha de montagem</h1>
+    <p>Publica eventos de produção no tópico <code>senai/pii_toy</code></p>
+  </div>
+  <div class="conexao">
+    <label>Broker <input id="broker" value="ws://localhost:9001" spellcheck="false"></label>
+    <button id="conectar">Conectar</button>
+    <div class="led-status" id="con" data-con="off"><span class="led" aria-hidden="true"></span><span id="status" role="status" aria-live="polite">Desconectado</span></div>
+  </div>
+</header>
+
+<div class="layout">
+  <aside>
+    <section class="painel" aria-labelledby="t-normal">
+      <h2 id="t-normal">Produção normal</h2>
+      <div class="campos">
+        <label class="largo">Qtd. carros <input id="qtd" type="number" min="1" value="10" inputmode="numeric"></label>
+      </div>
+      <button id="iniciar" class="btn-verde" disabled>Iniciar</button>
+      <p class="dica">Ritmo real: 1 s por tick, tempos por posto de 3, 5, 4, 6, 3 e 2 s. Chassis <strong>CHASSI_00001</strong> em diante.</p>
+    </section>
+
+    <section class="painel extremo" aria-labelledby="t-extremo">
+      <h2 id="t-extremo">Simulação extrema</h2>
+      <div class="campos">
+        <label>Carros <input id="x-carros" type="number" min="1" max="9999" value="500" inputmode="numeric"></label>
+        <label>Janela (s) <input id="x-janela" type="number" min="1" max="600" value="5" inputmode="numeric"></label>
+        <label class="largo">Paralelo (carros por onda) <input id="x-paralelo" type="number" min="1" max="9999" value="50" inputmode="numeric"></label>
+      </div>
+      <button id="extremo" class="btn-ambar" disabled>Iniciar simulação extrema</button>
+      <p class="dica" id="x-alvo"></p>
+      <p class="dica">Teste de carga: 12 eventos válidos por carro, em ordem, com QoS 1 para contar as confirmações do broker. Chassis <strong>CHASSI_90001</strong> em diante não existem no banco: o backend processa e descarta (consulta, sem gravar).</p>
+      <div class="progresso" id="x-progresso" hidden>
+        <div class="trilho" role="progressbar" aria-label="Progresso da simulação extrema" aria-valuemin="0" aria-valuemax="100" id="x-barra"><i></i></div>
+        <dl class="resumo" id="x-resumo"></dl>
+      </div>
+    </section>
+  </aside>
+
+  <main>
+    <section class="painel" aria-labelledby="t-linha">
+      <div class="estado-linha" id="estado" data-modo="">
+        <div class="rotulo"><span class="andon" aria-hidden="true"></span><h2 id="t-linha"><span id="estado-texto" aria-live="polite">Linha parada</span></h2></div>
+        <button id="parar" class="btn-parar" disabled>Parar</button>
+      </div>
+      <ol class="postos" id="linha"></ol>
+    </section>
+
+    <dl class="kpis">
+      <div class="kpi"><dt>Finalizados</dt><dd id="k-fin">0 <small>/ 0</small></dd></div>
+      <div class="kpi"><dt>Em produção</dt><dd id="k-prod">0</dd></div>
+      <div class="kpi"><dt>Msgs publicadas</dt><dd id="k-pub">0</dd></div>
+      <div class="kpi"><dt>Msgs/s</dt><dd id="k-taxa">0</dd></div>
+      <div class="kpi"><dt>Tempo decorrido</dt><dd id="k-tempo">00:00</dd></div>
+      <div class="kpi"><dt>Pendentes / erros</dt><dd id="k-pend">0 <small>/ 0</small></dd></div>
+    </dl>
+
+    <div class="inferior">
+      <section class="painel" aria-labelledby="t-vazao">
+        <div class="cabecalho-painel"><h2 id="t-vazao">Vazão (msgs/s)</h2><span id="spark-max">pico 0</span></div>
+        <svg id="spark" viewBox="0 0 600 150" preserveAspectRatio="none" role="img" aria-label="Mensagens por segundo nos últimos 60 segundos">
+          <line class="grade" x1="0" y1="75" x2="600" y2="75"/>
+          <line class="grade" x1="0" y1="149" x2="600" y2="149"/>
+          <path class="area"/><polyline class="traco"/>
+        </svg>
+        <div class="eixo"><span>60 s atrás</span><span>agora</span></div>
+      </section>
+
+      <section class="painel" aria-labelledby="t-log">
+        <div class="cabecalho-painel"><h2 id="t-log">Mensagens publicadas</h2><span id="log-info"></span></div>
+        <label class="log-filtro">Filtrar <input id="filtro" type="search" placeholder="chassi, etapa, erro…" spellcheck="false"></label>
+        <pre id="log" tabindex="0" aria-label="Registro de mensagens publicadas"></pre>
+      </section>
+    </div>
+  </main>
+</div>
+
+<script>
+const TOPIC = 'senai/pii_toy';
+const ETAPAS = ['MONTAGEM_ESTRUTURAL', 'PINTURA', 'INSTALACAO_MOTOR', 'ACABAMENTO_INTERNO', 'INSPECAO_FINAL', 'LIBERACAO_TRANSPORTE'];
+const NOMES = ['Montagem estrutural', 'Pintura', 'Instalação do motor', 'Acabamento interno', 'Inspeção final', 'Liberação p/ transporte'];
+const TEMPOS = [3, 5, 4, 6, 3, 2];
+const LOG_MAX = 500, HIST = 60;
+const X_BASE = 90000, X_INFLIGHT = 2000, X_LOTE = 400; // extremo: offset de chassi, máx. sem PUBACK, máx. por ciclo
+
+const $ = id => document.getElementById(id);
+let client = null, timer = null, estado = null, run = null;
+
+const novoEstado = qtd => ({ qtd, linha: Array(6).fill(null), resto: Array(6).fill(0), atual: 1, finalizados: 0 });
+const chassi = n => 'CHASSI_' + String(n).padStart(5, '0');
+function timestamp() {
+  const d = new Date(), p = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}`;
+}
+
+// Mesma lógica do simulador.py (1 tick = 1s). Diferença: "Finalizado" sai uma vez só,
+// mesmo se o carro ficar esperando a próxima etapa liberar (o .py repetia a cada tick).
+function tick(s, publicar) {
+  for (let i = ETAPAS.length - 1; i >= 0; i--) {
+    const c = s.linha[i];
+    if (c === null) continue;
+    if (s.resto[i] > 0 && --s.resto[i] === 0) publicar(c, ETAPAS[i], 'Finalizado');
+    if (s.resto[i] > 0) continue;
+    if (i === ETAPAS.length - 1) { s.finalizados++; s.linha[i] = null; }
+    else if (s.linha[i + 1] === null) {
+      s.linha[i + 1] = c; s.resto[i + 1] = TEMPOS[i + 1]; s.linha[i] = null;
+      publicar(c, ETAPAS[i + 1], 'Iniciado');
+    }
+  }
+  if (s.atual <= s.qtd && s.linha[0] === null) {
+    const c = chassi(s.atual++);
+    s.linha[0] = c; s.resto[0] = TEMPOS[0];
+    publicar(c, ETAPAS[0], 'Iniciado');
+  }
+}
+
+// Self-check: 10 carros x 6 etapas x (Iniciado + Finalizado) = 120 eventos únicos.
+(() => {
+  const s = novoEstado(10), ev = []; let n = 0;
+  while (s.finalizados < 10 && n++ < 1000) tick(s, (c, e, st) => ev.push(c + e + st));
+  console.assert(s.finalizados === 10 && ev.length === 120 && new Set(ev).size === 120, 'self-check do simulador falhou');
+})();
+
+// Extremo: ondas de `paralelo` carros avançam juntas pelas 12 transições, então cada
+// chassi recebe Iniciado/Finalizado das 6 etapas na ordem; só o tempo é comprimido.
+function gerarEventosExtremos(qtd, paralelo) {
+  const ev = [];
+  for (let base = 0; base < qtd; base += paralelo) {
+    const onda = Math.min(paralelo, qtd - base);
+    for (let k = 0; k < ETAPAS.length * 2; k++)
+      for (let j = 1; j <= onda; j++) ev.push([chassi(X_BASE + base + j), k >> 1, k & 1 ? 'Finalizado' : 'Iniciado']);
+  }
+  return ev;
+}
+
+// Self-check: N carros → N*12 eventos, cada chassi com as 12 transições em ordem.
+(() => {
+  const n = 37, ev = gerarEventosExtremos(n, 8), porCarro = new Map();
+  ev.forEach(([c, e, st]) => porCarro.set(c, (porCarro.get(c) || []).concat(e * 2 + (st === 'Finalizado'))));
+  const ordem = [...Array(12).keys()].join();
+  console.assert(ev.length === n * 12 && porCarro.size === n && [...porCarro.values()].every(v => v.join() === ordem),
+    'self-check do gerador extremo falhou');
+})();
+
+/* ---------- Log: ring buffer, desenhado no máximo 1x por frame ---------- */
+const logBuf = new Array(LOG_MAX);
+let logIni = 0, logLen = 0, logSujo = false;
+function log(m) {
+  if (logLen < LOG_MAX) logBuf[(logIni + logLen++) % LOG_MAX] = m;
+  else { logBuf[logIni] = m; logIni = (logIni + 1) % LOG_MAX; }
+  logSujo = true; agendarRender();
+}
+function renderLog() {
+  const f = $('filtro').value.trim().toLowerCase(), linhas = [];
+  for (let k = 0; k < logLen; k++) {
+    const l = logBuf[(logIni + k) % LOG_MAX];
+    if (!f || l.toLowerCase().includes(f)) linhas.push(l);
+  }
+  const el = $('log'), noFim = el.scrollTop + el.clientHeight >= el.scrollHeight - 24;
+  el.textContent = linhas.join('\n');
+  if (noFim) el.scrollTop = el.scrollHeight;
+  $('log-info').textContent = f ? `${linhas.length} de ${logLen} linhas` : `últimas ${logLen} de no máx. ${LOG_MAX}`;
+  logSujo = false;
+}
+$('filtro').oninput = () => { logSujo = true; agendarRender(); };
+
+/* ---------- Publicação e contadores ---------- */
+const hist = Array(HIST).fill(0);
+let nesteSegundo = 0;
+
+const novaExecucao = (modo, carros) =>
+  ({ modo, carros, inicio: performance.now(), fim: 0, publicadas: 0, confirmadas: 0, erros: 0, pico: 0, ativo: true });
+
+function publicar(c, etapa, status, qos = 0) {
+  const msg = JSON.stringify({ chassi: c, etapa, status, timestamp: timestamp() });
+  const r = run;
+  r.publicadas++; nesteSegundo++;
+  // QoS 0: callback = mensagem escrita no socket; QoS 1: callback = PUBACK do broker.
+  client.publish(TOPIC, msg, { qos }, err => {
+    if (err) { r.erros++; log('Erro: ' + err.message); } else r.confirmadas++;
+    talvezConcluirExtremo(r);
+    agendarRender();
+  });
+  log(msg);
+}
+
+setInterval(() => {
+  hist.push(nesteSegundo); hist.shift();
+  if (run && run.ativo) run.pico = Math.max(run.pico, nesteSegundo);
+  nesteSegundo = 0;
+  desenharVazao();
+  agendarRender();
+}, 1000);
+
+function desenharVazao() {
+  const max = Math.max(10, ...hist), W = 600, H = 150;
+  const pts = hist.map((v, i) => `${(i / (HIST - 1) * W).toFixed(1)},${(H - 1 - v / max * (H - 8)).toFixed(1)}`);
+  const svg = $('spark');
+  svg.querySelector('.traco').setAttribute('points', pts.join(' '));
+  svg.querySelector('.area').setAttribute('d', `M0,${H} L${pts.join(' L')} L${W},${H} Z`);
+  $('spark-max').textContent = `escala ${max} msgs/s`;
+}
+
+/* ---------- Render (coalescido por requestAnimationFrame) ---------- */
+let renderAgendado = false;
+function agendarRender() {
+  if (!renderAgendado) { renderAgendado = true; requestAnimationFrame(render); }
+}
+
+$('linha').innerHTML = ETAPAS.map((e, i) => `
+  <li class="posto" data-s="livre">
+    <div class="posto-topo"><span>Posto ${i + 1}</span><span>${TEMPOS[i]} s</span></div>
+    <div class="posto-nome" title="${e}">${NOMES[i]}</div>
+    <div class="posto-chassi">—</div>
+    <div class="posto-situacao">Livre</div>
+    <div class="trilho" aria-hidden="true"><i></i></div>
+  </li>`).join('');
+const postos = [...$('linha').children];
+
+const fmtTempo = ms => { const s = Math.floor(ms / 1000); return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`; };
+const fmtN = n => n.toLocaleString('pt-BR');
+
+function renderPostos() {
+  const x = run && run.modo === 'extremo' ? run.x : null;
+  postos.forEach((el, i) => {
+    let s = 'livre', ch = '—', sit = 'Livre', pct = 0;
+    if (x) {
+      const n = x.naEtapa[i];
+      s = n ? 'lote' : 'livre'; ch = `${fmtN(n)} carros`;
+      sit = `${fmtN(x.passou[i])} de ${fmtN(run.carros)} concluídos`;
+      pct = x.passou[i] / run.carros * 100;
+    } else if (estado && estado.linha[i]) {
+      const resto = estado.resto[i];
+      s = resto ? 'ocupado' : 'espera'; ch = estado.linha[i];
+      sit = resto ? `${resto} s restantes` : 'Aguardando próximo posto';
+      pct = (TEMPOS[i] - resto) / TEMPOS[i] * 100;
+    }
+    el.dataset.s = s;
+    el.children[2].textContent = ch;
+    el.children[3].textContent = sit;
+    el.children[4].firstChild.style.width = pct + '%';
+  });
+}
+
+function renderExtremo() {
+  const x = run && run.modo === 'extremo' ? run.x : null;
+  if (!x) return;
+  const total = x.ev.length, pct = x.i / total * 100;
+  const dur = ((run.fim || performance.now()) - run.inicio) / 1000;
+  $('x-progresso').hidden = false;
+  $('x-barra').firstChild.style.width = pct + '%';
+  $('x-barra').setAttribute('aria-valuenow', Math.round(pct));
+  const linhas = [
+    ['Enviadas', `${fmtN(x.i)} / ${fmtN(total)}`],
+    ['Confirmadas (PUBACK)', fmtN(run.confirmadas)],
+    ['Pendentes', fmtN(run.publicadas - run.confirmadas - run.erros)],
+    ['Erros', fmtN(run.erros)],
+    ['Duração', dur.toFixed(1) + ' s'],
+    ['Média', fmtN(Math.round(x.i / Math.max(dur, 0.001))) + ' msgs/s'],
+    ['Pico', fmtN(run.pico) + ' msgs/s'],
+  ];
+  if (!run.ativo) linhas.unshift(['Resultado', x.interrompida ? 'Interrompida' : 'Concluída']);
+  $('x-resumo').innerHTML = linhas.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('');
+}
+
+function render() {
+  renderAgendado = false;
+  const r = run, x = r && r.x;
+  const fin = !r ? 0 : x ? x.passou[5] : estado.finalizados;
+  const prod = !r ? 0 : x ? x.naEtapa.reduce((a, b) => a + b, 0) : estado.linha.filter(Boolean).length;
+  const pend = r ? r.publicadas - r.confirmadas - r.erros : 0;
+  $('k-fin').innerHTML = `${fmtN(fin)} <small>/ ${fmtN(r ? r.carros : 0)}</small>`;
+  $('k-prod').textContent = fmtN(prod);
+  $('k-pub').textContent = fmtN(r ? r.publicadas : 0);
+  $('k-taxa').textContent = fmtN(hist[HIST - 1]);
+  $('k-tempo').textContent = r ? fmtTempo((r.fim || performance.now()) - r.inicio) : '00:00';
+  $('k-pend').innerHTML = `${fmtN(pend)} <small class="${r && r.erros ? 'alerta' : ''}">/ ${fmtN(r ? r.erros : 0)}</small>`;
+  renderPostos();
+  renderExtremo();
+  if (logSujo) renderLog();
+}
+
+/* ---------- Controles ---------- */
+function botoes() {
+  const ok = client && client.connected, rodando = !!(run && run.ativo);
+  $('iniciar').disabled = $('extremo').disabled = !ok || rodando;
+  $('parar').disabled = !rodando;
+  $('conectar').disabled = $('broker').disabled = rodando;
+  ['qtd', 'x-carros', 'x-janela', 'x-paralelo'].forEach(id => { $(id).disabled = rodando; });
+  const modo = rodando ? run.modo : '';
+  $('estado').dataset.modo = modo;
+  $('estado-texto').textContent = modo === 'normal' ? 'Produção normal em andamento'
+    : modo === 'extremo' ? 'Simulação extrema em andamento' : 'Linha parada';
+}
+
+function setStatus(t, con) {
+  // Só reescreve se mudou: o MQTT.js tenta reconectar a cada 1 s e o aria-live repetiria o aviso.
+  if ($('status').textContent !== t) $('status').textContent = t;
+  $('con').dataset.con = con; botoes();
+}
+
+$('conectar').onclick = () => {
+  if (client) client.end(true);
+  setStatus('Conectando...', 'con');
+  let c;
+  try { c = client = mqtt.connect($('broker').value.trim()); }
+  catch (e) { client = null; return setStatus('Erro: ' + e.message, 'erro'); }
+  // Eventos tardios do cliente anterior (já encerrado) são ignorados.
+  const on = (ev, fn) => c.on(ev, (...a) => { if (c === client) fn(...a); });
+  on('connect', () => setStatus('Conectado', 'ok'));
+  on('error', e => setStatus('Erro: ' + e.message, 'erro'));
+  on('close', () => {
+    if (run && run.ativo && run.modo === 'extremo') { run.x.interrompida = true; encerrar('Conexão perdida: simulação extrema interrompida.'); }
+    setStatus('Sem conexão, tentando novamente...', 'erro');
+  });
+};
+
+function passo() {
+  tick(estado, publicar);
+  agendarRender();
+  if (estado.finalizados >= estado.qtd) encerrar('Simulação finalizada.');
+}
+
+$('iniciar').onclick = () => {
+  const qtd = parseInt($('qtd').value, 10);
+  if (!(qtd > 0)) return alert('Quantidade inválida');
+  estado = novoEstado(qtd);
+  run = novaExecucao('normal', qtd);
+  log('=== Iniciando simulação ===');
+  timer = setInterval(passo, 1000);
+  passo();
+  botoes();
+};
+
+function encerrar(msg) {
+  clearInterval(timer); timer = null;
+  // Inclui o segundo parcial em curso no pico (senão runs < 1 s mostram pico 0).
+  if (run && run.ativo) { run.ativo = false; run.fim = performance.now(); run.pico = Math.max(run.pico, nesteSegundo); }
+  if (msg) log(msg);
+  botoes(); agendarRender();
+}
+
+$('parar').onclick = () => {
+  if (run && run.x) run.x.interrompida = true;
+  encerrar(run && run.x ? 'Simulação extrema parada.' : 'Simulação parada.');
+};
+
+/* ---------- Simulação extrema ---------- */
+function paramsExtremo() {
+  const carros = parseInt($('x-carros').value, 10), janela = parseInt($('x-janela').value, 10);
+  const paralelo = parseInt($('x-paralelo').value, 10);
+  if (!(carros >= 1 && carros <= 9999 && janela >= 1 && janela <= 600 && paralelo >= 1)) return null;
+  return { carros, janela, paralelo: Math.min(paralelo, carros), total: carros * 12 };
+}
+
+function atualizarAlvo() {
+  const p = paramsExtremo();
+  $('x-alvo').textContent = p
+    ? `Serão ${fmtN(p.total)} mensagens em ${p.janela} s, alvo de ${fmtN(Math.ceil(p.total / p.janela))} msgs/s.`
+    : 'Valores inválidos: carros de 1 a 9.999, janela de 1 a 600 s, paralelo ≥ 1.';
+}
+['x-carros', 'x-janela', 'x-paralelo'].forEach(id => $(id).addEventListener('input', atualizarAlvo));
+
+$('extremo').onclick = () => {
+  const p = paramsExtremo();
+  if (!p) return alert('Parâmetros da simulação extrema inválidos.');
+  if (!confirm(`Publicar ${fmtN(p.total)} mensagens em ~${p.janela} s no broker?\nIsso gera carga real no broker e no backend.`)) return;
+  estado = null;
+  run = novaExecucao('extremo', p.carros);
+  run.x = { ev: gerarEventosExtremos(p.carros, p.paralelo), i: 0, taxa: p.total / p.janela,
+    naEtapa: Array(6).fill(0), passou: Array(6).fill(0), interrompida: false };
+  log(`=== Simulação extrema: ${p.carros} carros, ${p.total} msgs, ${p.janela} s ===`);
+  botoes();
+  bombear(run);
+};
+
+// Publica o que o relógio permite (taxa alvo), limitado por lote e por mensagens sem PUBACK,
+// devolvendo o controle ao navegador entre ciclos para não travar a interface.
+function bombear(r) {
+  if (r !== run || !r.ativo) return;
+  const x = r.x, alvo = Math.min(x.ev.length, Math.ceil((performance.now() - r.inicio) / 1000 * x.taxa));
+  for (let n = 0; x.i < alvo && n < X_LOTE && r.publicadas - r.confirmadas - r.erros < X_INFLIGHT; n++) {
+    const [c, e, st] = x.ev[x.i++];
+    if (st === 'Iniciado') x.naEtapa[e]++; else { x.naEtapa[e]--; x.passou[e]++; }
+    publicar(c, ETAPAS[e], st, 1);
+  }
+  agendarRender();
+  if (x.i < x.ev.length) setTimeout(bombear, 8, r);
+}
+
+function talvezConcluirExtremo(r) {
+  if (r === run && r.ativo && r.x && r.x.i === r.x.ev.length && r.confirmadas + r.erros === r.publicadas)
+    encerrar(`Simulação extrema concluída: ${fmtN(r.confirmadas)} confirmadas, ${fmtN(r.erros)} erros.`);
+}
+
+atualizarAlvo();
+desenharVazao();
+render();
+renderLog();
+</script>
+</body>
+</html>
